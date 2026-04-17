@@ -1,0 +1,1733 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Daedalus Atelier — Estate Agent Qualifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0A0A0A;
+      --surface:#111111;
+      --border:#1e1e1e;
+      --accent:#10B981;
+      --accent-hover:#0ea472;
+      --text:#F0F0F0;
+      --muted:#6b7280;
+      --success:#10B981;
+      --danger:#ef4444;
+      --warn:#f59e0b;
+    }
+    *{box-sizing:border-box;font-family:'Inter',-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif}
+    body{margin:0;background:var(--bg);color:var(--text);min-height:100vh}
+    .container{max-width:760px;margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
+    h1{font-size:16px;margin:0;font-weight:600;letter-spacing:-0.01em}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:0;padding:16px;margin-bottom:14px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500}
+    input[type=text],input[type=password],input[type=url],input[type=email]{width:100%;padding:9px 10px;border-radius:0;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;outline:none;transition:border-color .15s;font-family:inherit}
+    input:focus{border-color:var(--accent)}
+    button.primary{background:var(--accent);border:none;color:#001a10;cursor:pointer;padding:9px 20px;border-radius:0;font-size:13px;font-weight:600;white-space:nowrap;transition:background .15s}
+    button.primary:hover{background:var(--accent-hover)}
+    button.primary:disabled{opacity:.4;cursor:not-allowed}
+    button.copy-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 11px;border-radius:0;font-size:12px;cursor:pointer;transition:border-color .15s,color .15s;font-family:inherit}
+    button.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+    /* Score badge */
+    .score-badge{display:inline-block;padding:7px 20px;border-radius:0;font-size:22px;font-weight:700;letter-spacing:.02em;border:1px solid var(--border)}
+    .score-hot{background:#10B981;color:#0A0A0A;border-color:#10B981}
+    .score-warm{background:transparent;color:#10B981;border-color:#10B981}
+    .score-cold{background:rgba(239,68,68,0.12);color:var(--danger);border-color:var(--danger)}
+
+    .section-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:0 0 10px 0;font-weight:600}
+
+    .signal-list{list-style:none;margin:0;padding:0}
+    .signal-list li{padding:6px 0;font-size:13px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;line-height:1.45}
+    .signal-list li:last-child{border-bottom:none}
+    .signal-dot{width:6px;height:6px;border-radius:0;background:var(--accent);flex-shrink:0;margin-top:5px}
+
+    .recommendation-box{background:var(--bg);border-left:2px solid var(--accent);padding:10px 14px;font-size:13px;line-height:1.6}
+
+    .email-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);gap:12px}
+    .email-row:last-child{border-bottom:none}
+    .email-addr{font-size:13px;font-family:'JetBrains Mono',Consolas,monospace;color:var(--accent);word-break:break-all}
+
+    .names-wrap{display:flex;flex-wrap:wrap;gap:8px}
+    .name-pill{background:var(--bg);padding:5px 12px;border-radius:0;font-size:12px;border:1px solid var(--border)}
+
+    .reasoning-text{font-size:13px;color:var(--muted);line-height:1.55;margin-top:8px;max-width:500px}
+
+    /* Spinner */
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(16,185,129,0.15);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:8px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    #loadingState{display:none;padding:14px 0;font-size:13px;color:var(--muted);align-items:center}
+    #errorState{display:none;margin-top:4px}
+    .error-box{background:rgba(239,68,68,0.08);border:1px solid var(--danger);padding:12px 14px;font-size:13px;color:var(--danger);line-height:1.55}
+    #pasteState{display:none;margin-top:8px}
+    #pasteState label{font-size:13px;color:var(--text);margin-bottom:8px;display:block;line-height:1.5}
+    #pasteTextarea{width:100%;height:160px;padding:10px;border-radius:0;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;resize:vertical;outline:none;font-family:inherit;transition:border-color .15s}
+    #pasteTextarea:focus{border-color:var(--accent)}
+
+    #results{display:none}
+
+    @media(max-width:580px){.container{padding:12px} .score-badge{font-size:18px} button.primary{padding:9px 14px}}
+
+    /* Duplicate warning */
+    .dup-box{background:rgba(245,158,11,0.08);border:1px solid var(--warn);padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--warn);line-height:1.55}
+    .dup-box .dup-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+    /* Extracted metadata grid */
+    .meta-row{display:flex;align-items:baseline;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);gap:12px;font-size:13px}
+    .meta-row:last-child{border-bottom:none}
+    .meta-label{color:var(--muted);font-size:12px;flex-shrink:0;min-width:120px}
+    .meta-val{text-align:right;word-break:break-word}
+
+    /* Flag banners */
+    .flag-banner{background:rgba(245,158,11,0.08);border:1px solid var(--warn);padding:10px 14px;font-size:13px;color:var(--warn);line-height:1.5;margin-bottom:14px}
+
+    /* Cold panel */
+    .cold-card{background:rgba(239,68,68,0.06);border:1px solid var(--danger)}
+    .cold-title{font-size:14px;font-weight:600;color:var(--danger);margin-bottom:8px}
+    .cold-reason{font-size:13px;color:rgba(239,68,68,0.9);line-height:1.55}
+    .disqualifier-list{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+    .disqualifier-list li{font-size:13px;color:var(--danger);display:flex;gap:8px;align-items:flex-start;line-height:1.45}
+    .manually-qualified-badge{display:inline-block;font-size:11px;font-weight:500;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:0;padding:2px 8px;margin-top:8px;letter-spacing:0.03em}
+
+    /* Out-of-area panel */
+    .ota-card{background:rgba(245,158,11,0.08);border:1px solid var(--warn)}
+    .ota-title{font-size:13px;color:var(--warn);line-height:1.55;margin-bottom:12px}
+    .ota-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+    /* Email radio selector */
+    .email-radio-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer}
+    .email-radio-row:last-child{border-bottom:none}
+    .email-radio-row input[type=radio]{accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+
+    /* Draft email CTA */
+    .btn-draft{background:var(--accent);border:none;color:#001a10;cursor:pointer;padding:13px 24px;border-radius:0;font-size:14px;font-weight:700;width:100%;letter-spacing:.01em;transition:background .15s;margin-bottom:4px;font-family:inherit}
+    .btn-draft:hover{background:var(--accent-hover)}
+
+    /* Secondary grey button */
+    button.secondary{background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;padding:9px 20px;border-radius:0;font-size:13px;font-weight:500;transition:border-color .15s,color .15s;font-family:inherit}
+    button.secondary:hover{border-color:var(--accent);color:var(--text)}
+    button.secondary:disabled{opacity:.4;cursor:not-allowed}
+
+    /* Email draft section */
+    .back-link{font-size:13px;color:var(--muted);text-decoration:none;transition:color .15s;display:inline-block;margin-bottom:14px}
+    .back-link:hover{color:var(--accent)}
+    .draft-field-wrap{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .draft-field{font-size:13px;font-family:'JetBrains Mono',Consolas,monospace;color:var(--text);line-height:1.5;flex:1;word-break:break-word}
+    .draft-body-field{font-size:13px;color:var(--text);line-height:1.8;white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px solid var(--border);padding:10px 12px}
+    button.btn-edit{background:transparent;border:1px solid var(--accent);color:var(--accent);cursor:pointer;padding:4px 11px;border-radius:0;font-size:12px;font-weight:500;transition:background .15s;font-family:inherit}
+    button.btn-edit:hover{background:rgba(16,185,129,0.1)}
+    .btn-confirm{background:var(--accent);border:none;color:#001a10;cursor:pointer;padding:13px 24px;border-radius:0;font-size:14px;font-weight:700;width:100%;letter-spacing:.01em;transition:background .15s;margin-bottom:4px;font-family:inherit}
+    .btn-confirm:hover{background:var(--accent-hover)}
+
+    /* Future Targets panel */
+    .btn-ft-header{background:transparent;border:1px solid var(--border);color:var(--muted);cursor:pointer;padding:5px 12px;border-radius:0;font-size:12px;transition:border-color .15s,color .15s;white-space:nowrap;font-family:inherit}
+    .btn-ft-header:hover{border-color:var(--accent);color:var(--accent)}
+    .ft-empty{font-size:13px;color:var(--muted);padding:4px 0}
+    .ft-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+    .ft-row:last-child{border-bottom:none}
+    .ft-name{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .ft-url{font-size:11px;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400}
+    .ft-actions{display:flex;gap:6px;flex-shrink:0}
+    .btn-ft-remove{background:transparent;border:1px solid rgba(239,68,68,0.4);color:var(--danger);padding:4px 9px;border-radius:0;font-size:12px;cursor:pointer;transition:border-color .15s;font-family:inherit}
+    .btn-ft-remove:hover{border-color:var(--danger)}
+
+    /* Confirm state */
+    .confirm-card{background:rgba(16,185,129,0.06);border:1px solid var(--accent)}
+    .confirm-msg{font-size:13px;color:var(--accent);line-height:1.55;font-weight:500}
+    .mark-sent-card{background:var(--surface);border:1px solid var(--border)}
+    .mark-sent-msg{font-size:13px;color:var(--muted);line-height:1.7}
+    .confirm-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
+
+    select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:0;color:var(--text);padding:9px 11px;font-size:13px;font-family:inherit;outline:none}
+    select:focus{border-color:var(--accent)}
+    textarea{font-family:inherit}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Daedalus Atelier — Estate Agent Qualifier</h1>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="muted small">AI-powered lead scoring</div>
+        <button class="btn-ft-header" id="btnToggleFT">Future Targets (0)</button>
+      </div>
+    </header>
+
+    <!-- Future Targets panel -->
+    <div id="futureTargetsPanel" style="display:none" class="card">
+      <div class="section-label" style="margin-bottom:10px">Future Targets</div>
+      <div id="ftList"></div>
+    </div>
+
+    <!-- API Key -->
+    <div class="card">
+      <label>Anthropic API Key</label>
+      <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+      <div class="muted small" style="margin-top:6px">Held in memory only - never stored or sent anywhere except the Anthropic API.</div>
+      <label style="margin-top:12px">Google Places API Key <span style="color:var(--muted);font-weight:400">(optional — enriches with review count + rating)</span></label>
+      <input type="password" id="googlePlacesKey" placeholder="AIza..." autocomplete="off" spellcheck="false">
+    </div>
+
+    <!-- URL Input -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <label style="margin-bottom:0">Agency Website URL</label>
+        <button id="btnToggleBatch" onclick="toggleBatchMode()" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit">Switch to Batch Mode</button>
+      </div>
+      <div id="singleUrlMode">
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input type="url" id="clinicUrl" placeholder="https://exampleagency.co.uk" style="flex:1">
+          <button class="primary" id="btnAnalyse" onclick="runAnalysis()">Analyse</button>
+        </div>
+        <div class="muted small" style="margin-top:6px">Page is fetched via a CORS proxy, stripped to plain text, then analysed by Claude Haiku.</div>
+      </div>
+      <div id="batchUrlMode" style="display:none">
+        <textarea id="batchUrls" rows="6" placeholder="Paste one URL per line&#10;https://agency1.co.uk&#10;https://agency2.co.uk" style="width:100%;margin-top:6px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 11px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <button class="primary" id="btnBatchAnalyse" onclick="runBatchAnalysis()">Qualify All</button>
+          <span id="batchProgress" class="muted small"></span>
+        </div>
+        <div class="muted small" style="margin-top:6px">Each URL is qualified sequentially. ~5 seconds per agency.</div>
+      </div>
+    </div>
+
+    <!-- Batch Results -->
+    <div id="batchResults" style="display:none">
+      <div class="card" style="padding:0">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:600;font-size:14px">Batch Results</div>
+        <div id="batchResultsList"></div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loadingState">
+      <span class="spinner"></span><span id="loadingMsg">Fetching page...</span>
+    </div>
+
+    <!-- Duplicate warning -->
+    <div id="dupWarning" style="display:none">
+      <div class="dup-box">
+        <div id="dupMsg"></div>
+        <div class="dup-actions">
+          <button class="primary" id="btnContinueAnyway">Continue Anyway</button>
+          <button class="copy-btn" id="btnViewTracker">View in CRM ↗</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="errorState">
+      <div class="error-box" id="errorMsg"></div>
+    </div>
+
+    <!-- Paste fallback -->
+    <div id="pasteState" class="card">
+      <label for="pasteTextarea">Couldn't fetch the page automatically. Paste the agency's homepage text here:</label>
+      <textarea id="pasteTextarea" placeholder="Copy all visible text from the agency's website and paste it here..."></textarea>
+      <div style="margin-top:10px">
+        <button class="primary" onclick="runWithPastedText()">Run Qualifier</button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="results">
+
+      <!-- Score — always visible when results shown -->
+      <div class="card" id="scoreCard">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div class="section-label">Qualification Score</div>
+            <div id="scoreBadge" class="score-badge"></div>
+            <div id="manuallyQualifiedBadge" class="manually-qualified-badge" style="display:none">Manually qualified</div>
+            <div id="reasoningText" class="reasoning-text"></div>
+          </div>
+          <div class="muted small" id="analysedUrl" style="text-align:right;max-width:240px;word-break:break-all;margin-top:4px"></div>
+        </div>
+      </div>
+
+      <!-- Cold stop panel -->
+      <div id="coldPanel" style="display:none">
+        <div class="card cold-card">
+          <div class="cold-title">✕ Not Suitable</div>
+          <div id="coldReason" class="cold-reason"></div>
+          <ul id="disqualifierList" class="disqualifier-list"></ul>
+        </div>
+        <div style="margin-bottom:8px">
+          <div class="manually-qualified-badge" style="margin-bottom:10px">Manually qualified - enquiry channel set to Contact Form</div>
+          <button class="secondary" id="btnColdContinue" style="width:100%">Continue Anyway</button>
+        </div>
+        <div style="margin-bottom:14px">
+          <button class="secondary" id="btnSaveFuture">Save as Future Target</button>
+        </div>
+      </div>
+
+      <!-- Out-of-area panel -->
+      <div id="outOfAreaPanel" style="display:none">
+        <div class="card ota-card">
+          <div id="outOfAreaMsg" class="ota-title"></div>
+          <div class="ota-actions">
+            <button class="primary" id="btnProceedAnyway">Proceed Anyway</button>
+            <button class="secondary" id="btnDiscard">Discard</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flag banners (Hot/Warm only) -->
+      <div id="flagChannel" class="flag-banner" style="display:none"></div>
+      <div id="flagContact" class="flag-banner" style="display:none"></div>
+
+      <!-- Recommendation -->
+      <div class="card" id="recommendationCard" style="display:none">
+        <div class="section-label">Recommended Action</div>
+        <div class="recommendation-box" id="recommendation"></div>
+      </div>
+
+      <!-- Signals -->
+      <div class="card" id="signalsCard" style="display:none">
+        <div class="section-label">Detected Signals</div>
+        <ul class="signal-list" id="signalList"></ul>
+      </div>
+
+      <!-- Custom Observation for Email 3 (AI-generated) -->
+      <div class="card" id="customObsEmailCard" style="display:none">
+        <div class="section-label">Custom Observation (Email 3)</div>
+        <div id="customObsEmailLoading" style="display:none;font-size:13px;color:var(--muted);padding:4px 0 10px;align-items:center">
+          <span class="spinner"></span><span>Generating observation...</span>
+        </div>
+        <textarea id="customObsEmailInput" rows="3" placeholder="One-sentence observation for Email 3..." style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:0;color:var(--text);padding:9px 11px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+        <div style="margin-top:8px;display:flex;justify-content:flex-end">
+          <button class="copy-btn" id="btnCopyCustomObs">Copy</button>
+        </div>
+      </div>
+
+      <!-- Extracted metadata -->
+      <div class="card" id="metaCard" style="display:none">
+        <div class="section-label">Extracted Data</div>
+        <div id="metaGrid"></div>
+      </div>
+
+      <!-- Emails (single copy or multi radio-selector) -->
+      <div class="card" id="emailsCard" style="display:none">
+        <div class="section-label" id="emailsCardLabel">Email Addresses Found</div>
+        <div id="emailsList"></div>
+        <div id="emailSelector"></div>
+      </div>
+
+      <!-- Editable email field -->
+      <div id="emailToSendCard" style="display:none">
+        <div class="card">
+          <div class="section-label">Email to Send To</div>
+          <input type="email" id="emailToSendInput" placeholder="Enter email address manually" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+
+      <!-- Editable contact field -->
+      <div id="directorCard" style="display:none">
+        <div class="card">
+          <div class="section-label">Director / Owner / MD</div>
+          <input type="text" id="directorInput" placeholder="e.g. Sarah Williams" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+
+      <!-- Custom Observation -->
+      <div class="card" id="customObsCard" style="display:none">
+        <div class="section-label">Custom Observation (optional)</div>
+        <textarea id="customObsInput" rows="3" placeholder="Paste any specific detail about this agency — e.g. slow form response, owner-operated, no CRM" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:0;color:var(--text);padding:9px 11px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+
+      <!-- Confirm Enquiry Channel -->
+      <div class="card" id="intakeMethodCard" style="display:none">
+        <div class="section-label">Confirm Enquiry Channel</div>
+        <select id="intakeMethodSelect">
+          <option value="contact_form">Contact Form</option>
+          <option value="phone_only">Phone Only</option>
+          <option value="email_only">Email Only</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="live_chat">Live Chat</option>
+          <option value="instant_response_tool">Instant Response Tool</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <!-- Review Draft Email CTA -->
+      <div id="draftCtaWrap" style="display:none">
+        <button class="btn-draft" id="btnReviewDraft">Review Draft Email →</button>
+      </div>
+
+    </div>
+
+    <!-- Email Draft Section -->
+    <div id="emailDraftSection" style="display:none">
+
+      <a href="#" class="back-link" id="btnBackToResults">← Back to Results</a>
+
+      <!-- Generate email -->
+      <div class="card">
+        <button class="primary" id="btnGenerateEmail">Generate Email</button>
+      </div>
+
+      <!-- Draft loading -->
+      <div id="draftLoadingState" style="display:none;padding:10px 0;font-size:13px;color:var(--muted);align-items:center">
+        <span class="spinner"></span><span>Generating email draft...</span>
+      </div>
+
+      <!-- Draft output -->
+      <div id="draftOutput" style="display:none">
+
+        <div class="card">
+          <div class="section-label">Email Address</div>
+          <div class="draft-field-wrap">
+            <div id="draftEmailAddress" class="draft-field"></div>
+            <button class="copy-btn" id="btnCopyDraftEmail">Copy</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">Subject Line</div>
+          <div class="draft-field-wrap">
+            <div id="draftSubject" class="draft-field"></div>
+            <input type="text" id="editSubjectInput" style="display:none;flex:1;background:var(--bg);border:1px solid var(--accent);border-radius:0;color:var(--text);padding:5px 9px;font-size:13px;font-family:'JetBrains Mono',Consolas,monospace;outline:none">
+            <button class="copy-btn" id="btnCopySubject">Copy</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-label">Email Body</div>
+          <div id="draftBody" class="draft-body-field"></div>
+          <textarea id="editBodyInput" style="display:none;width:100%;background:var(--bg);border:1px solid var(--accent);border-radius:0;color:var(--text);padding:10px 12px;font-size:13px;line-height:1.8;resize:vertical;box-sizing:border-box;font-family:inherit;outline:none"></textarea>
+          <div id="ctaVariantWrap" style="margin-top:12px">
+            <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);display:block;margin-bottom:6px">CTA Variant</label>
+            <div style="display:flex;gap:6px">
+              <button class="secondary" id="btnCtaDemo" style="font-size:12px;padding:5px 14px;opacity:1">Demo</button>
+              <button class="secondary" id="btnCtaAudit" style="font-size:12px;padding:5px 14px;opacity:0.5">Audit</button>
+            </div>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="copy-btn" id="btnCopyEmail">Copy Email</button>
+            <button class="btn-edit" id="btnEditDraft">Edit</button>
+            <button class="secondary" id="btnRegenerate">Regenerate</button>
+          </div>
+        </div>
+
+        <button class="btn-confirm" id="btnConfirmTracker">Confirm &amp; Add to CRM →</button>
+
+      </div>
+
+      <!-- Confirm state (shown after tracker add) -->
+      <div id="confirmState" style="display:none">
+        <div class="card confirm-card">
+          <div id="confirmMsg" class="confirm-msg"></div>
+        </div>
+        <div id="markSentState" style="display:none" class="card mark-sent-card">
+          <div id="markSentMsg" class="mark-sent-msg"></div>
+        </div>
+        <div class="confirm-actions">
+          <button class="primary" id="btnMarkSent">Mark as Sent</button>
+          <button class="secondary" id="btnAddAnother">Add Another Agency</button>
+          <a href="#" id="btnViewTrackerFinal" class="back-link" style="margin:0">View in CRM ↗</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const TRACKER_KEY = 'da_crm_v1';
+    const FUTURE_KEY  = 'daedalus_ea_future_targets';
+    const SB_URL = 'https://jqfhbjyneqttzwpiqkrh.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxZmhianluZXF0dHp3cGlxa3JoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzMzY5MTgsImV4cCI6MjA5MTkxMjkxOH0.RSwUvpeYPTNXGvFZSm0da0LoKEIkexxB7NqNSDo776w';
+    const SB_TABLE = 'daedalus_leads';
+    let _sb = null;
+    function getSB(){ if(!_sb && window.supabase) _sb = window.supabase.createClient(SB_URL, SB_KEY); return _sb; }
+    const SB_FIELD_MAP = {
+      id:'id', agencyName:'agency_name', directorName:'director_name', directorEmail:'director_email',
+      city:'city', address:'address', phone:'phone', websiteUrl:'website_url',
+      googleRating:'google_rating', reviewCount:'review_count', branchCount:'branch_count',
+      rightmoveListed:'rightmove_listed', existingTool:'existing_tool',
+      status:'status', priority:'priority', notes:'notes', customObservation:'custom_observation',
+      email1SentDate:'email1_sent_date', email2Date:'email2_date', email2SentDate:'email2_sent_date',
+      email3Date:'email3_date', email3SentDate:'email3_sent_date', email4Date:'email4_date',
+      followUpDate:'follow_up_date', directorLinkedinUrl:'director_linkedin_url',
+      linkedinConnected:'linkedin_connected', threadMessageId:'thread_message_id',
+      activityLog:'activity_log', dateAdded:'date_added',
+      draftSubject:'draft_subject', draftBody:'draft_body', subjectLine:'subject_line',
+      ctaVariant:'cta_variant', channel:'channel', score:'score'
+    };
+    const SB_DATE_FIELDS = new Set(['email1_sent_date','email2_date','email2_sent_date','email3_date','email3_sent_date','email4_date','follow_up_date']);
+    function leadToSnake(lead){ const row={}; for(const [k,v] of Object.entries(lead)){ const sk=SB_FIELD_MAP[k]; if(!sk) continue; let val=v; if(SB_DATE_FIELDS.has(sk)){ if(!val||val==='') val=null; else if(typeof val==='string'&&val.includes('T')) val=val.slice(0,10); } if(val===undefined) continue; row[sk]=val; } return row; }
+    const CRM_URL     = '../crm/index.html';
+    let pendingUrl    = '';
+    let pendingApiKey = '';
+    let selectedEmail = '';
+    let _draftEdited  = false;
+    let _editMode     = false;
+
+    // ── 5-snapshot backup rotation ──
+    function saveSnapshot() {
+      try {
+        const data = localStorage.getItem(TRACKER_KEY) || '[]';
+        for (let i = 4; i >= 1; i--) {
+          const prev = localStorage.getItem(TRACKER_KEY + '_snap_' + i);
+          if (prev !== null) localStorage.setItem(TRACKER_KEY + '_snap_' + (i + 1), prev);
+        }
+        localStorage.setItem(TRACKER_KEY + '_snap_1', data);
+      } catch {}
+    }
+
+    // ── UI helpers ──
+    function setLoading(on, msg) {
+      const el = document.getElementById('loadingState');
+      el.style.display = on ? 'flex' : 'none';
+      if (msg) document.getElementById('loadingMsg').textContent = msg;
+      document.getElementById('btnAnalyse').disabled = on;
+    }
+    function showError(msg) {
+      document.getElementById('errorMsg').textContent = msg;
+      document.getElementById('errorState').style.display = 'block';
+    }
+    function clearError() {
+      document.getElementById('errorState').style.display = 'none';
+      document.getElementById('pasteState').style.display = 'none';
+    }
+    function showPasteFallback() {
+      document.getElementById('pasteState').style.display = 'block';
+      document.getElementById('errorState').style.display = 'none';
+    }
+    function hideDupWarning() { document.getElementById('dupWarning').style.display = 'none'; }
+
+    // ── Edit mode toggle ──
+    function toggleEditMode() {
+      const subjDiv   = document.getElementById('draftSubject');
+      const subjInput = document.getElementById('editSubjectInput');
+      const bodyDiv   = document.getElementById('draftBody');
+      const bodyInput = document.getElementById('editBodyInput');
+      const btn       = document.getElementById('btnEditDraft');
+      _editMode = !_editMode;
+      if (_editMode) {
+        subjInput.value          = subjDiv.textContent;
+        subjDiv.style.display    = 'none';
+        subjInput.style.display  = 'block';
+        bodyInput.value          = bodyDiv.textContent;
+        bodyInput.style.height   = Math.max(bodyDiv.offsetHeight, 120) + 'px';
+        bodyDiv.style.display    = 'none';
+        bodyInput.style.display  = 'block';
+        btn.textContent          = 'Done';
+      } else {
+        const newSubject         = subjInput.value.trim();
+        const newBody            = bodyInput.value;
+        subjDiv.textContent      = newSubject;
+        subjDiv.style.display    = '';
+        subjInput.style.display  = 'none';
+        bodyDiv.textContent      = newBody;
+        bodyDiv.style.display    = '';
+        bodyInput.style.display  = 'none';
+        if (window._lastDraft) {
+          window._lastDraft.subject = newSubject;
+          window._lastDraft.body    = newBody;
+        }
+        _draftEdited    = true;
+        btn.textContent = 'Edit';
+      }
+    }
+
+    // ── Duplicate check ──
+    function checkDuplicate(url) {
+      try {
+        const raw = localStorage.getItem(TRACKER_KEY);
+        if (!raw) return null;
+        const leads = JSON.parse(raw);
+        if (!Array.isArray(leads)) return null;
+        const normUrl = s => String(s || '').toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').trim();
+        const inputUrl = normUrl(url);
+        if (!inputUrl) return null;
+        return leads.find(l => {
+          const storedUrl = normUrl(l.website || '');
+          if (!storedUrl) return false;
+          return storedUrl === inputUrl;
+        }) || null;
+      } catch { return null; }
+    }
+
+    // ── HTML → plain text ──
+    function htmlToText(html) {
+      html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+      html = html.replace(/<style[\s\S]*?<\/style>/gi, '');
+      html = html.replace(/<nav[\s\S]*?<\/nav>/gi, '');
+      html = html.replace(/<footer[\s\S]*?<\/footer>/gi, '');
+      html = html.replace(/<[^>]+>/g, ' ');
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      const text = (div.textContent || div.innerText || '');
+      return text.replace(/\s+/g, ' ').trim().slice(0, 12000);
+    }
+
+    // ── Entry point ──
+    function runAnalysis() {
+      const apiKey = document.getElementById('apiKey').value.trim();
+      const url    = document.getElementById('clinicUrl').value.trim();
+
+      clearError();
+      hideDupWarning();
+      document.getElementById('results').style.display = 'none';
+
+      if (!apiKey) { showError('Please enter your Anthropic API key.'); return; }
+      if (!url)    { showError('Please enter an agency website URL.'); return; }
+      const _gKey = (document.getElementById('googlePlacesKey') || {}).value || '';
+      if (_gKey) sessionStorage.setItem('google_places_key', _gKey);
+
+      proceedWithAnalysis(url, apiKey);
+    }
+
+    function continueAnyway() {
+      hideDupWarning();
+      renderResults(window._lastResult, window._lastUrl);
+    }
+
+    // ── API call 1 — qualifier ──
+    async function proceedWithAnalysis(url, apiKey) {
+      clearError();
+      document.getElementById('results').style.display = 'none';
+      setLoading(true, 'Fetching page...');
+
+      let pageText = '';
+      try {
+        let fetchedHtml = null;
+
+        // Proxy 1: corsproxy.io (raw HTML)
+        try {
+          setLoading(true, 'Fetching page...');
+          const p1res = await fetch('https://corsproxy.io/?' + encodeURIComponent(url),
+                                    { signal: AbortSignal.timeout(10000) });
+          if (p1res.ok) {
+            const text = await p1res.text();
+            if (text && text.length > 50) fetchedHtml = text;
+          }
+        } catch { /* fall through */ }
+
+        // Proxy 2: allorigins (JSON wrapper — response in .contents)
+        if (!fetchedHtml) {
+          try {
+            setLoading(true, 'Retrying with proxy 2...');
+            const p2res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(url),
+                                      { signal: AbortSignal.timeout(8000) });
+            if (p2res.ok) {
+              const p2data = await p2res.json();
+              if (p2data.contents && p2data.contents.length > 50) fetchedHtml = p2data.contents;
+            }
+          } catch { /* fall through */ }
+        }
+
+        // Proxy 3: codetabs (raw HTML)
+        if (!fetchedHtml) {
+          try {
+            setLoading(true, 'Retrying with proxy 3...');
+            const p3res = await fetch('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
+                                      { signal: AbortSignal.timeout(10000) });
+            if (p3res.ok) {
+              const text = await p3res.text();
+              if (text && text.length > 50) fetchedHtml = text;
+            }
+          } catch { /* fall through */ }
+        }
+
+        if (!fetchedHtml) throw new Error('All proxies failed.');
+
+        // Keep raw HTML for script-level tool detection
+        const htmlLower = fetchedHtml.toLowerCase();
+        pageText = htmlToText(fetchedHtml);
+        if (pageText.length < 80) throw new Error('Very little text extracted.');
+
+        // Estate agent tool / instant-response detection (pre-analysis)
+        const TOOL_SIGNALS = {
+          'Klikkit':    ['klikkit'],
+          'SalesRook':  ['salesrook','sales rook'],
+          'Yomdel':     ['yomdel'],
+          'Giosg':      ['giosg'],
+          'LiveChat':   ['livechat.com','livechatinc','livechat inc','__lc'],
+          'Intercom':   ['intercom.io','intercom.com','intercomcdn','intercomsettings'],
+          'Drift':      ['drift.com','driftt.com'],
+          'Tawk':       ['tawk.to','embed.tawk']
+        };
+        const OOH_PHRASES = ['instant response','respond within','reply within','24/7','always available','live chat available','we never miss an enquiry','automatic response','we reply instantly','round the clock'];
+        let detectedTool = 'None';
+        for (const [name, keys] of Object.entries(TOOL_SIGNALS)) {
+          if (keys.some(k => htmlLower.includes(k))) { detectedTool = name; break; }
+        }
+        const pageTextLower = pageText.toLowerCase();
+        const oohHit = OOH_PHRASES.some(p => pageTextLower.includes(p));
+        window._toolDetected = detectedTool !== 'None' ? detectedTool : (oohHit ? 'Other' : 'None');
+        window._oohDetected  = oohHit;
+      } catch (err) {
+        setLoading(false);
+        showPasteFallback();
+        return;
+      }
+
+      await runClaudeAnalysis(pageText, url, apiKey);
+    }
+
+    // ── API call 1 — qualifier (shared by fetch path and paste fallback) ──
+    async function runClaudeAnalysis(pageText, url, apiKey) {
+      setLoading(true, 'Analysing with Claude...');
+
+      const systemPrompt = `You are a sales qualifier for Daedalus Atelier, a UK speed-to-lead automation company working with independent estate agents. You analyse estate agency websites and extract structured data to qualify them as outreach targets.
+
+TOOL DETECTION — Look carefully for any of the following keywords anywhere in the page text or visible copy: "klikkit", "salesrook", "yomdel", "giosg", "livechat", "intercom", "drift", "tawk", "instant response", "respond within minutes", "we reply instantly", "24/7 response", "always available to chat". If any are present, set existing_tool_detected to the matching tool name (or "Other" for generic instant-response claims) and score the agency Cold.
+
+SCORING:
+- Hot = independent agency (1–3 branches), manual enquiry handling (contact form or phone only), listed on Rightmove or Zoopla, no instant response tool detected
+- Warm = mixed signals, partial automation unclear, 4–6 branches, insufficient data
+- Cold = any instant response tool detected (Klikkit, SalesRook, Yomdel, Giosg, LiveChat, Intercom, Drift, Tawk), OR 7+ branches, OR "instant response guarantee" visible on site
+
+Detect enquiry_channel from page content. Detect branch_count from footer, about page mentions, or navigation. Detect rightmove_listed from any Rightmove logo, link, or mention on page.`;
+
+      const userPrompt = `Analyse the following webpage text from a UK estate agency website and return a JSON object with EXACTLY these fields:
+
+- score: "Hot", "Warm", or "Cold"
+- score_confidence: "high" (clear signals, sufficient data to be sure) | "medium" (some signals but incomplete data) | "low" (ambiguous, insufficient page content)
+- score_reason: one sentence explaining the score
+- agency_name: detected agency name as a string, or null
+- director_name: the Director, MD, Managing Director, Owner or Principal name if found. Look for titles like "Director", "Managing Director", "Owner", "Principal". Return null if not found. Do NOT put an office manager or negotiator here.
+- office_manager_name: the office manager, branch manager, or lettings manager name if found. Return null if not found. Do NOT put a director here.
+- director_name_confidence: "found" (named on page), "inferred" (role only, no name), or "not_found"
+- emails: array of all email addresses detected (empty array if none)
+- primary_email: the single best email for outreach, or null
+- enquiry_channel: "contact_form" | "phone_only" | "email_only" | "whatsapp" | "live_chat" | "instant_response_tool" | "unknown"
+- enquiry_channel_confidence: "confirmed" (clearly stated) | "inferred" (implied) | "unknown"
+- review_count: number of Google reviews if mentioned on the page, or null
+- address: full street address if detected, or null
+- city: "London" | "Manchester" | "Birmingham" | "Leeds" | "Bristol" | "Edinburgh" | "Glasgow" | "Sheffield" | "Nottingham" | "Other" | "unknown"
+- city_name: actual city or area name detected, or null
+- branch_count: number if detected from footer/about/nav, or null
+- rightmove_listed: true if Rightmove logo, link, or mention is detected on the page, false otherwise
+- existing_tool_detected: "None" | "Klikkit" | "SalesRook" | "Yomdel" | "Giosg" | "LiveChat" | "Intercom" | "Drift" | "Tawk" | "Other"
+- disqualifiers: array of strings listing reasons this agency is Cold (empty array if Hot or Warm)
+- detected_signals: array of strings describing positive signals (concise and factual)
+
+Scoring rules:
+- Hot = independent agency (1-3 branches), no instant response tool, contact form or phone, Rightmove/Zoopla listed
+- Warm = mixed signals, 4-6 branches, partial automation unclear, insufficient information
+- Cold = instant response tool detected OR 7+ branches OR instant response guarantee on site
+
+Return ONLY a raw JSON object. No markdown, no code fences, no explanation.
+
+Webpage text:
+${pageText}`;
+
+      try {
+        const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 1000,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userPrompt }]
+          })
+        });
+
+        if (!apiRes.ok) {
+          const errBody = await apiRes.json().catch(() => ({}));
+          throw new Error(errBody.error?.message || 'API returned HTTP ' + apiRes.status);
+        }
+
+        const apiData = await apiRes.json();
+        const rawText = (apiData.content?.[0]?.text || '').trim();
+
+        let result;
+        try {
+          const clean = rawText.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
+          result = JSON.parse(clean);
+        } catch {
+          throw new Error('Claude returned an unexpected format. Response started with: ' + rawText.slice(0, 120));
+        }
+
+        // Merge JS-side tool detection if Claude missed it
+        if (window._toolDetected && window._toolDetected !== 'None' &&
+            (!result.existing_tool_detected || result.existing_tool_detected === 'None')) {
+          result.existing_tool_detected = window._toolDetected;
+          if (result.score !== 'Cold') {
+            result.score = 'Cold';
+            result.score_reason = (result.score_reason || '') + ' Instant-response tool detected: ' + window._toolDetected + '.';
+            result.disqualifiers = Array.isArray(result.disqualifiers) ? result.disqualifiers : [];
+            result.disqualifiers.push(window._toolDetected + ' detected on site');
+          }
+        }
+
+        // Store result for later stages
+        window._lastResult = result;
+        window._lastUrl    = url;
+        window._apiKey     = apiKey;
+
+        // Enrich with Google Places data (non-blocking)
+        try {
+          const _gKey = sessionStorage.getItem('google_places_key') || '';
+          if (_gKey && result.agency_name) {
+            const _searchQ = encodeURIComponent(result.agency_name + ' estate agent ' + (result.city_name || result.city || ''));
+            const _pRes = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://maps.googleapis.com/maps/api/place/textsearch/json?query=' + _searchQ + '&key=' + _gKey), {signal:AbortSignal.timeout(8000)});
+            if (_pRes.ok) {
+              const _pData = await _pRes.json();
+              if (_pData.results && _pData.results.length > 0) {
+                const _place = _pData.results[0];
+                if (_place.rating) result.google_rating = _place.rating;
+                if (_place.user_ratings_total) result.review_count = _place.user_ratings_total;
+                if (_place.formatted_address && !result.address) result.address = _place.formatted_address;
+                console.log('[Places] Enriched: ' + result.agency_name + ' — ' + (result.review_count || 0) + ' reviews, ' + (result.google_rating || '?') + ' rating');
+              }
+            }
+          }
+        } catch (e) { console.warn('[Places] Enrichment failed:', e.message); }
+
+        setLoading(false);
+
+        // Post-analysis duplicate check — URL match
+        const dupMatch = checkDuplicate(url);
+        if (dupMatch) {
+          const name = dupMatch.agencyName || dupMatch.website || 'an agency with this URL';
+          document.getElementById('dupMsg').textContent =
+            '⚠ This agency may already be in your CRM (' + name + '). Check before continuing.';
+          document.getElementById('dupWarning').style.display = 'block';
+          return;
+        }
+
+        renderResults(result, url);
+
+      } catch (err) {
+        setLoading(false);
+        showError('Analysis failed: ' + err.message);
+      }
+    }
+
+    // ── Paste fallback handler ──
+    async function runWithPastedText() {
+      const pastedText = (document.getElementById('pasteTextarea').value || '').trim();
+      if (!pastedText) {
+        alert('Please paste some text from the agency website before running.');
+        return;
+      }
+      const url = (document.getElementById('clinicUrl').value || '').trim();
+      const apiKey = (document.getElementById('apiKey').value || window._apiKey || '').trim();
+      if (!apiKey) {
+        showError('API key is required. Please enter it above.');
+        return;
+      }
+      document.getElementById('pasteState').style.display = 'none';
+      await runClaudeAnalysis(pastedText, url, apiKey);
+    }
+
+    // ── Batch Mode ──
+    let _batchMode = false;
+    function toggleBatchMode(){
+      _batchMode = !_batchMode;
+      document.getElementById('singleUrlMode').style.display = _batchMode ? 'none' : 'block';
+      document.getElementById('batchUrlMode').style.display = _batchMode ? 'block' : 'none';
+      document.getElementById('btnToggleBatch').textContent = _batchMode ? 'Switch to Single Mode' : 'Switch to Batch Mode';
+      if(!_batchMode){ document.getElementById('batchResults').style.display='none'; document.getElementById('batchProgress').textContent=''; }
+    }
+
+    async function runBatchAnalysis(){
+      const apiKey = (document.getElementById('apiKey').value || window._apiKey || '').trim();
+      if(!apiKey){ showError('Please enter your Anthropic API key.'); return; }
+      const _gKey = (document.getElementById('googlePlacesKey') || {}).value || '';
+      if(_gKey) sessionStorage.setItem('google_places_key', _gKey);
+      const raw = (document.getElementById('batchUrls').value || '').trim();
+      if(!raw){ showError('Paste at least one URL.'); return; }
+      const urls = raw.split('\n').map(u=>u.trim()).filter(u=>u&&(u.startsWith('http')||u.startsWith('www')));
+      if(!urls.length){ showError('No valid URLs found. One per line, starting with http.'); return; }
+
+      window._apiKey = apiKey;
+      const btn = document.getElementById('btnBatchAnalyse'); btn.disabled=true; btn.textContent='Running...';
+      const prog = document.getElementById('batchProgress');
+      const listEl = document.getElementById('batchResultsList'); listEl.innerHTML='';
+      document.getElementById('batchResults').style.display='block';
+      let completed=0, added=0;
+
+      for(const url of urls){
+        completed++;
+        prog.textContent = completed + '/' + urls.length + ' — ' + url.replace(/^https?:\/\//, '').slice(0,30) + '...';
+        const dup = checkDuplicate(url);
+        if(dup){ appendBatchRow(listEl, url, null, 'Duplicate — ' + (dup.agencyName||'already in CRM')); continue; }
+        try{
+          let pageText = null;
+          try{ const p1=await fetch('https://corsproxy.io/?'+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)}); if(p1.ok) pageText=await p1.text(); }catch(e){}
+          if(!pageText){ try{ const p2=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(8000)}); if(p2.ok){ const d=await p2.json(); pageText=d.contents; } }catch(e){} }
+          if(!pageText){ appendBatchRow(listEl, url, null, 'Page fetch failed'); continue; }
+          pageText = htmlToText(pageText);
+          const resp = await fetch('https://api.anthropic.com/v1/messages',{
+            method:'POST',
+            headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+            body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,system:'You are a sales qualifier for a UK estate agency speed-to-lead automation company. Analyse estate agency websites and return structured JSON.',messages:[{role:'user',content:pageText.slice(0,12000)+'\n\nReturn a JSON object with: score, score_confidence, score_reason, agency_name, review_count, city, enquiry_channel, rightmove_listed, existing_tool_detected, branch_count, director_name, office_manager_name, emails, primary_email, address'}]})
+          });
+          const data = await resp.json();
+          let txt = (data.content && data.content[0] && data.content[0].text) || '';
+          txt = txt.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
+          const result = JSON.parse(txt);
+          try{
+            const gk=sessionStorage.getItem('google_places_key')||'';
+            if(gk&&result.agency_name){
+              const sq=encodeURIComponent(result.agency_name+' estate agent '+(result.city||''));
+              const pr=await fetch('https://corsproxy.io/?'+encodeURIComponent('https://maps.googleapis.com/maps/api/place/textsearch/json?query='+sq+'&key='+gk),{signal:AbortSignal.timeout(6000)});
+              if(pr.ok){const pd=await pr.json();if(pd.results&&pd.results[0]){const pl=pd.results[0];if(pl.user_ratings_total)result.review_count=pl.user_ratings_total;if(pl.rating)result.google_rating=pl.rating;}}
+            }
+          }catch(e){}
+          appendBatchRow(listEl, url, result, null);
+          if(result.score!=='Cold') added++;
+        }catch(e){ appendBatchRow(listEl, url, null, 'Error: '+e.message); }
+      }
+      prog.textContent = 'Done — ' + completed + ' processed, ' + added + ' qualifiable';
+      btn.disabled=false; btn.textContent='Qualify All';
+    }
+
+    function appendBatchRow(container, url, result, error){
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px';
+      if(error){
+        row.innerHTML='<span style="color:var(--muted);flex:1">'+escapeHtml(url.replace(/^https?:\/\//,'').slice(0,40))+'</span><span style="color:var(--danger);font-size:12px">'+escapeHtml(error)+'</span>';
+      } else {
+        const score=result.score||'?';
+        const conf=result.score_confidence||'';
+        const cls=score==='Hot'?'color:var(--success)':score==='Warm'?'color:var(--warn)':'color:var(--danger)';
+        const reviews=result.review_count!=null?result.review_count+(result.google_rating?' ('+result.google_rating+'★)':''):'—';
+        const tool=result.existing_tool_detected||'—';
+        row.innerHTML='<span style="font-weight:600;flex:1">'+escapeHtml(result.agency_name||'(unknown)')+'</span><span style="'+cls+';font-weight:600;min-width:60px">'+score+(conf&&conf!=='high'?' <span style="font-weight:400;font-size:11px">'+conf+'</span>':'')+'</span><span style="min-width:70px;color:var(--muted)">'+reviews+'</span><span style="min-width:50px;color:var(--muted);font-size:12px">'+tool+'</span><button style="font-size:12px;padding:3px 8px;background:var(--accent);color:#fff;border:none;border-radius:4px;cursor:pointer" onclick="openSingleFromBatch(\''+escapeHtml(url.replace(/'/g,"\\'"))+'\')">Open</button>';
+      }
+      container.appendChild(row);
+    }
+
+    function openSingleFromBatch(url){
+      toggleBatchMode();
+      document.getElementById('clinicUrl').value=url;
+      runAnalysis();
+    }
+
+    // ── Helpers ──
+    function hide(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+    function show(id, d) { const el = document.getElementById(id); if (el) el.style.display = d || 'block'; }
+
+    function buildGreetingName(s){
+      s=(s||'').replace(/\s*\(.*?\)\s*/g,'').trim();
+      if(!s||s.toLowerCase()==='not found') return 'there';
+      const TITLES={'dr':'Dr','mr':'Mr','mrs':'Mrs','ms':'Ms','miss':'Miss'};
+      const titleMatch=s.match(/^(Dr\.?|Mr\.?|Mrs\.?|Ms\.?|Miss\.?)\s+/i);
+      if(titleMatch){
+        const canonical=TITLES[titleMatch[1].replace(/\.$/,'').toLowerCase()]||titleMatch[1];
+        const rest=s.slice(titleMatch[0].length).trim().split(/\s+/);
+        return canonical+' '+(rest[rest.length-1]||'there');
+      }
+      return s.split(/\s+/)[0]||'there';
+    }
+
+    function resetResultPanels() {
+      ['coldPanel','outOfAreaPanel','flagChannel','flagContact',
+       'recommendationCard','signalsCard','metaCard','emailsCard',
+       'emailToSendCard','directorCard','intakeMethodCard','customObsCard','customObsEmailCard','draftCtaWrap',
+       'manuallyQualifiedBadge'].forEach(id => hide(id));
+    }
+
+    // ── Main render dispatcher ──
+    function renderResults(r, url) {
+      const score = String(r.score || '').trim();
+      resetResultPanels();
+
+      // Score badge — always shown
+      const badge = document.getElementById('scoreBadge');
+      const _conf = r.score_confidence || 'medium';
+      badge.textContent = score + (_conf !== 'high' ? ' (' + _conf + ' confidence)' : '');
+      badge.className = 'score-badge';
+      if (score === 'Hot')       badge.classList.add('score-hot');
+      else if (score === 'Warm') badge.classList.add('score-warm');
+      else                       badge.classList.add('score-cold');
+      document.getElementById('reasoningText').textContent = r.score_reason || '';
+      document.getElementById('analysedUrl').textContent = url;
+
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Tool / instant-response override
+      if (window._toolDetected && window._toolDetected !== 'None') {
+        const toolMsg = 'Instant-response tool detected (' + window._toolDetected + ') - this agency already has speed-to-lead coverage in place';
+        badge.textContent = 'Cold';
+        badge.className = 'score-badge score-cold';
+        document.getElementById('reasoningText').textContent = toolMsg;
+        document.getElementById('coldReason').textContent = toolMsg;
+        const list = document.getElementById('disqualifierList');
+        list.innerHTML = '';
+        (Array.isArray(r.disqualifiers) ? r.disqualifiers : []).forEach(d => {
+          const li = document.createElement('li');
+          li.innerHTML = '<span style="flex-shrink:0">✕</span><span>' + esc(d) + '</span>';
+          list.appendChild(li);
+        });
+        show('coldPanel');
+        return;
+      }
+      if (score === 'Cold') { showColdPanel(r); return; }
+      if (r.city === 'Other') { showOutOfAreaPanel(r); return; }
+      showHotWarmContent(r);
+    }
+
+    // ── Cold panel ──
+    function showColdPanel(r) {
+      document.getElementById('coldReason').textContent =
+        r.score_reason || 'This agency does not meet the qualification criteria.';
+      const list = document.getElementById('disqualifierList');
+      list.innerHTML = '';
+      (Array.isArray(r.disqualifiers) ? r.disqualifiers : []).forEach(d => {
+        const li = document.createElement('li');
+        li.innerHTML = '<span style="flex-shrink:0">✕</span><span>' + esc(d) + '</span>';
+        list.appendChild(li);
+      });
+      show('coldPanel');
+    }
+
+    // ── Cold override ──
+    function coldContinueAnyway() {
+      const r = window._lastResult;
+      if (!r) return;
+      window._manuallyQualified = true;
+      r.enquiry_channel = 'contact_form';
+      r.enquiry_channel_confidence = 'confirmed';
+      r.score = 'Warm';
+      hide('coldPanel');
+      const badge = document.getElementById('scoreBadge');
+      badge.textContent = 'Warm';
+      badge.className = 'score-badge score-warm';
+      show('manuallyQualifiedBadge');
+      showHotWarmContent(r);
+    }
+
+    // ── Out-of-area panel ──
+    function showOutOfAreaPanel(r) {
+      const city = r.city_name || 'an area outside your target cities';
+      document.getElementById('outOfAreaMsg').textContent =
+        '⚠ This agency is outside your current target cities (' + city + '). Proceed or discard.';
+      show('outOfAreaPanel');
+    }
+
+    // ── Hot / Warm full content ──
+    function showHotWarmContent(r) {
+      // Flag: enquiry channel unknown
+      if (r.enquiry_channel_confidence === 'unknown') {
+        document.getElementById('flagChannel').textContent =
+          '⚠ Enquiry channel could not be confirmed — review before sending.';
+        show('flagChannel');
+      }
+      // Flag: no named contact
+      if (r.director_name_confidence === 'not_found') {
+        document.getElementById('flagContact').textContent =
+          '⚠ No named director found — email will need a name added before sending.';
+        show('flagContact');
+      }
+
+      // Recommendation
+      document.getElementById('recommendation').textContent =
+        r.score === 'Hot' ? 'Strong target — proceed to email draft.' :
+                            'Warm target — verify signals before outreach.';
+      show('recommendationCard');
+
+      // Signals
+      const signalList = document.getElementById('signalList');
+      signalList.innerHTML = '';
+      const signals = Array.isArray(r.detected_signals) ? r.detected_signals : [];
+      if (signals.length === 0) {
+        signalList.innerHTML = '<li><span class="muted small">No specific signals detected.</span></li>';
+      } else {
+        signals.forEach(s => {
+          const li = document.createElement('li');
+          li.innerHTML = '<span class="signal-dot"></span><span>' + esc(s) + '</span>';
+          signalList.appendChild(li);
+        });
+      }
+      show('signalsCard');
+
+      // Metadata
+      const metaGrid = document.getElementById('metaGrid');
+      metaGrid.innerHTML = '';
+      [
+        ['Agency',           r.agency_name || '—'],
+        ['Director',         r.director_name || 'Not found'],
+        ['Office Manager',   r.office_manager_name || 'Not found'],
+        ['City',             r.city_name || r.city || '—'],
+        ['Enquiry channel',  r.enquiry_channel
+                               ? r.enquiry_channel + ' (' + (r.enquiry_channel_confidence || '') + ')'
+                               : '—'],
+        ['Reviews',          r.review_count != null ? String(r.review_count) + (r.google_rating ? ' (' + r.google_rating + '★)' : '') : 'Not detected'],
+        ['Branch count',     r.branch_count != null ? String(r.branch_count) : 'Not detected'],
+        ['Rightmove listed', r.rightmove_listed ? 'Yes' : 'No'],
+        ['Existing tool',    r.existing_tool_detected || 'None'],
+      ].forEach(([label, val]) => {
+        const row = document.createElement('div');
+        row.className = 'meta-row';
+        row.innerHTML = '<span class="meta-label">' + esc(label) + '</span><span class="meta-val">' + esc(val) + '</span>';
+        metaGrid.appendChild(row);
+      });
+      show('metaCard');
+
+      // Emails
+      const emails = Array.isArray(r.emails) ? r.emails : [];
+      if (emails.length > 0) {
+        const emailsList    = document.getElementById('emailsList');
+        const emailSelector = document.getElementById('emailSelector');
+        emailsList.innerHTML = '';
+        emailSelector.innerHTML = '';
+
+        if (emails.length === 1) {
+          document.getElementById('emailsCardLabel').textContent = 'Email Address Found';
+          selectedEmail = emails[0];
+          const row = document.createElement('div');
+          row.className = 'email-row';
+          const safeE = esc(emails[0]);
+          row.innerHTML = `<span class="email-addr">${safeE}</span><button class="copy-btn" data-copy="${safeE}">Copy</button>`;
+          emailsList.appendChild(row);
+          emailsList.querySelectorAll('button[data-copy]').forEach(btn =>
+            btn.addEventListener('click', () => copyText(btn.dataset.copy, btn))
+          );
+        } else {
+          document.getElementById('emailsCardLabel').textContent = 'Which email should we use?';
+          selectedEmail = r.primary_email || emails[0];
+          emails.forEach((e, i) => {
+            const row = document.createElement('div');
+            row.className = 'email-radio-row';
+            const id = 'email_opt_' + i;
+            const checked = e === selectedEmail ? 'checked' : '';
+            row.innerHTML = `<input type="radio" name="emailChoice" id="${id}" value="${esc(e)}" ${checked}>
+              <label for="${id}" class="email-addr" style="cursor:pointer;margin:0">${esc(e)}</label>`;
+            emailSelector.appendChild(row);
+          });
+          emailSelector.querySelectorAll('input[type=radio]').forEach(radio =>
+            radio.addEventListener('change', () => { selectedEmail = radio.value; })
+          );
+        }
+        show('emailsCard');
+      }
+
+      // Editable email field
+      const emailToSendInput = document.getElementById('emailToSendInput');
+      if (emailToSendInput) emailToSendInput.value = selectedEmail || '';
+      show('emailToSendCard');
+
+      // Editable director field
+      const directorInput = document.getElementById('directorInput');
+      if (directorInput) directorInput.value = r.director_name || '';
+      show('directorCard');
+
+      // Enquiry channel — pre-populate from detected
+      const _imSel = document.getElementById('intakeMethodSelect');
+      if (_imSel) {
+        const detected = (r.enquiry_channel || 'contact_form').toLowerCase();
+        const valid = ['contact_form','phone_only','email_only','whatsapp','live_chat','instant_response_tool','other'];
+        _imSel.value = valid.includes(detected) ? detected : 'other';
+      }
+      show('intakeMethodCard');
+
+      // Custom observation + Draft CTA
+      show('customObsCard');
+      show('draftCtaWrap');
+
+      // Task 1: Custom Observation for Email 3 — fires third Claude call automatically
+      show('customObsEmailCard');
+      const _obsLoad = document.getElementById('customObsEmailLoading');
+      const _obsInput = document.getElementById('customObsEmailInput');
+      if (_obsInput) _obsInput.value = '';
+      window._customObservation = '';
+      if (_obsLoad) _obsLoad.style.display = 'flex';
+      generateCustomObservation(r, window._apiKey).then(text => {
+        if (_obsLoad) _obsLoad.style.display = 'none';
+        if (_obsInput) _obsInput.value = text || '';
+        window._customObservation = text || '';
+      });
+    }
+
+    // ── API call 3 — custom observation generator (for Email 3) ──
+    async function generateCustomObservation(r, apiKey) {
+      if (!apiKey || !r) return '';
+      const signals = Array.isArray(r.detected_signals) ? r.detected_signals.join(', ') : '';
+      const agency = r.agency_name || '';
+      const branches = r.branch_count != null ? String(r.branch_count) : 'unknown';
+      const reviews = r.review_count != null ? String(r.review_count) : 'unknown';
+      const channel = r.enquiry_channel || 'unknown';
+      const director = r.director_name || '';
+
+      const systemPrompt = "You are a cold email copywriter for Daedalus Atelier. Based on the signals detected about this estate agency, write one sentence that could be used as a personalised observation in a follow-up email. The sentence must: feel researched and specific to this agency, connect their setup to the problem of slow enquiry response, be warm not critical, be under 25 words, contain no stats, no em dashes, no jargon. Return only the sentence - no explanation, no JSON, no formatting.";
+
+      const userPrompt = `Agency: ${agency}. Signals: ${signals}. Branch count: ${branches}. Review count: ${reviews}. Enquiry channel: ${channel}. Director: ${director}.`;
+
+      try {
+        const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 200,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userPrompt }]
+          })
+        });
+        if (!apiRes.ok) return '';
+        const apiData = await apiRes.json();
+        return (apiData.content?.[0]?.text || '').trim();
+      } catch {
+        return '';
+      }
+    }
+
+    // ── Utilities ──
+    function copyText(text, btn) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.color = 'var(--accent)';
+        btn.style.borderColor = 'var(--accent)';
+        setTimeout(() => { btn.textContent = orig; btn.style.color = ''; btn.style.borderColor = ''; }, 1800);
+      });
+    }
+
+    function esc(s) {
+      return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+    }
+
+    // ── Event listeners ──
+    document.getElementById('clinicUrl').addEventListener('keydown', e => {
+      if (e.key === 'Enter') runAnalysis();
+    });
+    document.getElementById('btnContinueAnyway').addEventListener('click', continueAnyway);
+    document.getElementById('btnColdContinue').addEventListener('click', coldContinueAnyway);
+    document.getElementById('btnViewTracker').addEventListener('click', () => {
+      window.open(CRM_URL, '_blank');
+    });
+    document.getElementById('btnProceedAnyway').addEventListener('click', () => {
+      hide('outOfAreaPanel');
+      showHotWarmContent(window._lastResult);
+    });
+    document.getElementById('btnDiscard').addEventListener('click', () => {
+      document.getElementById('results').style.display = 'none';
+      document.getElementById('clinicUrl').value = '';
+    });
+    document.getElementById('btnSaveFuture').addEventListener('click', () => {
+      const r   = window._lastResult || {};
+      const url = window._lastUrl || '';
+      try {
+        const raw = localStorage.getItem(FUTURE_KEY);
+        const targets = raw ? JSON.parse(raw) : [];
+        targets.push({ agencyName: r.agency_name || '', url, savedAt: new Date().toISOString().slice(0,10) });
+        localStorage.setItem(FUTURE_KEY, JSON.stringify(targets));
+        const btn = document.getElementById('btnSaveFuture');
+        btn.textContent = '✓ Saved';
+        btn.disabled = true;
+        updateFutureTargetsBtn();
+      } catch { showError('Could not save to storage.'); }
+    });
+
+    // ── Future Targets ──
+    function getFutureTargets() {
+      try {
+        const raw = localStorage.getItem(FUTURE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch { return []; }
+    }
+
+    function updateFutureTargetsBtn() {
+      const count = getFutureTargets().length;
+      document.getElementById('btnToggleFT').textContent = 'Future Targets (' + count + ')';
+    }
+
+    function renderFutureTargets() {
+      const targets = getFutureTargets();
+      const list = document.getElementById('ftList');
+      if (targets.length === 0) {
+        list.innerHTML = '<div class="ft-empty">No future targets saved yet. Qualify a Cold agency and click "Save as Future Target".</div>';
+        return;
+      }
+      list.innerHTML = '';
+      targets.forEach((t, i) => {
+        const row = document.createElement('div');
+        row.className = 'ft-row';
+        const name = esc(t.agencyName || t.url || 'Unknown');
+        const url  = esc(t.url || '');
+        row.innerHTML = `<div class="ft-name" title="${url}">${name}<span class="ft-url">${url}</span></div>
+          <div class="ft-actions">
+            <button class="copy-btn" data-idx="${i}" id="btnQualify_${i}">Qualify Now</button>
+            <button class="btn-ft-remove" data-idx="${i}" id="btnRemoveFT_${i}">Remove</button>
+          </div>`;
+        row.querySelector('[id^="btnQualify_"]').addEventListener('click', () => qualifyFutureTarget(i));
+        row.querySelector('[id^="btnRemoveFT_"]').addEventListener('click', () => removeFutureTarget(i));
+        list.appendChild(row);
+      });
+    }
+
+    function removeFutureTarget(idx) {
+      const targets = getFutureTargets();
+      targets.splice(idx, 1);
+      localStorage.setItem(FUTURE_KEY, JSON.stringify(targets));
+      renderFutureTargets();
+      updateFutureTargetsBtn();
+    }
+
+    function qualifyFutureTarget(idx) {
+      const targets = getFutureTargets();
+      const t = targets[idx];
+      if (!t || !t.url) return;
+      document.getElementById('clinicUrl').value = t.url;
+      hide('futureTargetsPanel');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('clinicUrl').focus();
+    }
+
+    document.getElementById('btnToggleFT').addEventListener('click', () => {
+      const panel = document.getElementById('futureTargetsPanel');
+      if (panel.style.display === 'none') {
+        renderFutureTargets();
+        show('futureTargetsPanel');
+      } else {
+        hide('futureTargetsPanel');
+      }
+    });
+
+    updateFutureTargetsBtn();
+    document.getElementById('btnReviewDraft').addEventListener('click', openDraftSection);
+
+    // Task 1: Custom Observation (Email 3) — keep window state in sync with textarea
+    const _customObsEmailEl = document.getElementById('customObsEmailInput');
+    if (_customObsEmailEl) {
+      _customObsEmailEl.addEventListener('input', e => { window._customObservation = e.target.value; });
+    }
+    document.getElementById('btnCopyCustomObs').addEventListener('click', () => {
+      copyText(document.getElementById('customObsEmailInput').value, document.getElementById('btnCopyCustomObs'));
+    });
+
+    document.getElementById('btnBackToResults').addEventListener('click', e => {
+      e.preventDefault();
+      hide('emailDraftSection');
+      show('results');
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    document.getElementById('btnGenerateEmail').addEventListener('click', generateEmailDraft);
+    document.getElementById('btnRegenerate').addEventListener('click', generateEmailDraft);
+    document.getElementById('btnEditDraft').addEventListener('click', toggleEditMode);
+
+    document.getElementById('btnCopyDraftEmail').addEventListener('click', () => {
+      copyText(document.getElementById('draftEmailAddress').textContent,
+               document.getElementById('btnCopyDraftEmail'));
+    });
+    document.getElementById('btnCopySubject').addEventListener('click', () => {
+      copyText(document.getElementById('draftSubject').textContent,
+               document.getElementById('btnCopySubject'));
+    });
+    document.getElementById('btnCopyEmail').addEventListener('click', () => {
+      copyText(document.getElementById('draftBody').textContent,
+               document.getElementById('btnCopyEmail'));
+    });
+
+    // CTA Variant toggle
+    window._ctaVariant = 'demo';
+    const CTA_DEMO_TEXT  = agency => `Want me to show you what that looks like for ${agency}?`;
+    const CTA_AUDIT_TEXT = agency => `I put together a quick response audit for ${agency} - want me to send it over?`;
+
+    function setCtaVariant(variant) {
+      window._ctaVariant = variant;
+      document.getElementById('btnCtaDemo').style.opacity  = variant === 'demo'  ? '1' : '0.5';
+      document.getElementById('btnCtaAudit').style.opacity = variant === 'audit' ? '1' : '0.5';
+      if (!window._lastDraft) return;
+      const body = window._lastDraft.body || '';
+      const agency = window._lastResult ? (window._lastResult.agency_name || '[Agency Name]') : '[Agency Name]';
+      const demoRx  = /Want me to show you what that looks like for .+?\?/;
+      const auditRx = /I put together a quick response audit for .+? - want me to send it over\?/;
+      let newBody;
+      if (variant === 'audit') {
+        newBody = body.replace(demoRx, CTA_AUDIT_TEXT(agency));
+      } else {
+        newBody = body.replace(auditRx, CTA_DEMO_TEXT(agency));
+      }
+      window._lastDraft.body = newBody;
+      document.getElementById('draftBody').textContent = newBody;
+    }
+
+    document.getElementById('btnCtaDemo').addEventListener('click', () => setCtaVariant('demo'));
+    document.getElementById('btnCtaAudit').addEventListener('click', () => setCtaVariant('audit'));
+
+    document.getElementById('btnConfirmTracker').addEventListener('click', confirmAddToTracker);
+    document.getElementById('btnMarkSent').addEventListener('click', markAsSent);
+    document.getElementById('btnAddAnother').addEventListener('click', resetAll);
+    document.getElementById('btnViewTrackerFinal').addEventListener('click', e => {
+      e.preventDefault();
+      window.open(CRM_URL, '_blank');
+    });
+
+    // ── Date helpers (BST-safe) ──
+    function todayISO() {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d.toISOString().slice(0, 10);
+    }
+    function addDaysISO(n) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() + n);
+      return d.toISOString().slice(0, 10);
+    }
+    function formatDate(iso) {
+      if (!iso) return iso;
+      const [y, m, day] = iso.split('-');
+      return day + '/' + m + '/' + y;
+    }
+
+    // ── Confirm & add to CRM ──
+    function confirmAddToTracker() {
+      const r = window._lastResult;
+      if (!r) { showError('Missing result data — please re-run analysis.'); return; }
+
+      const _draftSubject = window._lastDraft ? (window._lastDraft.subject || '') : '';
+      const _draftBody    = window._lastDraft ? (window._lastDraft.body    || '') : '';
+      if (!_draftSubject || !_draftBody) {
+        showError('Data not ready — please regenerate the email before confirming.');
+        return;
+      }
+
+      const directorVal = (document.getElementById('directorInput') ? document.getElementById('directorInput').value.trim() : '') || r.director_name || '';
+      const emailVal    = (document.getElementById('emailToSendInput') ? document.getElementById('emailToSendInput').value.trim() : selectedEmail) || '';
+      const channelVal  = (document.getElementById('intakeMethodSelect') ? document.getElementById('intakeMethodSelect').value : r.enquiry_channel) || '';
+      const customObs   = (document.getElementById('customObsInput') ? document.getElementById('customObsInput').value.trim() : '');
+
+      const notesArr = [
+        window._manuallyQualified ? 'Manually qualified' : '',
+        (window._toolDetected && window._toolDetected !== 'None') ? ('Tool detected: ' + window._toolDetected) : '',
+        customObs
+      ].filter(Boolean);
+
+      const lead = {
+        id:              Date.now(),
+        dateAdded:       new Date().toISOString(),
+        source:          'qualifier',
+        agencyName:      r.agency_name || '',
+        city:            r.city_name  || r.city || '',
+        address:         r.address     || '',
+        websiteUrl:      window._lastUrl || '',
+        phone:           '',
+        googleRating:    '',
+        reviewCount:     r.review_count != null ? String(r.review_count) : '',
+        directorName:    directorVal,
+        directorEmail:   emailVal,
+        directorLinkedinUrl: '',
+        branchCount:     r.branch_count != null ? String(r.branch_count) : '',
+        rightmoveListed: r.rightmove_listed === true ? 'Yes' : (r.rightmove_listed === false ? 'No' : ''),
+        existingTool:    r.existing_tool_detected || (window._toolDetected || 'None'),
+        priority:        '',
+        status:          'New',
+        notes:           notesArr.join(' | '),
+        channel:         channelVal,
+        score:           r.score || '',
+        email1SentDate:  '',
+        email2SentDate:  '',
+        email3SentDate:  '',
+        email2Date:      '',
+        email3Date:      '',
+        email4Date:      '',
+        linkedinConnected:   '',
+        linkedinMessage1Date:'',
+        linkedinMessage2Date:'',
+        linkedinMessage3Date:'',
+        followUpDate:    '',
+        responseStatus:  '',
+        draftSubject:    _draftSubject,
+        draftBody:       _draftBody,
+        ctaVariant:      window._ctaVariant || 'demo',
+        subjectLine:     _draftSubject,
+        customObservation: window._customObservation || ''
+      };
+
+      try {
+        saveSnapshot();
+        // Supabase insert
+        const sb=getSB();
+        if(sb){ sb.from(SB_TABLE).insert(leadToSnake(lead)).then(({error})=>{ if(error) console.warn('[confirmAddToTracker] Supabase:',error.message); else console.log('[confirmAddToTracker] Supabase: inserted '+lead.agencyName); }); }
+        // localStorage dual-write
+        const raw   = localStorage.getItem(TRACKER_KEY);
+        const leads = raw ? JSON.parse(raw) : [];
+        leads.push(lead);
+        localStorage.setItem(TRACKER_KEY, JSON.stringify(leads));
+        window._createdLeadId = lead.id;
+      } catch {
+        showError('Could not save to CRM storage.');
+        return;
+      }
+
+      hide('btnConfirmTracker');
+      clearError();
+
+      const name = lead.agencyName || lead.website || 'the agency';
+      document.getElementById('confirmMsg').textContent =
+        '✓ ' + name + ' added to CRM. Not marked as sent yet — email is still a draft.';
+      show('confirmState');
+      document.getElementById('confirmState').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ── Mark as sent ──
+    function markAsSent() {
+      const id = window._createdLeadId;
+      if (!id) { showError('No lead ID found — please add to CRM first.'); return; }
+
+      try {
+        saveSnapshot();
+        const raw   = localStorage.getItem(TRACKER_KEY);
+        const leads = raw ? JSON.parse(raw) : [];
+        const idx   = leads.findIndex(l => l.id === id);
+        if (idx === -1) { showError('Lead not found in CRM.'); return; }
+
+        const today = todayISO();
+        leads[idx].email1SentDate = today;
+        leads[idx].email2Date     = addDaysISO(3);
+        leads[idx].email3Date     = addDaysISO(7);
+        leads[idx].email4Date     = addDaysISO(14);
+        leads[idx].status         = 'Contacted';
+        leads[idx].followUpDate   = addDaysISO(3);
+        localStorage.setItem(TRACKER_KEY, JSON.stringify(leads));
+        // Supabase update
+        const sb=getSB();
+        if(sb){ sb.from(SB_TABLE).update({email1_sent_date:today,email2_date:leads[idx].email2Date||null,email3_date:leads[idx].email3Date||null,email4_date:leads[idx].email4Date||null,status:'Contacted',follow_up_date:leads[idx].followUpDate||null}).eq('id',id).then(({error})=>{ if(error) console.warn('[markAsSent] Supabase:',error.message); }); }
+
+        document.getElementById('btnMarkSent').disabled = true;
+        document.getElementById('btnMarkSent').textContent = '✓ Marked as Sent';
+        document.getElementById('markSentMsg').innerHTML =
+          'Sent ' + formatDate(today) + ' · FU1 due ' + formatDate(addDaysISO(3)) +
+          ' · FU2 due ' + formatDate(addDaysISO(7)) +
+          ' · FU3 due ' + formatDate(addDaysISO(14));
+        show('markSentState');
+      } catch {
+        showError('Could not update CRM storage.');
+      }
+    }
+
+    // ── Reset for another agency ──
+    function resetAll() {
+      window._lastResult        = null;
+      window._lastUrl           = null;
+      window._lastDraft         = null;
+      window._createdLeadId     = null;
+      window._manuallyQualified = false;
+      window._oohDetected       = false;
+      window._toolDetected      = 'None';
+      window._ctaVariant        = 'demo';
+      selectedEmail = '';
+
+      document.getElementById('clinicUrl').value = '';
+      const _ets = document.getElementById('emailToSendInput'); if (_ets) _ets.value = '';
+      const _di  = document.getElementById('directorInput');    if (_di)  _di.value  = '';
+      const _coi = document.getElementById('customObsInput');   if (_coi) _coi.value = '';
+      const _coe = document.getElementById('customObsEmailInput'); if (_coe) _coe.value = '';
+      window._customObservation = '';
+      _draftEdited = false;
+      if (_editMode) {
+        _editMode = false;
+        document.getElementById('draftSubject').style.display    = '';
+        document.getElementById('editSubjectInput').style.display = 'none';
+        document.getElementById('draftBody').style.display       = '';
+        document.getElementById('editBodyInput').style.display   = 'none';
+        document.getElementById('btnEditDraft').textContent      = 'Edit';
+      }
+
+      const _ctaD = document.getElementById('btnCtaDemo');  if (_ctaD) _ctaD.style.opacity = '1';
+      const _ctaA = document.getElementById('btnCtaAudit'); if (_ctaA) _ctaA.style.opacity = '0.5';
+
+      hide('emailDraftSection');
+      hide('draftOutput');
+      hide('draftLoadingState');
+      hide('confirmState');
+      hide('markSentState');
+      show('btnConfirmTracker');
+      document.getElementById('btnMarkSent').disabled = false;
+      document.getElementById('btnMarkSent').textContent = 'Mark as Sent';
+
+      hide('results');
+      clearError();
+      hideDupWarning();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.getElementById('clinicUrl').focus();
+    }
+
+    // ── Open draft section ──
+    function openDraftSection() {
+      const r = window._lastResult;
+      if (!r) return;
+
+      hide('draftOutput');
+      hide('draftLoadingState');
+      hide('confirmState');
+      hide('markSentState');
+      show('btnConfirmTracker');
+      clearError();
+
+      hide('results');
+      show('emailDraftSection');
+      document.getElementById('emailDraftSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ── API call 2 — email generation ──
+    async function generateEmailDraft() {
+      if (_draftEdited || _editMode) {
+        if (!confirm('Regenerating will replace your edits. Continue?')) return;
+        _draftEdited = false;
+        if (_editMode) {
+          _editMode = false;
+          document.getElementById('draftSubject').style.display   = '';
+          document.getElementById('editSubjectInput').style.display = 'none';
+          document.getElementById('draftBody').style.display      = '';
+          document.getElementById('editBodyInput').style.display  = 'none';
+          document.getElementById('btnEditDraft').textContent     = 'Edit';
+        }
+      }
+      const r      = window._lastResult;
+      const apiKey = window._apiKey;
+      if (!r || !apiKey) { showError('Missing data — please re-run the analysis first.'); return; }
+
+      clearError();
+      hide('draftOutput');
+      show('draftLoadingState', 'flex');
+      document.getElementById('btnGenerateEmail').disabled = true;
+      document.getElementById('btnRegenerate').disabled    = true;
+
+      const _drVal = document.getElementById('directorInput') ? document.getElementById('directorInput').value.trim() : '';
+      const contact = _drVal || r.director_name || 'the director';
+      const greetingContact = buildGreetingName(contact);
+      const agency  = r.agency_name  || 'the agency';
+      const city    = r.city_name    || r.city || '';
+      const _imEl = document.getElementById('intakeMethodSelect');
+      const channel = _imEl ? _imEl.value : (r.enquiry_channel || 'unknown');
+      const branches = r.branch_count != null ? String(r.branch_count) : 'unknown';
+      const portalRef = (r.rightmove_listed === true) ? 'Rightmove' : 'your property portals';
+
+      const systemPrompt = `You are an email copywriter for Daedalus Atelier, a solo AI automation business. Write a cold outreach Email 1 to the director of an independent estate agency. Follow this exact structure and all hard rules.
+
+Structure:
+1. Opening: one specific question about their Rightmove lead response time
+2. Second paragraph: context - most independent agencies lose leads because of the response gap, not because of anything wrong. Reference their Rightmove spend (£1,500+/month) naturally
+3. Third paragraph: one sentence - I build automated enquiry response systems for independent agencies, sits on top of existing setup, no migration, live in 7 days
+4. Closing: soft CTA - Worth a quick look?
+5. Sign-off: Lawrence / Daedalus Atelier
+
+Hard rules - Email 1 only:
+- Max 100 words body
+- Plain text - no links, no bullet points, no bold
+- Sign-off is exactly two lines: "Lawrence" then "Daedalus Atelier" on the very next line with a single newline between them (no blank line between "Lawrence" and "Daedalus Atelier"). Do not add a website, URL, domain, handle, or any third line under the sign-off
+- No em dashes
+- No stats or percentages in Email 1 (stats allowed in Emails 2 and 3)
+- No product names or technical jargon
+- No negative framing about the agency
+- No filler phrases
+- Sentence case subject line, statement form only, max 6 words, must reference agency name or specific observation
+- Use the exact phrase provided as 'Portal reference to use' wherever the email references the enquiry source - do not substitute, do not generalise, do not add other portal names
+- If a Custom Observation is provided, it MUST be the basis of the opening line. Weave the observation into the first sentence as a specific, researched hook about this agency. This takes priority over the generic Rightmove response time question
+
+Example 1:
+Subject: Harrison and Co - quick question
+Body:
+Hi James,
+Quick question - how many of your Rightmove leads from last month got a response within 5 minutes?
+Most independent agencies I speak to are paying £1,500+ a month to Rightmove and quietly losing a third of those leads before anyone picks up the phone. Not because of anything wrong - just because the response gap is invisible until you measure it.
+I build automated enquiry response systems for independent agencies - sits on top of your existing setup, no migration, live in 7 days.
+Worth a quick look?
+Lawrence
+Daedalus Atelier
+
+Example 2:
+Subject: Maple Properties Leeds - a thought
+Body:
+Hi Sarah,
+Quick question - do you know how many of your Rightmove enquiries from last month got a reply within 5 minutes?
+With 340 Google reviews and a strong Leeds reputation, every lead that goes cold before someone responds is a real cost. Most agencies with your profile are paying £1,500+ a month to Rightmove and losing a third of that investment to slow response times.
+I build automated enquiry response systems that sit on top of your existing CRM - no migration, live in 7 days.
+Worth a quick look?
+Lawrence
+Daedalus Atelier
+
+In the body JSON field, separate the greeting, each paragraph, and the close with a blank line (two newline characters \\n\\n between each section). The sign-off is a single block: after the close, use one blank line then "Lawrence\\nDaedalus Atelier" with only a single newline between those two words (not a blank line).
+
+Return JSON with subject and body only. No preamble, no markdown. Raw JSON.`;
+
+      const customObs = (document.getElementById('customObsInput') ? document.getElementById('customObsInput').value.trim() : '');
+      const userPrompt = `Write a cold outreach email using the details below.
+
+Agency: ${agency}
+Contact: ${contact}
+Greeting: ${greetingContact}
+City: ${city}
+Enquiry channel: ${channel}
+Branch count: ${branches}
+Portal reference to use: ${portalRef}${customObs ? '\nCustom observation about this agency: ' + customObs : ''}
+
+Return ONLY a raw JSON object with exactly two fields: { "subject": "...", "body": "..." }
+No markdown, no code fences.`;
+
+      try {
+        const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 1000,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userPrompt }, { role: 'assistant', content: '{"subject": "' }]
+          })
+        });
+
+        if (!apiRes.ok) {
+          const errBody = await apiRes.json().catch(() => ({}));
+          throw new Error(errBody.error?.message || 'API returned HTTP ' + apiRes.status);
+        }
+
+        const apiData = await apiRes.json();
+        const rawText = ('{"subject": "' + (apiData.content?.[0]?.text || '')).trim();
+
+        let draft;
+        try {
+          const clean = rawText.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim();
+          draft = JSON.parse(clean);
+        } catch {
+          throw new Error('Claude returned an unexpected format. Started with: ' + rawText.slice(0, 120));
+        }
+
+        window._lastDraft = draft;
+        hide('draftLoadingState');
+        const _emailInput = document.getElementById('emailToSendInput');
+        document.getElementById('draftEmailAddress').textContent = _emailInput ? _emailInput.value.trim() : '';
+        document.getElementById('draftSubject').textContent = draft.subject || '';
+        document.getElementById('draftBody').textContent    = draft.body    || '';
+        show('draftOutput');
+        document.getElementById('draftOutput').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      } catch (err) {
+        hide('draftLoadingState');
+        showError('Email generation failed: ' + err.message);
+      } finally {
+        document.getElementById('btnGenerateEmail').disabled = false;
+        document.getElementById('btnRegenerate').disabled    = false;
+      }
+    }
+  </script>
+</body>
+</html>
