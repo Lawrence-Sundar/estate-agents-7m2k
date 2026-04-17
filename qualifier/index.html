@@ -541,20 +541,40 @@
     }
 
     // ── Duplicate check ──
-    function checkDuplicate(url) {
+    // Async: queries Supabase first (cross-device), falls back to localStorage (offline / Supabase down).
+    // Matches on normalised URL OR normalised agency name — either hit is a match.
+    const _normDupUrl  = s => String(s || '').toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').trim();
+    const _normDupName = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    async function checkDuplicate(url, agencyName) {
+      const inputUrl  = _normDupUrl(url);
+      const inputName = _normDupName(agencyName);
+      if (!inputUrl && !inputName) return null;
+
+      const matches = (storedUrl, storedName) => {
+        const u = _normDupUrl(storedUrl);
+        const n = _normDupName(storedName);
+        return (inputUrl && u && u === inputUrl) || (inputName && n && n === inputName);
+      };
+
+      // Supabase first — catches leads added from any device/browser
+      const sb = getSB();
+      if (sb) {
+        try {
+          const { data, error } = await sb.from(SB_TABLE).select('id, agency_name, website_url');
+          if (!error && Array.isArray(data)) {
+            const hit = data.find(row => matches(row.website_url, row.agency_name));
+            if (hit) return { id: hit.id, agencyName: hit.agency_name, websiteUrl: hit.website_url };
+          }
+        } catch (e) { console.warn('[checkDuplicate] Supabase query failed, falling back to localStorage:', e.message); }
+      }
+
+      // Fallback: localStorage (same origin only)
       try {
         const raw = localStorage.getItem(TRACKER_KEY);
         if (!raw) return null;
         const leads = JSON.parse(raw);
         if (!Array.isArray(leads)) return null;
-        const normUrl = s => String(s || '').toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '').trim();
-        const inputUrl = normUrl(url);
-        if (!inputUrl) return null;
-        return leads.find(l => {
-          const storedUrl = normUrl(l.website || '');
-          if (!storedUrl) return false;
-          return storedUrl === inputUrl;
-        }) || null;
+        return leads.find(l => matches(l.websiteUrl, l.agencyName)) || null;
       } catch { return null; }
     }
 
@@ -572,7 +592,7 @@
     }
 
     // ── Entry point ──
-    function runAnalysis() {
+    async function runAnalysis() {
       const apiKey = document.getElementById('apiKey').value.trim();
       const url    = document.getElementById('clinicUrl').value.trim();
 
@@ -585,12 +605,35 @@
       const _gKey = (document.getElementById('googlePlacesKey') || {}).value || '';
       if (_gKey) sessionStorage.setItem('google_places_key', _gKey);
 
+      window._skipDupCheck = false;
+      window._lastResult   = null;
+      window._lastUrl      = url;
+
+      // Pre-analysis duplicate check — URL only (agency name not known yet)
+      setLoading(true, 'Checking CRM for duplicates...');
+      const earlyDup = await checkDuplicate(url);
+      setLoading(false);
+      if (earlyDup) {
+        const name = earlyDup.agencyName || earlyDup.websiteUrl || 'an agency with this URL';
+        document.getElementById('dupMsg').textContent =
+          '⚠ This agency appears to already be in your CRM (' + name + '). Skip to avoid burning API credits, or Continue Anyway to re-qualify.';
+        document.getElementById('dupWarning').style.display = 'block';
+        return;
+      }
+
       proceedWithAnalysis(url, apiKey);
     }
 
-    function continueAnyway() {
+    async function continueAnyway() {
       hideDupWarning();
-      renderResults(window._lastResult, window._lastUrl);
+      window._skipDupCheck = true;
+      if (window._lastResult) {
+        renderResults(window._lastResult, window._lastUrl);
+      } else {
+        const apiKey = document.getElementById('apiKey').value.trim();
+        const url    = window._lastUrl || document.getElementById('clinicUrl').value.trim();
+        proceedWithAnalysis(url, apiKey);
+      }
     }
 
     // ── API call 1 — qualifier ──
@@ -795,14 +838,16 @@ ${pageText}`;
 
         setLoading(false);
 
-        // Post-analysis duplicate check — URL match
-        const dupMatch = checkDuplicate(url);
-        if (dupMatch) {
-          const name = dupMatch.agencyName || dupMatch.website || 'an agency with this URL';
-          document.getElementById('dupMsg').textContent =
-            '⚠ This agency may already be in your CRM (' + name + '). Check before continuing.';
-          document.getElementById('dupWarning').style.display = 'block';
-          return;
+        // Post-analysis duplicate check — URL OR agency name match (skipped if user already clicked Continue Anyway)
+        if (!window._skipDupCheck) {
+          const dupMatch = await checkDuplicate(url, result.agency_name);
+          if (dupMatch) {
+            const name = dupMatch.agencyName || dupMatch.websiteUrl || 'an agency with this URL';
+            document.getElementById('dupMsg').textContent =
+              '⚠ This agency matches an existing CRM entry (' + name + '). Check before continuing.';
+            document.getElementById('dupWarning').style.display = 'block';
+            return;
+          }
         }
 
         renderResults(result, url);
@@ -860,7 +905,7 @@ ${pageText}`;
       for(const url of urls){
         completed++;
         prog.textContent = completed + '/' + urls.length + ' — ' + url.replace(/^https?:\/\//, '').slice(0,30) + '...';
-        const dup = checkDuplicate(url);
+        const dup = await checkDuplicate(url);
         if(dup){ appendBatchRow(listEl, url, null, 'Duplicate — ' + (dup.agencyName||'already in CRM')); continue; }
         try{
           let pageText = null;
