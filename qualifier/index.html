@@ -1513,12 +1513,28 @@ ${pageText}`;
           }
           console.log('[confirmAddToTracker] Supabase: inserted '+lead.agencyName);
         }
-        // localStorage dual-write (only after Supabase success, so stores don't diverge)
-        const raw   = localStorage.getItem(TRACKER_KEY);
-        const leads = raw ? JSON.parse(raw) : [];
-        leads.push(lead);
-        localStorage.setItem(TRACKER_KEY, JSON.stringify(leads));
         window._createdLeadId = lead.id;
+
+        // localStorage dual-write (best-effort — Supabase is authoritative; quota failures are non-fatal).
+        // On QuotaExceededError, drop the rotated snapshots first (those are the biggest offenders) and retry once.
+        try {
+          const raw   = localStorage.getItem(TRACKER_KEY);
+          const leads = raw ? JSON.parse(raw) : [];
+          leads.push(lead);
+          localStorage.setItem(TRACKER_KEY, JSON.stringify(leads));
+        } catch (cacheErr) {
+          console.warn('[confirmAddToTracker] localStorage write failed ('+cacheErr.name+'), clearing old snapshots and retrying:', cacheErr.message);
+          try {
+            for (let i = 1; i <= 5; i++) localStorage.removeItem(TRACKER_KEY + '_snap_' + i);
+            const raw2   = localStorage.getItem(TRACKER_KEY);
+            const leads2 = raw2 ? JSON.parse(raw2) : [];
+            leads2.push(lead);
+            localStorage.setItem(TRACKER_KEY, JSON.stringify(leads2));
+            console.log('[confirmAddToTracker] localStorage write succeeded after snapshot cleanup.');
+          } catch (retryErr) {
+            console.warn('[confirmAddToTracker] localStorage write still failing after cleanup — Supabase has the lead, ignoring cache:', retryErr.message);
+          }
+        }
       } catch (e) {
         showError('Could not save to CRM storage: '+(e && e.message ? e.message : 'unknown error'));
         return;
