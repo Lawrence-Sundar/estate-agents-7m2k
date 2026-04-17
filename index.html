@@ -645,6 +645,17 @@
         <span class="da-sep">|</span>
         <span class="da-total">Total: <span id="daTotal">0</span></span>
       </div>
+
+      <div id="followUpsBulkBar" style="display:none;align-items:center;gap:8px;padding:8px 12px;margin-bottom:4px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border)">
+        <input type="checkbox" class="sel-check" id="fuSelectAll" title="Select / deselect all follow-ups">
+        <span id="fuSelCount" style="font-size:12px;color:var(--muted);white-space:nowrap">0 selected</span>
+        <span style="color:var(--border);font-size:12px">|</span>
+        <button class="btn-ghost btn-sm" style="font-size:12px;padding:3px 8px" id="btnFuSelClear">Clear</button>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px" id="fuBulkActionArea" class="hidden">
+          <button class="btn-send-outlook btn-sm" id="btnFuBulkSendOutlook">Send via Outlook</button>
+        </div>
+      </div>
+
       <div id="followUpsList"></div>
     </section>
 
@@ -1525,6 +1536,16 @@
       if(area) area.style.display=count>0?'flex':'none';
     }
 
+    // ---- Follow Ups bulk-select state ----
+    let selectedFollowUpIds=new Set();
+    let _lastFollowUpsItems=[];
+    function updateFuBulkUI(){
+      const count=selectedFollowUpIds.size;
+      const countEl=document.getElementById('fuSelCount'); if(countEl) countEl.textContent=count+' selected';
+      const area=document.getElementById('fuBulkActionArea');
+      if(area) area.style.display=count>0?'flex':'none';
+    }
+
     // ---- Lead Detail Modal ----
     function openLeadDetail(id){
       const lead=leads.find(l=>String(l.id)===String(id));
@@ -1602,18 +1623,29 @@
       const total=overdueItems.length+dueTodayItems.length+unsent.length;
       if(badge){ if(total>0){ badge.textContent=total; badge.style.display='inline-flex'; } else { badge.style.display='none'; } }
 
-      if(!total){ container.innerHTML='<div class="fu-empty-state">All clear - no follow-ups due.</div>'; return; }
+      // Update bulk-select snapshot (used by select-all + bulk send)
+      _lastFollowUpsItems=[...unsent,...overdueItems,...dueTodayItems];
+      // Drop any stale selection IDs that aren't currently rendered
+      const visibleIds=new Set(_lastFollowUpsItems.map(l=>l.id));
+      selectedFollowUpIds.forEach(id=>{ if(!visibleIds.has(id)) selectedFollowUpIds.delete(id); });
+
+      const bulkBar=document.getElementById('followUpsBulkBar');
+      if(bulkBar) bulkBar.style.display=total>0?'flex':'none';
+
+      if(!total){ container.innerHTML='<div class="fu-empty-state">All clear - no follow-ups due.</div>'; updateFuBulkUI(); return; }
       // Render unsent section
       if(unsent.length){
         const labelEl=document.createElement('div'); labelEl.className='fu-section-label'; labelEl.style.color='var(--accent)'; labelEl.textContent='INITIAL NOT SENT ('+unsent.length+')'; container.appendChild(labelEl);
         unsent.forEach(l=>{
           const wrapper=document.createElement('div');
           const row=document.createElement('div'); row.className='fu-row-main'; row.style.cursor='pointer';
-          row.innerHTML='<span style="font-size:12px;font-weight:600;padding:3px 8px;background:var(--elevated);color:var(--accent)">Initial</span><div class="dash-row-info"><div class="dash-row-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="dash-row-sub">'+escapeHtml(l.directorName||'')+'</div></div><div class="fu-row-actions"><button class="btn-fu-action btn-fu-email" data-id="'+l.id+'">Compose</button></div>';
+          row.innerHTML='<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'><span style="font-size:12px;font-weight:600;padding:3px 8px;background:var(--elevated);color:var(--accent)">Initial</span><div class="dash-row-info"><div class="dash-row-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="dash-row-sub">'+escapeHtml(l.directorName||'')+'</div></div><div class="fu-row-actions"><button class="btn-fu-action btn-fu-email" data-id="'+l.id+'">Compose</button></div>';
           const expand=document.createElement('div'); expand.style.cssText='display:none;padding:12px 16px;background:var(--elevated);border-top:1px solid var(--border);font-size:13px';
           expand.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Email</span><div>'+escapeHtml(l.directorEmail||'\u2014')+'</div></div><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Website</span><div>'+escapeHtml(l.websiteUrl||'\u2014')+'</div></div><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">City</span><div>'+escapeHtml(l.city||'\u2014')+'</div></div><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Reviews</span><div>'+escapeHtml(l.reviewCount||'\u2014')+'</div></div><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Rightmove</span><div>'+escapeHtml(l.rightmoveListed||'\u2014')+'</div></div><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Address</span><div>'+escapeHtml(l.address||'\u2014')+'</div></div></div>'+(l.customObservation?'<div style="margin-top:8px"><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Observation</span><div>'+escapeHtml(l.customObservation)+'</div></div>':'');
-          row.addEventListener('click',e=>{ if(e.target.closest('.btn-fu-action')) return; expand.style.display=expand.style.display==='none'?'block':'none'; });
+          row.addEventListener('click',e=>{ if(e.target.closest('.btn-fu-action')||e.target.classList.contains('sel-followups')) return; expand.style.display=expand.style.display==='none'?'block':'none'; });
           const compBtn=row.querySelector('.btn-fu-email'); if(compBtn) compBtn.addEventListener('click',()=>goToEmail(l.id));
+          const chk=row.querySelector('.sel-followups');
+          if(chk){ chk.addEventListener('click',e=>e.stopPropagation()); chk.addEventListener('change',e=>{ e.stopPropagation(); if(chk.checked) selectedFollowUpIds.add(l.id); else selectedFollowUpIds.delete(l.id); updateFuBulkUI(); }); }
           wrapper.appendChild(row); wrapper.appendChild(expand); container.appendChild(wrapper);
         });
       }
@@ -1632,15 +1664,19 @@
           else if(l.email2SentDate&&!l.email3SentDate) nextEmail='Email 3';
           else if(l.email3SentDate) nextEmail='Follow-up call';
 
-          row.innerHTML='<span class="fu-due-badge '+(isOverdue?'fu-due-badge-overdue':'fu-due-badge-today')+'">'+(isOverdue?'OVERDUE':'TODAY')+'</span><span style="font-size:12px;font-weight:600;padding:3px 8px;background:var(--elevated);color:var(--text-dim)">'+nextEmail+'</span><div class="dash-row-info"><div class="dash-row-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="dash-row-sub">'+escapeHtml(l.directorName||'')+'</div></div><div class="fu-row-actions"><button class="btn-fu-action btn-fu-email" data-id="'+l.id+'">Compose</button><button class="btn-fu-action" data-id="'+l.id+'" data-action="snooze">Snooze 3d</button></div>';
+          row.innerHTML='<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'><span class="fu-due-badge '+(isOverdue?'fu-due-badge-overdue':'fu-due-badge-today')+'">'+(isOverdue?'OVERDUE':'TODAY')+'</span><span style="font-size:12px;font-weight:600;padding:3px 8px;background:var(--elevated);color:var(--text-dim)">'+nextEmail+'</span><div class="dash-row-info"><div class="dash-row-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="dash-row-sub">'+escapeHtml(l.directorName||'')+'</div></div><div class="fu-row-actions"><button class="btn-fu-action btn-fu-email" data-id="'+l.id+'">Compose</button><button class="btn-fu-action" data-id="'+l.id+'" data-action="snooze">Snooze 3d</button></div>';
           const compBtn=row.querySelector('.btn-fu-email'); if(compBtn) compBtn.addEventListener('click',()=>goToEmail(l.id));
           const snoozeBtn=row.querySelector('[data-action="snooze"]'); if(snoozeBtn) snoozeBtn.addEventListener('click',()=>{ l.followUpDate=addDays(todayISO(),3); save(); });
+          const chk=row.querySelector('.sel-followups');
+          if(chk){ chk.addEventListener('click',e=>e.stopPropagation()); chk.addEventListener('change',e=>{ e.stopPropagation(); if(chk.checked) selectedFollowUpIds.add(l.id); else selectedFollowUpIds.delete(l.id); updateFuBulkUI(); }); }
           container.appendChild(row);
         });
       };
 
       renderSection(overdueItems,'Overdue',true);
       renderSection(dueTodayItems,'Due Today',false);
+
+      updateFuBulkUI();
     }
 
     // ---- Daily Actions ----
@@ -2374,7 +2410,52 @@
     }
 
     function bindFollowUps(){
-      // No additional filter bindings needed beyond the render function
+      const selAll=document.getElementById('fuSelectAll');
+      if(selAll) selAll.addEventListener('change',()=>{
+        if(selAll.checked) _lastFollowUpsItems.forEach(l=>selectedFollowUpIds.add(l.id));
+        else selectedFollowUpIds.clear();
+        renderFollowUps(); updateFuBulkUI();
+      });
+      const clearBtn=document.getElementById('btnFuSelClear');
+      if(clearBtn) clearBtn.addEventListener('click',()=>{ selectedFollowUpIds.clear(); renderFollowUps(); updateFuBulkUI(); });
+      const sendBtn=document.getElementById('btnFuBulkSendOutlook');
+      if(sendBtn) sendBtn.addEventListener('click',handleFuBulkSendOutlook);
+    }
+
+    // ---- Bulk send via Outlook (follow-ups selection) ----
+    function handleFuBulkSendOutlook(){
+      if(!outlookAccount){ alert('Connect Outlook first (Inbox tab).'); return; }
+      if(!selectedFollowUpIds.size){ alert('Select at least one follow-up.'); return; }
+
+      const TERMINAL=['Won','Lost','Unqualified'];
+      const eligible=[];
+      const skipped=[];
+      selectedFollowUpIds.forEach(id=>{
+        const l=leads.find(x=>x.id==id);
+        if(!l) return;
+        if(TERMINAL.includes(l.status)){ skipped.push({lead:l,reason:'Terminal status ('+l.status+')'}); return; }
+        if(!l.directorEmail){ skipped.push({lead:l,reason:'No email address'}); return; }
+        if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate){ skipped.push({lead:l,reason:'All emails already sent'}); return; }
+        // Determine template stage
+        let tplKey='1';
+        if(l.email1SentDate&&!l.email2SentDate) tplKey='2';
+        else if(l.email1SentDate&&l.email2SentDate&&!l.email3SentDate) tplKey='3';
+        else if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate) tplKey='4';
+        // Email 1 requires the qualifier's personalised draft; follow-ups use generic templates
+        if(tplKey==='1'&&(!l.draftSubject||!l.draftBody)){ skipped.push({lead:l,reason:'No draft Email 1 — qualify this lead first'}); return; }
+        eligible.push(l);
+      });
+
+      if(!eligible.length){
+        alert('0 eligible to send.\n\nSkipped:\n'+skipped.map(s=>'• '+(s.lead.agencyName||'(unnamed)')+' — '+s.reason).join('\n'));
+        return;
+      }
+      if(skipped.length){
+        const ok=confirm(eligible.length+' eligible to send. '+skipped.length+' will be skipped:\n\n'+
+          skipped.map(s=>'• '+(s.lead.agencyName||'(unnamed)')+' — '+s.reason).join('\n')+'\n\nProceed?');
+        if(!ok) return;
+      }
+      openSendAllModal(eligible);
     }
 
     function bindLinkedIn(){
