@@ -603,6 +603,8 @@
         <div style="margin-left:auto;display:flex;align-items:center;gap:8px" id="bulkActionArea" class="hidden">
           <select id="bulkStatusSelect" style="font-size:12px;padding:4px 8px"><option value="">Change Status...</option><option>New</option><option>Contacted</option><option>Replied</option><option>Interested</option><option>Call Booked</option><option>Proposal Sent</option><option>Won</option><option>Lost</option><option>No Response</option><option>Unqualified</option></select>
           <button class="btn-primary btn-sm" id="btnBulkApplyStatus">Apply</button>
+          <span style="color:var(--border);font-size:12px">|</span>
+          <button class="btn-send-outlook btn-sm" id="btnBulkSendOutlook">Send via Outlook</button>
         </div>
       </div>
 
@@ -1912,17 +1914,22 @@
     function restoreFromBackup(idx){ const bRaw=localStorage.getItem(BACKUP_KEY); if(!bRaw) return; const backups=JSON.parse(bRaw); const b=backups[idx]; if(!b) return; if(!confirm('Restore '+(b.data||[]).length+' agencies from '+formatBackupTimestamp(b.timestamp)+'? This will overwrite your current data.')) return; localStorage.setItem(STORAGE_KEY,JSON.stringify(b.data||[])); closeBackupModal(); location.reload(); }
 
     // ---- Send All Modal ----
-    function openSendAllModal(){
+    function openSendAllModal(customLeads){
       if(!outlookAccount){ alert('Connect Outlook first.'); return; }
       const td=todayISO();
-      const dueItems=[];
-      leads.forEach(l=>{
-        if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified'||l.status==='New') return;
-        if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate&&!l.followUpDate) return;
-        if(!l.followUpDate||!l.directorEmail) return;
-        const nd=normDateStr(l.followUpDate);
-        if(nd&&nd<=td) dueItems.push(l);
-      });
+      let dueItems=[];
+      if(Array.isArray(customLeads)){
+        // Pre-filtered list from pipeline bulk-select — caller is responsible for eligibility
+        dueItems=customLeads;
+      } else {
+        leads.forEach(l=>{
+          if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified'||l.status==='New') return;
+          if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate&&!l.followUpDate) return;
+          if(!l.followUpDate||!l.directorEmail) return;
+          const nd=normDateStr(l.followUpDate);
+          if(nd&&nd<=td) dueItems.push(l);
+        });
+      }
       const listEl=document.getElementById('sendAllList');
       if(!dueItems.length){ listEl.innerHTML='<div style="color:var(--muted);font-size:12px;padding:12px">No due items with email addresses.</div>'; }
       else {
@@ -1934,12 +1941,18 @@
           else if(!l.email2SentDate) tplKey='2';
           else if(!l.email3SentDate) tplKey='3';
           else tplKey='4';
-          const tpl=SEQ_TEMPLATES[tplKey];
-          const agencyDisp=l.agencyName||'[Agency Name]';
-          const directorDisp=buildGreetingName(l.directorName);
-          const portalDisp=(l.rightmoveListed==='Yes')?'Rightmove':'your property portals';
-          const customObsDisp=l.customObservation||'';
-          const subject=injectSeqVars(tpl.subject,agencyDisp,directorDisp,portalDisp,customObsDisp);
+          // Prefer qualifier's personalised draft for Email 1; generic template for follow-ups (and for E1 without a draft).
+          let subject;
+          if(tplKey==='1' && l.draftSubject && l.draftBody){
+            subject = l.draftSubject;
+          } else {
+            const tpl=SEQ_TEMPLATES[tplKey];
+            const agencyDisp=l.agencyName||'[Agency Name]';
+            const directorDisp=buildGreetingName(l.directorName);
+            const portalDisp=(l.rightmoveListed==='Yes')?'Rightmove':'your property portals';
+            const customObsDisp=l.customObservation||'';
+            subject=injectSeqVars(tpl.subject,agencyDisp,directorDisp,portalDisp,customObsDisp);
+          }
           listEl.innerHTML+='<div class="send-all-row" data-id="'+l.id+'" data-tpl="'+tplKey+'"><div class="send-all-status" id="sas-'+l.id+'"></div><div class="send-all-info"><div class="send-all-name">'+escapeHtml(l.agencyName||'')+'</div><div class="send-all-email-addr">'+escapeHtml(l.directorEmail)+'</div><div class="send-all-subject">'+escapeHtml(subject)+'</div></div></div>';
         });
       }
@@ -1971,12 +1984,19 @@
         if(statusEl) statusEl.innerHTML='<span style="color:#888;font-size:12px">Sending...</span>';
         const tpl=SEQ_TEMPLATES[tplKey];
         if(!tpl){ if(statusEl) statusEl.innerHTML='<span style="color:var(--danger);font-size:12px">No template</span>'; failed++; continue; }
-        const agencyDisp=lead.agencyName||'[Agency Name]';
-        const directorDisp=buildGreetingName(lead.directorName);
-        const portalDisp=(lead.rightmoveListed==='Yes')?'Rightmove':'your property portals';
-        const customObsDisp=lead.customObservation||'';
-        const subject=injectSeqVars(tpl.subject,agencyDisp,directorDisp,portalDisp,customObsDisp);
-        const body=injectSeqVars(tpl.body,agencyDisp,directorDisp,portalDisp,customObsDisp);
+        // Prefer qualifier's personalised draft for Email 1; generic template for follow-ups (and for E1 without a draft).
+        let subject, body;
+        if(tplKey==='1' && lead.draftSubject && lead.draftBody){
+          subject = lead.draftSubject;
+          body    = lead.draftBody;
+        } else {
+          const agencyDisp=lead.agencyName||'[Agency Name]';
+          const directorDisp=buildGreetingName(lead.directorName);
+          const portalDisp=(lead.rightmoveListed==='Yes')?'Rightmove':'your property portals';
+          const customObsDisp=lead.customObservation||'';
+          subject=injectSeqVars(tpl.subject,agencyDisp,directorDisp,portalDisp,customObsDisp);
+          body=injectSeqVars(tpl.body,agencyDisp,directorDisp,portalDisp,customObsDisp);
+        }
         const htmlBody='<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.65">'+escapeHtml(body).replace(/\n/g,'<br>')+'</div>';
         try{
           if(lead.threadMessageId){ await sendGraphReply(lead.threadMessageId, htmlBody, lead.directorEmail); }
@@ -2311,6 +2331,43 @@
         selectedPipelineIds.clear(); sel.value='';
         save(); updateBulkUI();
       });
+      document.getElementById('btnBulkSendOutlook').addEventListener('click',handleBulkSendOutlook);
+    }
+
+    // ---- Bulk send via Outlook (pipeline selection) ----
+    function handleBulkSendOutlook(){
+      if(!outlookAccount){ alert('Connect Outlook first (Inbox tab).'); return; }
+      if(!selectedPipelineIds.size){ alert('Select at least one lead.'); return; }
+
+      const TERMINAL=['Won','Lost','Unqualified'];
+      const eligible=[];
+      const skipped=[];
+      selectedPipelineIds.forEach(id=>{
+        const l=leads.find(x=>x.id==id);
+        if(!l) return;
+        if(TERMINAL.includes(l.status)){ skipped.push({lead:l,reason:'Terminal status ('+l.status+')'}); return; }
+        if(!l.directorEmail){ skipped.push({lead:l,reason:'No email address'}); return; }
+        if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate){ skipped.push({lead:l,reason:'All emails already sent'}); return; }
+        // Determine template stage
+        let tplKey='1';
+        if(l.email1SentDate&&!l.email2SentDate) tplKey='2';
+        else if(l.email1SentDate&&l.email2SentDate&&!l.email3SentDate) tplKey='3';
+        else if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate) tplKey='4';
+        // Email 1 requires the qualifier's personalised draft
+        if(tplKey==='1'&&(!l.draftSubject||!l.draftBody)){ skipped.push({lead:l,reason:'No draft Email 1 — qualify this lead first'}); return; }
+        eligible.push(l);
+      });
+
+      if(!eligible.length){
+        alert('0 eligible to send.\n\nSkipped:\n'+skipped.map(s=>'• '+(s.lead.agencyName||'(unnamed)')+' — '+s.reason).join('\n'));
+        return;
+      }
+      if(skipped.length){
+        const ok=confirm(eligible.length+' eligible to send. '+skipped.length+' will be skipped:\n\n'+
+          skipped.map(s=>'• '+(s.lead.agencyName||'(unnamed)')+' — '+s.reason).join('\n')+'\n\nProceed?');
+        if(!ok) return;
+      }
+      openSendAllModal(eligible);
     }
 
     function bindFollowUps(){
