@@ -465,7 +465,7 @@
     };
     const SB_DATE_FIELDS = new Set(['email1_sent_date','email2_date','email2_sent_date','email3_date','email3_sent_date','email4_date','follow_up_date']);
     function leadToSnake(lead){ const row={}; for(const [k,v] of Object.entries(lead)){ const sk=SB_FIELD_MAP[k]; if(!sk) continue; let val=v; if(SB_DATE_FIELDS.has(sk)){ if(!val||val==='') val=null; else if(typeof val==='string'&&val.includes('T')) val=val.slice(0,10); } if(val===undefined) continue; row[sk]=val; } return row; }
-    const CRM_URL     = '../crm/index.html';
+    const CRM_URL     = 'https://lawrence-sundar.github.io/estate-agents-7m2k/';
     let pendingUrl    = '';
     let pendingApiKey = '';
     let selectedEmail = '';
@@ -1392,7 +1392,7 @@ ${pageText}`;
     }
 
     // ── Confirm & add to CRM ──
-    function confirmAddToTracker() {
+    async function confirmAddToTracker() {
       const r = window._lastResult;
       if (!r) { showError('Missing result data — please re-run analysis.'); return; }
 
@@ -1457,17 +1457,25 @@ ${pageText}`;
 
       try {
         saveSnapshot();
-        // Supabase insert
+        // Supabase insert — awaited so errors surface immediately
         const sb=getSB();
-        if(sb){ sb.from(SB_TABLE).insert(leadToSnake(lead)).then(({error})=>{ if(error) console.warn('[confirmAddToTracker] Supabase:',error.message); else console.log('[confirmAddToTracker] Supabase: inserted '+lead.agencyName); }); }
-        // localStorage dual-write
+        if(sb){
+          const { error } = await sb.from(SB_TABLE).insert(leadToSnake(lead));
+          if(error){
+            console.warn('[confirmAddToTracker] Supabase:',error.message);
+            showError('Could not add to CRM: '+error.message);
+            return;
+          }
+          console.log('[confirmAddToTracker] Supabase: inserted '+lead.agencyName);
+        }
+        // localStorage dual-write (only after Supabase success, so stores don't diverge)
         const raw   = localStorage.getItem(TRACKER_KEY);
         const leads = raw ? JSON.parse(raw) : [];
         leads.push(lead);
         localStorage.setItem(TRACKER_KEY, JSON.stringify(leads));
         window._createdLeadId = lead.id;
-      } catch {
-        showError('Could not save to CRM storage.');
+      } catch (e) {
+        showError('Could not save to CRM storage: '+(e && e.message ? e.message : 'unknown error'));
         return;
       }
 
