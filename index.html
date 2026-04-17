@@ -850,7 +850,10 @@
       linkedinMessage3Date:'linkedin_message3_date',
       notes:'notes', customObservation:'custom_observation',
       threadMessageId:'thread_message_id', activityLog:'activity_log',
-      dateAdded:'date_added'
+      dateAdded:'date_added',
+      channel:'channel', score:'score',
+      draftSubject:'draft_subject', draftBody:'draft_body',
+      subjectLine:'subject_line', ctaVariant:'cta_variant'
     };
     const SB_REVERSE_MAP = Object.fromEntries(Object.entries(SB_FIELD_MAP).map(([k,v])=>[v,k]));
     const SB_DATE_FIELDS = new Set(['email1_sent_date','email2_date','email2_sent_date','email3_date','email3_sent_date','email4_date','follow_up_date','linkedin_message1_date','linkedin_message2_date','linkedin_message3_date']);
