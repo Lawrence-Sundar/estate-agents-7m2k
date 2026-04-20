@@ -896,14 +896,14 @@
         label: 'Follow Up + Loom',
         day: 3,
         subject: 'Re: [Agency Name] - quick question',
-        body: 'Hi [Director Name],\n\nJust bumping this in case it got buried.\n\n60% of portal leads across the industry never get a response. Most agencies do not realise it is happening because the gap is invisible.\n\nI put together a short demo showing exactly what the fix looks like for an independent agency like [Agency Name]:\n\n<!-- Replace [LOOM URL] with actual Loom link before sending -->\n[LOOM URL]\n\nNo pitch — just the system running live. Happy to discuss if it\u2019s relevant.\n\nLawrence\nDaedalus Atelier',
-        note: 'Add Loom link before sending'
+        body: 'Hi [Director Name],\n\nFollowing up on my earlier note \u2014 thought this might be easier than reading about it. Put together a quick two-minute walkthrough showing exactly how it works:\n\n<a href="https://www.loom.com/share/c1bb0c8d43e44ef9b6a1f8486cf4ea7a">Watch the 2-minute demo \u2192</a>\n(https://www.loom.com/share/c1bb0c8d43e44ef9b6a1f8486cf4ea7a)\n\nHappy to discuss if it\u2019s relevant.\n\nLawrence\nDaedalus Atelier',
+        note: ''
       },
       '3': {
         label: 'Observation',
         day: 7,
         subject: 'Re: [Agency Name] - quick question',
-        body: 'Hi [Director Name],\n\n[customObservation]\n\nThe system I build means every [Portal] and website enquiry gets an instant response regardless of when it comes in - your team picks up a clean organised queue instead of a scattered inbox.\n\n<!-- Replace [LOOM URL] with actual Loom link before sending -->\nIn case you missed it: [LOOM URL]\n\nHappy to show you what that looks like in 10 minutes if useful.\n\nLawrence\nDaedalus Atelier',
+        body: 'Hi [Director Name],\n\n[customObservation]\n\nLink here if you missed the demo: <a href="https://www.loom.com/share/c1bb0c8d43e44ef9b6a1f8486cf4ea7a">Watch the 2-minute demo \u2192</a>\n\nHappy to answer any questions if the timing isn\u2019t right.\n\nLawrence\nDaedalus Atelier',
         note: 'Replace [customObservation] with qualifier output or enter manually before sending'
       },
       '4': {
@@ -2037,7 +2037,7 @@
           body=injectSeqVars(tpl.body,agencyDisp,directorDisp,portalDisp,customObsDisp);
         }
         const cleanBody=body.replace(/<!--[\s\S]*?-->\s*\n?/g,'');
-        const htmlBody='<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.65">'+escapeHtml(cleanBody).replace(/\n/g,'<br>')+'</div>';
+        const htmlBody='<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.65">'+escapeHtml(cleanBody).replace(/\n/g,'<br>').replace(/&lt;a href=&quot;(.+?)&quot;&gt;(.+?)&lt;\/a&gt;/g,'<a href="$1">$2</a>')+'</div>';
         try{
           if(lead.threadMessageId){ await sendGraphReply(lead.threadMessageId, htmlBody, lead.directorEmail); }
           else { const msgId=await sendGraphEmail(lead.directorEmail, subject, htmlBody); if(msgId) lead.threadMessageId=msgId; }
@@ -2225,7 +2225,7 @@
       const subject=document.getElementById('emailSubjectPreview').textContent.replace(/^Subject: /,'');
       const bodyEl=document.getElementById('emailBodyPreview');
       const cleanBody=bodyEl.textContent.replace(/<!--[\s\S]*?-->\s*\n?/g,'');
-      const htmlBody='<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.65">'+escapeHtml(cleanBody).replace(/\n/g,'<br>')+'</div>';
+      const htmlBody='<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.65">'+escapeHtml(cleanBody).replace(/\n/g,'<br>').replace(/&lt;a href=&quot;(.+?)&quot;&gt;(.+?)&lt;\/a&gt;/g,'<a href="$1">$2</a>')+'</div>';
       const btn=document.getElementById('btnSendOutlook');
       const origText=btn.textContent;
       btn.textContent='Sending...'; btn.disabled=true;
