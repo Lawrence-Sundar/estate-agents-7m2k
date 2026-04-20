@@ -1881,7 +1881,7 @@
       const draft=currentEmailDraft();
       if(!draft){ wrap.style.display='none'; placeholder.style.display='block'; return; }
       document.getElementById('emailSubjectPreview').textContent='Subject: '+draft.subject;
-      document.getElementById('emailBodyPreview').textContent=draft.body;
+      document.getElementById('emailBodyPreview').innerHTML=escapeHtml(draft.body).replace(/\n/g,'<br>').replace(/&lt;a href=&quot;(.+?)&quot;&gt;(.+?)&lt;\/a&gt;/g,'<a href="$1" target="_blank" style="color:var(--accent)">$2</a>');
       placeholder.style.display='none'; wrap.style.display='block';
     }
 
@@ -2222,9 +2222,9 @@
       if(!lead){ alert('No agency selected.'); return; }
       if(lead.status==='Won'||lead.status==='Lost'||lead.status==='Unqualified'){ alert('This agency is '+lead.status+'. Cannot send.'); return; }
       if(!lead.directorEmail){ alert('No email address. Add one via Edit first.'); return; }
-      const subject=document.getElementById('emailSubjectPreview').textContent.replace(/^Subject: /,'');
-      const bodyEl=document.getElementById('emailBodyPreview');
-      const cleanBody=bodyEl.textContent.replace(/<!--[\s\S]*?-->\s*\n?/g,'');
+      const draft=currentEmailDraft(); if(!draft){ alert('Draft not available.'); return; }
+      const subject=draft.subject;
+      const cleanBody=draft.body.replace(/<!--[\s\S]*?-->\s*\n?/g,'');
       const htmlBody='<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.65">'+escapeHtml(cleanBody).replace(/\n/g,'<br>').replace(/&lt;a href=&quot;(.+?)&quot;&gt;(.+?)&lt;\/a&gt;/g,'<a href="$1">$2</a>')+'</div>';
       const btn=document.getElementById('btnSendOutlook');
       const origText=btn.textContent;
