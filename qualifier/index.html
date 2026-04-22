@@ -1055,79 +1055,540 @@ ${pageText}`;
       if(!_batchMode){ document.getElementById('batchResults').style.display='none'; document.getElementById('batchProgress').textContent=''; }
     }
 
-    async function runBatchAnalysis(){
+    // ── Batch cache (localStorage — shared across same-origin tabs, TTL 24h) ──
+    const BATCH_CACHE_KEY    = 'da_batch_cache_v1';
+    const BATCH_PROGRESS_KEY = 'da_batch_progress_v1';
+    const BATCH_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+    // FNV-1a 32-bit hash — fast, collision-free for ≤1000 distinct URLs per batch
+    function urlHashFNV(s) {
+      let h = 0x811c9dc5;
+      for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+      return h.toString(16).padStart(8, '0');
+    }
+    function normBatchUrl(u) {
+      try {
+        const x = new URL(u);
+        return (x.origin + x.pathname).replace(/\/$/, '').replace(/^https?:\/\/(www\.)?/, 'https://');
+      } catch { return (u || '').toLowerCase().trim(); }
+    }
+    function readBatchCache() {
+      try {
+        const raw = localStorage.getItem(BATCH_CACHE_KEY);
+        if (!raw) return {};
+        const obj = JSON.parse(raw);
+        const now = Date.now();
+        let pruned = false;
+        for (const k of Object.keys(obj)) {
+          if (!obj[k] || !obj[k].qualifiedAt || (now - obj[k].qualifiedAt) > BATCH_CACHE_TTL_MS) { delete obj[k]; pruned = true; }
+        }
+        if (pruned) localStorage.setItem(BATCH_CACHE_KEY, JSON.stringify(obj));
+        return obj;
+      } catch { return {}; }
+    }
+    function writeBatchCacheEntry(hash, entry) {
+      try {
+        const cache = readBatchCache();
+        cache[hash] = { ...entry, qualifiedAt: Date.now() };
+        localStorage.setItem(BATCH_CACHE_KEY, JSON.stringify(cache));
+      } catch (e) { console.warn('[cache] write failed:', e && e.message); }
+    }
+    function readBatchCacheEntry(hash) { return readBatchCache()[hash] || null; }
+
+    function readBatchProgress() {
+      try { return JSON.parse(localStorage.getItem(BATCH_PROGRESS_KEY) || 'null'); } catch { return null; }
+    }
+    function writeBatchProgress(p) {
+      try { localStorage.setItem(BATCH_PROGRESS_KEY, JSON.stringify(p)); } catch (e) { console.warn('[progress]', e && e.message); }
+    }
+    function clearBatchProgress() { try { localStorage.removeItem(BATCH_PROGRESS_KEY); } catch {} }
+
+    // ── Single-lead qualifier (pure — no DOM, no window globals) ──
+    // Returns { url, result, regexEmails, toolDetected, oohDetected, fetchedPages, error? }.
+    // NOTE: customObservation is NOT included here (it's a separate non-blocking Claude call
+    // that batch-mode fires after qualifyOneURL resolves so the pool can move on).
+    async function qualifyOneURL(url, apiKey, onProgress) {
+      const out = { url, fetchedPages: [], regexEmails: [], toolDetected: 'None', oohDetected: false, result: null, error: null };
+      const notify = (s, d) => { try { if (onProgress) onProgress(s, d); } catch {} };
+      try {
+        notify('fetching-homepage');
+        const hpHtml = await fetchHtmlWithProxies(url, { firstTimeout: 10000, retryTimeout: 8000 });
+        if (!hpHtml) { out.error = 'All proxies failed on homepage'; return out; }
+
+        const htmlLower = hpHtml.toLowerCase();
+        const hpText = htmlToText(hpHtml);
+        if (hpText.length < 80) { out.error = 'Very little text extracted from homepage'; return out; }
+
+        const hpEmails = extractEmailsFromHTML(hpHtml);
+        out.regexEmails.push(...hpEmails);
+        out.fetchedPages.push({ url, source: 'homepage', emails: hpEmails.length });
+
+        const secondaryUrls = findSecondaryPages(hpHtml, url);
+        let combinedText = hpText;
+        if (secondaryUrls.length) {
+          notify('fetching-secondaries', { count: secondaryUrls.length });
+          const secResults = await Promise.allSettled(
+            secondaryUrls.map(u => fetchHtmlWithProxies(u, { firstTimeout: 8000, retryTimeout: 6000 }))
+          );
+          secResults.forEach((res, i) => {
+            const secUrl = secondaryUrls[i];
+            if (res.status !== 'fulfilled' || !res.value) {
+              out.fetchedPages.push({ url: secUrl, source: 'secondary', emails: 0, failed: true });
+              return;
+            }
+            const secHtml = res.value;
+            const secEmails = extractEmailsFromHTML(secHtml);
+            out.regexEmails.push(...secEmails);
+            const secText = htmlToText(secHtml, 4000);
+            if (secText.length >= 40) {
+              let label;
+              try { label = new URL(secUrl).pathname; } catch { label = secUrl; }
+              combinedText += '\n\n--- Page: ' + label + ' ---\n\n' + secText;
+            }
+            out.fetchedPages.push({ url: secUrl, source: 'secondary', emails: secEmails.length });
+          });
+        }
+        out.regexEmails = Array.from(new Set(out.regexEmails));
+
+        // Tool detection
+        const TOOL_SIGNALS_B = {
+          'Klikkit':['klikkit'],'SalesRook':['salesrook','sales rook'],'Yomdel':['yomdel'],'Giosg':['giosg'],
+          'LiveChat':['livechat.com','livechatinc','livechat inc','__lc'],
+          'Intercom':['intercom.io','intercom.com','intercomcdn','intercomsettings'],
+          'Drift':['drift.com','driftt.com'],'Tawk':['tawk.to','embed.tawk']
+        };
+        const OOH_PHRASES_B = ['instant response','respond within','reply within','24/7','always available','live chat available','we never miss an enquiry','automatic response','we reply instantly','round the clock'];
+        let detectedTool = 'None';
+        for (const [name, keys] of Object.entries(TOOL_SIGNALS_B)) {
+          if (keys.some(k => htmlLower.includes(k))) { detectedTool = name; break; }
+        }
+        const oohHit = OOH_PHRASES_B.some(p => combinedText.toLowerCase().includes(p));
+        out.toolDetected = detectedTool !== 'None' ? detectedTool : (oohHit ? 'Other' : 'None');
+        out.oohDetected = oohHit;
+
+        // Claude main call — same prompt as single-mode's runClaudeAnalysis
+        notify('claude');
+        const systemPrompt = `You are a sales qualifier for Daedalus Atelier, a UK speed-to-lead automation company working with independent estate agents. You analyse estate agency websites and extract structured data to qualify them as outreach targets.
+
+TOOL DETECTION — Look carefully for any of the following keywords anywhere in the page text or visible copy: "klikkit", "salesrook", "yomdel", "giosg", "livechat", "intercom", "drift", "tawk", "instant response", "respond within minutes", "we reply instantly", "24/7 response", "always available to chat". If any are present, set existing_tool_detected to the matching tool name (or "Other" for generic instant-response claims) and score the agency Cold.
+
+SCORING:
+- Hot = independent agency (1–3 branches), manual enquiry handling (contact form or phone only), listed on Rightmove or Zoopla, no instant response tool detected
+- Warm = mixed signals, partial automation unclear, 4–6 branches, insufficient data
+- Cold = any instant response tool detected (Klikkit, SalesRook, Yomdel, Giosg, LiveChat, Intercom, Drift, Tawk), OR 7+ branches, OR "instant response guarantee" visible on site
+
+Detect enquiry_channel from page content. Detect branch_count from footer, about page mentions, or navigation. Detect rightmove_listed from any Rightmove logo, link, or mention on page.`;
+
+        const userPrompt = `Analyse the following webpage text from a UK estate agency website and return a JSON object with EXACTLY these fields:
+
+- score: "Hot", "Warm", or "Cold"
+- score_confidence: "high" | "medium" | "low"
+- score_reason: one sentence explaining the score
+- agency_name: detected agency name or null
+- director_name: Director/MD/Managing Director/Owner/Principal name if found, else null
+- office_manager_name: office/branch/lettings manager name if found, else null
+- director_name_confidence: "found" | "inferred" | "not_found"
+- emails: array of all email addresses detected
+- primary_email: single best email for outreach, or null
+- enquiry_channel: "contact_form" | "phone_only" | "email_only" | "whatsapp" | "live_chat" | "instant_response_tool" | "unknown"
+- enquiry_channel_confidence: "confirmed" | "inferred" | "unknown"
+- review_count: number or null
+- address: string or null
+- city: "London"|"Manchester"|"Birmingham"|"Leeds"|"Bristol"|"Edinburgh"|"Glasgow"|"Sheffield"|"Nottingham"|"Other"|"unknown"
+- city_name: string or null
+- branch_count: number or null
+- rightmove_listed: boolean
+- existing_tool_detected: "None"|"Klikkit"|"SalesRook"|"Yomdel"|"Giosg"|"LiveChat"|"Intercom"|"Drift"|"Tawk"|"Other"
+- disqualifiers: array of strings (empty if Hot/Warm)
+- detected_signals: array of strings
+
+Return ONLY a raw JSON object. No markdown, no code fences.
+
+Webpage text:
+${combinedText}`;
+
+        const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+          body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1000, system: systemPrompt, messages:[{role:'user', content:userPrompt}] })
+        });
+        if (!apiRes.ok) {
+          const errBody = await apiRes.json().catch(() => ({}));
+          out.error = errBody.error?.message || ('API returned HTTP ' + apiRes.status);
+          return out;
+        }
+        const apiData = await apiRes.json();
+        const rawText = (apiData.content?.[0]?.text || '').trim();
+        let result;
+        try { result = JSON.parse(rawText.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim()); }
+        catch { out.error = 'Claude returned unexpected format: ' + rawText.slice(0, 120); return out; }
+
+        // Merge tool-detection override
+        if (out.toolDetected !== 'None' && (!result.existing_tool_detected || result.existing_tool_detected === 'None')) {
+          result.existing_tool_detected = out.toolDetected;
+          if (result.score !== 'Cold') {
+            result.score = 'Cold';
+            result.score_reason = (result.score_reason || '') + ' Instant-response tool detected: ' + out.toolDetected + '.';
+            result.disqualifiers = Array.isArray(result.disqualifiers) ? result.disqualifiers : [];
+            result.disqualifiers.push(out.toolDetected + ' detected on site');
+          }
+        }
+        // Merge regex emails
+        if (out.regexEmails.length) {
+          const claudeEmails = Array.isArray(result.emails) ? result.emails.map(e => String(e).toLowerCase()) : [];
+          result.emails = Array.from(new Set([...claudeEmails, ...out.regexEmails]));
+        }
+
+        // Places enrichment (non-blocking semantics — failures are logged, not fatal)
+        try {
+          const gKey = sessionStorage.getItem('google_places_key') || '';
+          if (gKey && result.agency_name) {
+            notify('places');
+            const searchQ = encodeURIComponent(result.agency_name + ' estate agent ' + (result.city_name || result.city || ''));
+            const pRes = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://maps.googleapis.com/maps/api/place/textsearch/json?query=' + searchQ + '&key=' + gKey), {signal:AbortSignal.timeout(8000)});
+            if (pRes.ok) {
+              const pData = await pRes.json();
+              if (pData.results && pData.results.length > 0) {
+                const place = pData.results[0];
+                if (place.rating) result.google_rating = place.rating;
+                if (place.user_ratings_total) result.review_count = place.user_ratings_total;
+                if (place.formatted_address && !result.address) result.address = place.formatted_address;
+              }
+            }
+          }
+        } catch (e) { console.warn('[Places]', e && e.message); }
+
+        out.result = result;
+        return out;
+      } catch (err) {
+        out.error = err && err.message ? err.message : String(err);
+        return out;
+      }
+    }
+
+    // ── Pre-batch duplicate check (single Supabase query for all URLs at once) ──
+    async function preflightBatchDupCheck(urls) {
+      const dupMap = {};  // { normalisedURL: dupLead }
+      try {
+        const sb = getSB();
+        if (sb) {
+          const { data, error } = await sb.from(SB_TABLE).select('agency_name,website_url').limit(5000);
+          if (error) { console.warn('[dup preflight]', error.message); return dupMap; }
+          const rows = data || [];
+          const byNorm = {};
+          for (const r of rows) {
+            const n = normBatchUrl(r.website_url || '');
+            if (n) byNorm[n] = { agencyName: r.agency_name || '', websiteUrl: r.website_url || '' };
+          }
+          for (const u of urls) {
+            const n = normBatchUrl(u);
+            if (byNorm[n]) dupMap[u] = byNorm[n];
+          }
+        }
+      } catch (e) { console.warn('[dup preflight]', e && e.message); }
+      return dupMap;
+    }
+
+    // ── Batch state (in-memory, mirrors cache for the current tab's view) ──
+    let _batchState = {
+      running: false,
+      urls: [],
+      dupMap: {},
+      results: {},   // { url: {urlHash, entry?, error?} }
+      filter: 'all', // 'all' | 'hot' | 'warm' | 'hidecold'
+    };
+
+    async function runBatchAnalysis() {
+      if (_batchState.running) return;
       const apiKey = (document.getElementById('apiKey').value || window._apiKey || '').trim();
-      if(!apiKey){ showError('Please enter your Anthropic API key.'); return; }
+      if (!apiKey) { showError('Please enter your Anthropic API key.'); return; }
       const _gKey = (document.getElementById('googlePlacesKey') || {}).value || '';
-      if(_gKey) sessionStorage.setItem('google_places_key', _gKey);
+      if (_gKey) sessionStorage.setItem('google_places_key', _gKey);
       const raw = (document.getElementById('batchUrls').value || '').trim();
-      if(!raw){ showError('Paste at least one URL.'); return; }
-      const urls = raw.split('\n').map(u=>u.trim()).filter(u=>u&&(u.startsWith('http')||u.startsWith('www')));
-      if(!urls.length){ showError('No valid URLs found. One per line, starting with http.'); return; }
+      if (!raw) { showError('Paste at least one URL.'); return; }
+      const urls = Array.from(new Set(raw.split('\n').map(u => u.trim()).filter(u => u && /^https?:\/\//.test(u))));
+      if (!urls.length) { showError('No valid URLs found. One per line, starting with http:// or https://.'); return; }
 
       window._apiKey = apiKey;
-      const btn = document.getElementById('btnBatchAnalyse'); btn.disabled=true; btn.textContent='Running...';
+      _batchState = { running: true, urls, dupMap: {}, results: {}, filter: 'all' };
+
+      const btn = document.getElementById('btnBatchAnalyse');
+      btn.disabled = true; btn.textContent = 'Running...';
       const prog = document.getElementById('batchProgress');
-      const listEl = document.getElementById('batchResultsList'); listEl.innerHTML='';
-      document.getElementById('batchResults').style.display='block';
-      let completed=0, added=0;
+      document.getElementById('batchResults').style.display = 'block';
+      renderBatchTable();  // empty shell so operator sees the table skeleton immediately
 
-      for(const url of urls){
-        completed++;
-        prog.textContent = completed + '/' + urls.length + ' — ' + url.replace(/^https?:\/\//, '').slice(0,30) + '...';
-        const dup = await checkDuplicate(url);
-        if(dup){ appendBatchRow(listEl, url, null, 'Duplicate — ' + (dup.agencyName||'already in CRM')); continue; }
-        try{
-          let pageText = null;
-          try{ const p1=await fetch('https://corsproxy.io/?'+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)}); if(p1.ok) pageText=await p1.text(); }catch(e){ console.debug('[batch fetch proxy 1]', e && e.message); }
-          if(!pageText){ try{ const p2=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(8000)}); if(p2.ok){ const d=await p2.json(); pageText=d.contents; } }catch(e){ console.debug('[batch fetch proxy 2]', e && e.message); } }
-          if(!pageText){ appendBatchRow(listEl, url, null, 'Page fetch failed'); continue; }
-          pageText = htmlToText(pageText);
-          const resp = await fetch('https://api.anthropic.com/v1/messages',{
-            method:'POST',
-            headers:{'x-api-key':apiKey,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-            body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,system:'You are a sales qualifier for a UK estate agency speed-to-lead automation company. Analyse estate agency websites and return structured JSON.',messages:[{role:'user',content:pageText.slice(0,12000)+'\n\nReturn a JSON object with: score, score_confidence, score_reason, agency_name, review_count, city, enquiry_channel, rightmove_listed, existing_tool_detected, branch_count, director_name, office_manager_name, emails, primary_email, address'}]})
+      // Pre-flight dup check (single Supabase query)
+      prog.textContent = 'Checking CRM for duplicates...';
+      const dupMap = await preflightBatchDupCheck(urls);
+      _batchState.dupMap = dupMap;
+      const fresh = urls.filter(u => !dupMap[u]);
+      const dupCount = urls.length - fresh.length;
+      if (dupCount) {
+        fresh.forEach(() => {}); // no-op; dup rows rendered below
+      }
+
+      // Seed progress checkpoint so a tab close mid-batch is resumable
+      writeBatchProgress({ queued: [...fresh], completed: [], inProgress: [], startedAt: Date.now(), totalDups: dupCount, totalUrls: urls.length });
+
+      // Add dup rows to results map so they appear in the table immediately
+      for (const u of urls) {
+        if (dupMap[u]) _batchState.results[u] = { urlHash: urlHashFNV(u), dup: dupMap[u] };
+      }
+      renderBatchTable();
+
+      let done = dupCount;
+      const total = urls.length;
+      const updateProg = (stageMsg) => {
+        prog.textContent = done + '/' + total + ' processed' + (dupCount ? ' (' + dupCount + ' dup)' : '') + (stageMsg ? ' — ' + stageMsg : '');
+      };
+      updateProg();
+
+      // Concurrency pool (cap 3)
+      const POOL_SIZE = 3;
+      const queue = [...fresh];
+      const active = new Set();
+
+      const startNext = async () => {
+        if (!queue.length) return;
+        const url = queue.shift();
+        active.add(url);
+        // Update checkpoint
+        const cp = readBatchProgress() || {};
+        cp.inProgress = Array.from(active);
+        cp.queued = [...queue];
+        writeBatchProgress(cp);
+
+        const hash = urlHashFNV(url);
+        try {
+          const out = await qualifyOneURL(url, apiKey, (stage, data) => {
+            if (stage === 'fetching-homepage') updateProg('fetching ' + url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 28));
+            else if (stage === 'fetching-secondaries') updateProg('fetching internal pages');
+            else if (stage === 'claude') updateProg('analysing');
           });
-          const data = await resp.json();
-          let txt = (data.content && data.content[0] && data.content[0].text) || '';
-          txt = txt.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
-          const result = JSON.parse(txt);
-          try{
-            const gk=sessionStorage.getItem('google_places_key')||'';
-            if(gk&&result.agency_name){
-              const sq=encodeURIComponent(result.agency_name+' estate agent '+(result.city||''));
-              const pr=await fetch('https://corsproxy.io/?'+encodeURIComponent('https://maps.googleapis.com/maps/api/place/textsearch/json?query='+sq+'&key='+gk),{signal:AbortSignal.timeout(6000)});
-              if(pr.ok){const pd=await pr.json();if(pd.results&&pd.results[0]){const pl=pd.results[0];if(pl.user_ratings_total)result.review_count=pl.user_ratings_total;if(pl.rating)result.google_rating=pl.rating;}}
+          if (out.error) {
+            _batchState.results[url] = { urlHash: hash, error: out.error };
+          } else {
+            const entry = {
+              url,
+              result: out.result,
+              regexEmails: out.regexEmails,
+              fetchedPages: out.fetchedPages,
+              toolDetected: out.toolDetected,
+              oohDetected: out.oohDetected,
+              customObservation: ''
+            };
+            writeBatchCacheEntry(hash, entry);
+            _batchState.results[url] = { urlHash: hash, entry };
+            // Fire custom observation for Hot/Warm, non-blocking — update cache when it arrives
+            if (out.result && out.result.score !== 'Cold') {
+              generateCustomObservation(out.result, apiKey).then(text => {
+                if (text) {
+                  const latest = readBatchCacheEntry(hash) || entry;
+                  latest.customObservation = text;
+                  writeBatchCacheEntry(hash, latest);
+                  if (_batchState.results[url] && _batchState.results[url].entry) {
+                    _batchState.results[url].entry.customObservation = text;
+                  }
+                }
+              }).catch(e => console.warn('[observation]', e && e.message));
             }
-          }catch(e){ console.debug('[batch Places enrich]', e && e.message); }
-          appendBatchRow(listEl, url, result, null);
-          if(result.score!=='Cold') added++;
-        }catch(e){ appendBatchRow(listEl, url, null, 'Error: '+e.message); }
+          }
+        } catch (e) {
+          _batchState.results[url] = { urlHash: hash, error: e && e.message ? e.message : String(e) };
+        } finally {
+          active.delete(url);
+          done++;
+          // Update checkpoint
+          const cp2 = readBatchProgress() || {};
+          cp2.inProgress = Array.from(active);
+          cp2.queued = [...queue];
+          cp2.completed = (cp2.completed || []).concat([url]);
+          writeBatchProgress(cp2);
+          updateProg();
+          renderBatchTable();
+          // Start next
+          if (queue.length) startNext();
+        }
+      };
+
+      // Kick off POOL_SIZE workers in parallel
+      const kickers = [];
+      for (let i = 0; i < Math.min(POOL_SIZE, queue.length); i++) kickers.push(startNext());
+      // Wait for all workers to drain
+      while (active.size > 0 || queue.length > 0) {
+        await new Promise(r => setTimeout(r, 150));
       }
-      prog.textContent = 'Done — ' + completed + ' processed, ' + added + ' qualifiable';
-      btn.disabled=false; btn.textContent='Qualify All';
+
+      _batchState.running = false;
+      btn.disabled = false; btn.textContent = 'Qualify All';
+      const qualifiable = Object.values(_batchState.results).filter(r => r.entry && r.entry.result && r.entry.result.score !== 'Cold').length;
+      prog.textContent = 'Done — ' + total + ' processed (' + dupCount + ' dup, ' + qualifiable + ' qualifiable)';
+      clearBatchProgress();
     }
 
-    function appendBatchRow(container, url, result, error){
-      const row=document.createElement('div');
-      row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px';
-      if(error){
-        row.innerHTML='<span style="color:var(--muted);flex:1">'+escapeHtml(url.replace(/^https?:\/\//,'').slice(0,40))+'</span><span style="color:var(--danger);font-size:12px">'+escapeHtml(error)+'</span>';
-      } else {
-        const score=result.score||'?';
-        const conf=result.score_confidence||'';
-        const cls=score==='Hot'?'color:var(--success)':score==='Warm'?'color:var(--warn)':'color:var(--danger)';
-        const reviews=result.review_count!=null?result.review_count+(result.google_rating?' ('+result.google_rating+'★)':''):'—';
-        const tool=result.existing_tool_detected||'—';
-        row.innerHTML='<span style="font-weight:600;flex:1">'+escapeHtml(result.agency_name||'(unknown)')+'</span><span style="'+cls+';font-weight:600;min-width:60px">'+score+(conf&&conf!=='high'?' <span style="font-weight:400;font-size:11px">'+conf+'</span>':'')+'</span><span style="min-width:70px;color:var(--muted)">'+reviews+'</span><span style="min-width:50px;color:var(--muted);font-size:12px">'+tool+'</span><button style="font-size:12px;padding:3px 8px;background:var(--accent);color:#fff;border:none;border-radius:4px;cursor:pointer" onclick="openSingleFromBatch(\''+escapeHtml(url.replace(/'/g,"\\'"))+'\')">Open</button>';
+    // ── Batch results table rendering ──
+    function batchScoreRank(score) {
+      return score === 'Hot' ? 0 : score === 'Warm' ? 1 : score === 'Cold' ? 2 : 3;
+    }
+    function renderBatchTable() {
+      const wrap = document.getElementById('batchResults');
+      const listEl = document.getElementById('batchResultsList');
+      if (!wrap || !listEl) return;
+      wrap.style.display = 'block';
+      // Build rows array
+      const rows = [];
+      for (const url of _batchState.urls) {
+        const rec = _batchState.results[url];
+        if (!rec) { rows.push({ url, status: 'pending' }); continue; }
+        if (rec.dup) { rows.push({ url, status: 'dup', dup: rec.dup, urlHash: rec.urlHash }); continue; }
+        if (rec.error) { rows.push({ url, status: 'error', error: rec.error, urlHash: rec.urlHash }); continue; }
+        if (rec.entry) { rows.push({ url, status: 'done', result: rec.entry.result, urlHash: rec.urlHash }); continue; }
       }
-      container.appendChild(row);
+      // Filter
+      const filter = _batchState.filter;
+      const filtered = rows.filter(r => {
+        if (filter === 'all') return true;
+        if (r.status !== 'done') return filter === 'all';
+        const s = r.result?.score;
+        if (filter === 'hot') return s === 'Hot';
+        if (filter === 'warm') return s === 'Warm';
+        if (filter === 'hidecold') return s !== 'Cold';
+        return true;
+      });
+      // Sort: dup/pending/error at top sections; done rows sorted by score (Hot > Warm > Cold), then reviews desc
+      filtered.sort((a, b) => {
+        const pa = a.status === 'dup' ? 0 : a.status === 'pending' ? 1 : a.status === 'done' ? 2 : 3;
+        const pb = b.status === 'dup' ? 0 : b.status === 'pending' ? 1 : b.status === 'done' ? 2 : 3;
+        if (pa !== pb) return pa - pb;
+        if (a.status === 'done' && b.status === 'done') {
+          const sa = batchScoreRank(a.result?.score), sb = batchScoreRank(b.result?.score);
+          if (sa !== sb) return sa - sb;
+          const ra = a.result?.review_count || 0, rb = b.result?.review_count || 0;
+          return rb - ra;
+        }
+        return 0;
+      });
+
+      // Header + filter chips
+      listEl.innerHTML = '';
+      const header = document.createElement('div');
+      header.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap';
+      const chips = [
+        { k: 'all', label: 'All' },
+        { k: 'hot', label: 'Hot' },
+        { k: 'warm', label: 'Warm' },
+        { k: 'hidecold', label: 'Hide Cold' }
+      ];
+      chips.forEach(c => {
+        const b = document.createElement('button');
+        b.textContent = c.label;
+        b.style.cssText = 'background:' + (filter === c.k ? 'var(--accent)' : 'transparent') + ';color:' + (filter === c.k ? '#001a10' : 'var(--muted)') + ';border:1px solid ' + (filter === c.k ? 'var(--accent)' : 'var(--border)') + ';padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit;letter-spacing:.02em';
+        b.addEventListener('click', () => { _batchState.filter = c.k; renderBatchTable(); });
+        header.appendChild(b);
+      });
+      const counts = document.createElement('span');
+      counts.style.cssText = 'margin-left:auto;color:var(--muted);font-size:12px';
+      const doneCount = rows.filter(r => r.status === 'done').length;
+      const dupCount  = rows.filter(r => r.status === 'dup').length;
+      const errCount  = rows.filter(r => r.status === 'error').length;
+      const pendingCount = rows.filter(r => r.status === 'pending').length;
+      counts.textContent = doneCount + ' done' + (pendingCount ? ' · ' + pendingCount + ' pending' : '') + (dupCount ? ' · ' + dupCount + ' dup' : '') + (errCount ? ' · ' + errCount + ' error' : '');
+      header.appendChild(counts);
+      listEl.appendChild(header);
+
+      // Column labels
+      const colLabels = document.createElement('div');
+      colLabels.style.cssText = 'display:grid;grid-template-columns:2fr 70px 70px 80px 80px 70px 90px;gap:10px;padding:7px 14px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);font-weight:600';
+      colLabels.innerHTML = '<span>Agency</span><span>Score</span><span>Reviews</span><span>City</span><span>Emails</span><span>Tool</span><span style="text-align:right">Action</span>';
+      listEl.appendChild(colLabels);
+
+      if (!filtered.length) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'padding:20px 14px;color:var(--muted);font-size:13px;text-align:center';
+        empty.textContent = rows.length ? 'No rows match this filter.' : 'Waiting for first result...';
+        listEl.appendChild(empty);
+        return;
+      }
+
+      // Rows
+      filtered.forEach(r => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:grid;grid-template-columns:2fr 70px 70px 80px 80px 70px 90px;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px';
+        if (r.status === 'pending') {
+          row.innerHTML = '<span style="color:var(--muted);opacity:.6">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span><span style="color:var(--muted);font-size:12px">queued</span><span></span><span></span><span></span><span></span><span></span>';
+        } else if (r.status === 'dup') {
+          row.style.opacity = '0.55';
+          row.innerHTML = '<span><span style="color:var(--text)">' + esc(r.dup.agencyName || '(unknown)') + '</span><span style="color:var(--muted);font-size:11px;display:block">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span></span><span style="color:var(--muted);font-size:12px;font-weight:600">DUP</span><span></span><span></span><span></span><span></span><span style="text-align:right;color:var(--muted);font-size:11px">in CRM</span>';
+        } else if (r.status === 'error') {
+          row.innerHTML = '<span style="color:var(--muted)">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span><span style="color:var(--danger);font-weight:600">ERR</span><span style="grid-column:span 4;color:var(--danger);font-size:12px;font-style:italic">' + esc(r.error) + '</span><span></span>';
+        } else {
+          const s = r.result?.score || '?';
+          const conf = r.result?.score_confidence || '';
+          const scoreColor = s === 'Hot' ? 'var(--success)' : s === 'Warm' ? 'var(--warn)' : 'var(--danger)';
+          const reviews = r.result?.review_count != null ? (r.result.review_count + (r.result.google_rating ? ' (' + r.result.google_rating + '★)' : '')) : '—';
+          const tool = r.result?.existing_tool_detected && r.result.existing_tool_detected !== 'None' ? r.result.existing_tool_detected : '—';
+          const emailCount = Array.isArray(r.result?.emails) ? r.result.emails.length : 0;
+          const city = r.result?.city_name || r.result?.city || '—';
+          row.innerHTML =
+            '<span style="font-weight:500"><span style="color:var(--text)">' + esc(r.result?.agency_name || '(unknown)') + '</span><span style="color:var(--muted);font-size:11px;display:block">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span></span>' +
+            '<span style="color:' + scoreColor + ';font-weight:600">' + esc(s) + (conf && conf !== 'high' ? '<span style="font-weight:400;font-size:11px;display:block;color:var(--muted)">' + esc(conf) + '</span>' : '') + '</span>' +
+            '<span style="color:var(--muted)">' + esc(reviews) + '</span>' +
+            '<span style="color:var(--muted);font-size:12px">' + esc(city) + '</span>' +
+            '<span style="color:var(--muted);font-size:12px">' + emailCount + '</span>' +
+            '<span style="color:var(--muted);font-size:11px">' + esc(tool) + '</span>' +
+            '<span style="text-align:right"><button data-hash="' + esc(r.urlHash) + '" class="batch-open-btn primary" style="font-size:12px;padding:5px 12px">Open ↗</button></span>';
+        }
+        listEl.appendChild(row);
+      });
+      // Wire Open buttons
+      listEl.querySelectorAll('.batch-open-btn').forEach(btn => {
+        btn.addEventListener('click', () => openBatchInNewTab(btn.dataset.hash));
+      });
     }
 
-    function openSingleFromBatch(url){
-      toggleBatchMode();
-      document.getElementById('clinicUrl').value=url;
-      runAnalysis();
+    function openBatchInNewTab(urlHash) {
+      const u = new URL(window.location.href);
+      u.searchParams.set('cached', urlHash);
+      u.searchParams.delete('resume');
+      window.open(u.toString(), '_blank', 'noopener');
+    }
+
+    async function resumeBatchAnalysis() {
+      const cp = readBatchProgress();
+      if (!cp || !cp.queued || !cp.queued.length) { dismissResumeBanner(); return; }
+      const apiKey = (document.getElementById('apiKey').value || window._apiKey || '').trim();
+      if (!apiKey) { showError('Enter your Anthropic API key to resume.'); return; }
+      // Prefill the URL textarea with queued + inProgress URLs (treat inProgress as "not done")
+      const pending = [...(cp.inProgress || []), ...cp.queued];
+      document.getElementById('batchUrls').value = pending.join('\n');
+      if (!_batchMode) toggleBatchMode();
+      dismissResumeBanner();
+      await runBatchAnalysis();
+    }
+    function dismissResumeBanner() {
+      const el = document.getElementById('resumeBatchBanner');
+      if (el) el.style.display = 'none';
+    }
+    function showResumeBannerIfApplicable() {
+      const cp = readBatchProgress();
+      if (!cp || !cp.queued || !cp.queued.length) return;
+      const host = document.getElementById('batchUrlMode') || document.querySelector('.container');
+      if (!host) return;
+      if (document.getElementById('resumeBatchBanner')) return;
+      const banner = document.createElement('div');
+      banner.id = 'resumeBatchBanner';
+      banner.style.cssText = 'background:rgba(245,158,11,0.08);border:1px solid var(--warn);padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--text);line-height:1.5;display:flex;align-items:center;gap:10px;flex-wrap:wrap';
+      const completedCount = (cp.completed || []).length;
+      const total = cp.totalUrls || ((cp.queued || []).length + (cp.inProgress || []).length + completedCount);
+      banner.innerHTML =
+        '<div style="flex:1;min-width:200px"><strong style="color:var(--warn)">Unfinished batch</strong> — ' +
+        completedCount + ' of ' + total + ' done. ' + ((cp.queued || []).length) + ' URL(s) queued.</div>' +
+        '<button class="primary" id="btnResumeBatch" style="font-size:12px;padding:5px 12px">Resume</button>' +
+        '<button class="copy-btn" id="btnDiscardBatch" style="font-size:12px">Discard</button>';
+      host.parentNode.insertBefore(banner, host);
+      document.getElementById('btnResumeBatch').addEventListener('click', resumeBatchAnalysis);
+      document.getElementById('btnDiscardBatch').addEventListener('click', () => { clearBatchProgress(); dismissResumeBanner(); });
     }
 
     // ── Helpers ──
@@ -1566,6 +2027,53 @@ ${pageText}`;
 
     updateFutureTargetsBtn();
     document.getElementById('btnReviewDraft').addEventListener('click', openDraftSection);
+
+    // ── Cached-result init — load a pre-qualified lead from localStorage cache via ?cached=<hash>
+    // Skips the fetch + Claude phases entirely. Used when the operator clicks "Open ↗" on a batch row.
+    (function initCachedResult() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const hash = params.get('cached');
+        if (!hash) return;
+        const entry = readBatchCacheEntry(hash);
+        if (!entry || !entry.result) {
+          showError('Cached result not found or expired. Re-qualify this agency from batch mode.');
+          return;
+        }
+        // Populate globals so renderResults + downstream flow (draft, CRM push) works identically to single-mode
+        window._lastResult        = entry.result;
+        window._lastUrl           = entry.url;
+        window._regexEmails       = entry.regexEmails || [];
+        window._fetchedPages      = entry.fetchedPages || [];
+        window._toolDetected      = entry.toolDetected || 'None';
+        window._oohDetected       = entry.oohDetected || false;
+        window._customObservation = entry.customObservation || '';
+        window._skipDupCheck      = true;  // already qualified from batch; don't re-query Supabase for the dup UI
+        document.getElementById('clinicUrl').value = entry.url;
+        renderResults(entry.result, entry.url);
+        // If observation wasn't cached yet (race with batch-mode's non-blocking observation call), fire it now
+        if (!entry.customObservation && entry.result.score !== 'Cold') {
+          const apiKey = (document.getElementById('apiKey').value || '').trim();
+          if (apiKey) {
+            generateCustomObservation(entry.result, apiKey).then(text => {
+              if (text) {
+                window._customObservation = text;
+                const _el = document.getElementById('customObsEmailInput');
+                if (_el) _el.value = text;
+                const _load = document.getElementById('customObsEmailLoading');
+                if (_load) _load.style.display = 'none';
+                // Also update cache so subsequent opens benefit
+                const latest = readBatchCacheEntry(hash);
+                if (latest) { latest.customObservation = text; writeBatchCacheEntry(hash, latest); }
+              }
+            }).catch(e => console.warn('[cached observation]', e && e.message));
+          }
+        }
+      } catch (e) { console.warn('[initCachedResult]', e && e.message); }
+    })();
+
+    // Resume-unfinished-batch banner
+    showResumeBannerIfApplicable();
 
     // Task 1: Custom Observation (Email 3) — keep window state in sync with textarea
     const _customObsEmailEl = document.getElementById('customObsEmailInput');
