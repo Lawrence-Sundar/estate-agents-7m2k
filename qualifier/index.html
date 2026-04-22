@@ -27,7 +27,18 @@
     }
     *{box-sizing:border-box;font-family:'Inter',-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif}
     body{margin:0;background:var(--bg);color:var(--text);min-height:100vh}
-    .container{max-width:760px;margin:28px auto;padding:20px}
+    .container{max-width:760px;margin:28px auto;padding:20px;transition:max-width .2s}
+
+    /* Split-view mode: batch list on left, opened lead on right — activates on body.split-view */
+    @media(min-width:1100px) {
+      body.split-view .container { max-width: 1500px; display: grid; grid-template-columns: minmax(380px, 1fr) minmax(560px, 1.3fr); gap: 22px; align-items: start; }
+      body.split-view .container > * { grid-column: 1 / -1; }
+      body.split-view #batchResults { grid-column: 1; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; margin-bottom: 0; }
+      body.split-view #results { grid-column: 2; margin-top: 0; }
+      body.split-view #emailDraftSection { grid-column: 2; margin-top: 0; }
+      body.split-view #inlineBatchBar { grid-column: 1 / -1; }
+    }
+
     header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
     h1{font-size:16px;margin:0;font-weight:600;letter-spacing:-0.01em}
     .muted{color:var(--muted)}
@@ -945,6 +956,7 @@ ${pageText}`;
           body: JSON.stringify({
             model: 'claude-haiku-4-5-20251001',
             max_tokens: 1000,
+            temperature: 0,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }]
           })
@@ -1246,7 +1258,7 @@ ${combinedText}`;
         const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-          body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1000, system: systemPrompt, messages:[{role:'user', content:userPrompt}] })
+          body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1000, temperature:0, system: systemPrompt, messages:[{role:'user', content:userPrompt}] })
         });
         if (!apiRes.ok) {
           const errBody = await apiRes.json().catch(() => ({}));
@@ -1488,7 +1500,7 @@ ${combinedText}`;
         if (!rec) { rows.push({ url, status: 'pending' }); continue; }
         if (rec.dup) { rows.push({ url, status: 'dup', dup: rec.dup, urlHash: rec.urlHash }); continue; }
         if (rec.error) { rows.push({ url, status: 'error', error: rec.error, urlHash: rec.urlHash }); continue; }
-        if (rec.entry) { rows.push({ url, status: 'done', result: rec.entry.result, urlHash: rec.urlHash, addedToCRM: !!rec.addedToCRM }); continue; }
+        if (rec.entry) { rows.push({ url, status: 'done', result: rec.entry.result, urlHash: rec.urlHash, addedToCRM: !!rec.addedToCRM, userMarkedDone: !!rec.userMarkedDone }); continue; }
       }
       // Filter
       const filter = _batchState.filter;
@@ -1582,10 +1594,12 @@ ${combinedText}`;
             '<span style="color:var(--muted);font-size:12px">' + esc(city) + '</span>' +
             '<span style="color:var(--muted);font-size:12px">' + emailCount + '</span>' +
             '<span style="color:var(--muted);font-size:11px">' + esc(tool) + '</span>' +
-            '<span style="text-align:right">' +
+            '<span style="text-align:right;display:flex;gap:4px;justify-content:flex-end;align-items:center">' +
               (r.addedToCRM
                 ? '<span style="font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.05em">✓ ADDED</span>'
-                : '<button data-url="' + esc(r.url) + '" class="batch-open-btn primary" style="font-size:12px;padding:5px 12px">Open</button>'
+                : r.userMarkedDone
+                  ? '<span style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.05em">✓ DONE</span><button data-url="' + esc(r.url) + '" class="batch-undo-btn copy-btn" style="font-size:10px;padding:2px 6px" title="Undo done">Undo</button>'
+                  : '<button data-url="' + esc(r.url) + '" class="batch-open-btn primary" style="font-size:12px;padding:5px 12px">Open</button><button data-url="' + esc(r.url) + '" class="batch-mark-done-btn copy-btn" style="font-size:10px;padding:2px 6px" title="Mark this lead as processed — hides from action list">Done</button>'
               ) +
             '</span>';
         }
@@ -1594,6 +1608,20 @@ ${combinedText}`;
       // Wire Open buttons — inline expansion in same tab
       listEl.querySelectorAll('.batch-open-btn').forEach(btn => {
         btn.addEventListener('click', () => openBatchInline(btn.dataset.url));
+      });
+      // Manual "mark as done" button — user-driven bookkeeping, no CRM push
+      listEl.querySelectorAll('.batch-mark-done-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const u = btn.dataset.url;
+          if (_batchState.results[u]) { _batchState.results[u].userMarkedDone = true; renderBatchTable(); }
+        });
+      });
+      // Undo "mark as done"
+      listEl.querySelectorAll('.batch-undo-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const u = btn.dataset.url;
+          if (_batchState.results[u]) { _batchState.results[u].userMarkedDone = false; renderBatchTable(); }
+        });
       });
       // Wire Retry buttons
       listEl.querySelectorAll('.batch-retry-btn').forEach(btn => {
@@ -1719,7 +1747,7 @@ ${pageText}`;
         const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
           headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
-          body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1000, system: systemPrompt, messages:[{role:'user', content:userPrompt}] })
+          body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1000, temperature:0, system: systemPrompt, messages:[{role:'user', content:userPrompt}] })
         });
         if (!apiRes.ok) { const errBody = await apiRes.json().catch(() => ({})); _batchState.results[url] = { urlHash: rec.urlHash, error: errBody.error?.message || ('HTTP ' + apiRes.status) }; renderBatchTable(); return; }
         const apiData = await apiRes.json();
@@ -1754,6 +1782,33 @@ ${pageText}`;
     // Inline expansion — stays in same tab, reads directly from in-memory _batchState.
     // Completely sidesteps localStorage, cross-tab cache, browser cache, storage partitioning.
     let _inlineBatchUrl = null;
+
+    // Full per-lead state reset — prevents email/name/draft from previous lead leaking into next one
+    function resetInlineLeadState() {
+      selectedEmail            = '';
+      _draftEdited             = false;
+      _editMode                = false;
+      window._lastDraft        = null;
+      window._customObservation = '';
+      window._lettingsEmail    = '';
+      window._ctaVariant       = 'demo';
+      window._createdLeadId    = null;
+      window._toolDetected     = 'None';
+      window._oohDetected      = false;
+      window._manuallyQualified = false;
+      // Clear DOM fields that aren't unconditionally reset by renderResults
+      const ids = ['emailToSendInput','directorInput','customObsInput','customObsEmailInput','editSubjectInput','editBodyInput','draftSubject','draftEmailAddress','draftBody','pasteTextarea'];
+      ids.forEach(id => { const el = document.getElementById(id); if (el) { if (el.tagName === 'DIV') el.textContent = ''; else el.value = ''; } });
+      // Hide downstream sections so they don't flash with previous lead's data
+      const sectionsToHide = ['emailDraftSection','draftOutput','confirmState','markSentState','customObsEmailCard','customObsCard','intakeMethodCard','draftCtaWrap','emailsCard','emailToSendCard','directorCard','metaCard','signalsCard','recommendationCard','coldPanel','outOfAreaPanel','flagChannel','flagContact','manuallyQualifiedBadge'];
+      sectionsToHide.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+      // Re-enable the confirm-to-CRM button + reset its text (hidden after previous add)
+      const btnConfirm = document.getElementById('btnConfirmTracker');
+      if (btnConfirm) { btnConfirm.style.display = ''; btnConfirm.disabled = false; }
+      const btnMarkSent = document.getElementById('btnMarkSent');
+      if (btnMarkSent) { btnMarkSent.disabled = false; btnMarkSent.textContent = 'Mark as Sent'; }
+    }
+
     function openBatchInline(url) {
       const rec = _batchState && _batchState.results && _batchState.results[url];
       if (!rec || !rec.entry || !rec.entry.result) {
@@ -1762,6 +1817,9 @@ ${pageText}`;
       }
       const entry = rec.entry;
       _inlineBatchUrl = url;
+      // CRITICAL: reset all per-lead state BEFORE populating with this lead's data
+      // Prevents email/name/draft from a previously-opened lead carrying over
+      resetInlineLeadState();
       // Populate globals so renderResults + draft + CRM push paths work identically to single-mode
       window._lastResult        = entry.result;
       window._lastUrl           = entry.url;
@@ -1773,13 +1831,16 @@ ${pageText}`;
       window._skipDupCheck      = true;  // already qualified by batch; no re-query
       // API key is already in DOM + window._apiKey from the batch run — no cross-tab inheritance needed
       document.getElementById('clinicUrl').value = entry.url;
-      // Hide batch controls + show back-to-batch nav
-      const batchResults = document.getElementById('batchResults');
-      if (batchResults) batchResults.style.display = 'none';
+      // Activate split-view: batch list stays on the LEFT, qualifier UI renders on the RIGHT
+      document.body.classList.add('split-view');
       const bar = document.getElementById('inlineBatchBar');
       if (bar) bar.style.display = 'flex';
       renderResults(entry.result, entry.url);
-      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // On narrow screens (below 1100px breakpoint), split-view is disabled by CSS and layout
+      // falls back to vertical stacking — scroll to the newly-expanded results area there
+      if (window.innerWidth < 1100) {
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
       // Generate observation if missing (uses same apiKey that ran the batch)
       if (!entry.customObservation && entry.result.score !== 'Cold' && window._apiKey) {
         const _load = document.getElementById('customObsEmailLoading');
@@ -1798,14 +1859,14 @@ ${pageText}`;
 
     function backToBatchView() {
       _inlineBatchUrl = null;
+      document.body.classList.remove('split-view');
       const bar = document.getElementById('inlineBatchBar');
       if (bar) bar.style.display = 'none';
       document.getElementById('results').style.display = 'none';
       const draft = document.getElementById('emailDraftSection');
       if (draft) draft.style.display = 'none';
-      const batchResults = document.getElementById('batchResults');
-      if (batchResults) { batchResults.style.display = 'block'; batchResults.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-      // Clear single-mode state so a later direct URL qualify doesn't inherit it
+      // Clear all per-lead state so a later direct URL qualify doesn't inherit anything
+      resetInlineLeadState();
       window._lastResult = null;
       window._skipDupCheck = false;
     }
@@ -2139,6 +2200,7 @@ ${pageText}`;
           body: JSON.stringify({
             model: 'claude-haiku-4-5-20251001',
             max_tokens: 200,
+            temperature: 0.3,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }]
           })
@@ -2835,6 +2897,7 @@ No markdown, no code fences.`;
           body: JSON.stringify({
             model: 'claude-haiku-4-5-20251001',
             max_tokens: 1000,
+            temperature: 0,
             system: systemPrompt,
             messages: [{ role: 'user', content: userPrompt }, { role: 'assistant', content: '{"subject": "' }]
           })
