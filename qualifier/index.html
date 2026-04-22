@@ -1505,15 +1505,19 @@ ${combinedText}`;
         if (rec.error) { rows.push({ url, status: 'error', error: rec.error, urlHash: rec.urlHash }); continue; }
         if (rec.entry) { rows.push({ url, status: 'done', result: rec.entry.result, urlHash: rec.urlHash, addedToCRM: !!rec.addedToCRM, userMarkedDone: !!rec.userMarkedDone }); continue; }
       }
-      // Filter
+      // Filter — Hide Cold keeps errors visible so operator can still see Retry/Paste HTML rows
       const filter = _batchState.filter;
       const filtered = rows.filter(r => {
         if (filter === 'all') return true;
-        if (r.status !== 'done') return filter === 'all';
+        if (filter === 'hidecold') {
+          if (r.status === 'done') return r.result?.score !== 'Cold';
+          if (r.status === 'error') return true;  // keep errors visible
+          return true;                             // keep dups + pending too
+        }
+        if (r.status !== 'done') return false;
         const s = r.result?.score;
         if (filter === 'hot') return s === 'Hot';
         if (filter === 'warm') return s === 'Warm';
-        if (filter === 'hidecold') return s !== 'Cold';
         return true;
       });
       // Sort: dup/pending/error at top sections; done rows sorted by score (Hot > Warm > Cold), then reviews desc
@@ -1549,11 +1553,18 @@ ${combinedText}`;
       });
       const counts = document.createElement('span');
       counts.style.cssText = 'margin-left:auto;color:var(--muted);font-size:12px';
-      const doneCount = rows.filter(r => r.status === 'done').length;
+      const qualifiedCount = rows.filter(r => r.status === 'done').length;
       const dupCount  = rows.filter(r => r.status === 'dup').length;
       const errCount  = rows.filter(r => r.status === 'error').length;
       const pendingCount = rows.filter(r => r.status === 'pending').length;
-      counts.textContent = doneCount + ' done' + (pendingCount ? ' · ' + pendingCount + ' pending' : '') + (dupCount ? ' · ' + dupCount + ' dup' : '') + (errCount ? ' · ' + errCount + ' error' : '');
+      // Workflow-state counter: rows the operator has marked done OR pushed to CRM
+      const reviewedCount = Object.values(_batchState.results).filter(rec => rec && (rec.addedToCRM || rec.userMarkedDone)).length;
+      counts.textContent =
+        qualifiedCount + ' qualified' +
+        (reviewedCount ? ' · ' + reviewedCount + ' reviewed' : '') +
+        (pendingCount ? ' · ' + pendingCount + ' pending' : '') +
+        (dupCount ? ' · ' + dupCount + ' dup' : '') +
+        (errCount ? ' · ' + errCount + ' error' : '');
       header.appendChild(counts);
       listEl.appendChild(header);
 
@@ -1809,7 +1820,10 @@ ${pageText}`;
     // Completely sidesteps localStorage, cross-tab cache, browser cache, storage partitioning.
     let _inlineBatchUrl = null;
 
-    // Full per-lead state reset — prevents email/name/draft from previous lead leaking into next one
+    // Full per-lead state reset — prevents any carry-over (text, HTML children, hidden-but-stale
+    // content, flags) from a previously-opened lead leaking into the newly-opened one.
+    // Audit found: Cold leads carry Warm/Hot lead's extracted-data + emails in hidden DOM,
+    // which becomes visible if operator clicks "Continue Anyway" on the cold-wall.
     function resetInlineLeadState() {
       selectedEmail            = '';
       _draftEdited             = false;
@@ -1822,10 +1836,17 @@ ${pageText}`;
       window._toolDetected     = 'None';
       window._oohDetected      = false;
       window._manuallyQualified = false;
-      // Clear DOM fields that aren't unconditionally reset by renderResults
-      const ids = ['emailToSendInput','directorInput','customObsInput','customObsEmailInput','editSubjectInput','editBodyInput','draftSubject','draftEmailAddress','draftBody','pasteTextarea'];
-      ids.forEach(id => { const el = document.getElementById(id); if (el) { if (el.tagName === 'DIV') el.textContent = ''; else el.value = ''; } });
-      // Hide downstream sections so they don't flash with previous lead's data
+      // Clear form field values
+      const inputIds = ['emailToSendInput','directorInput','customObsInput','customObsEmailInput','editSubjectInput','editBodyInput','pasteTextarea'];
+      inputIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+      // Clear textContent of readonly display divs
+      const textIds = ['draftSubject','draftEmailAddress','draftBody','scoreBadge','reasoningText','analysedUrl','coldReason','recommendation','confirmMsg','markSentMsg'];
+      textIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ''; });
+      // Clear innerHTML of container divs that hold dynamically-rendered children (emails, signals,
+      // metadata, disqualifiers) — these are the audit's CRITICAL leak source
+      const containerIds = ['emailsList','emailSelector','metaGrid','signalList','disqualifierList','flagChannel','flagContact'];
+      containerIds.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
+      // Hide downstream sections so they don't flash with previous lead's data before renderResults repopulates
       const sectionsToHide = ['emailDraftSection','draftOutput','confirmState','markSentState','customObsEmailCard','customObsCard','intakeMethodCard','draftCtaWrap','emailsCard','emailToSendCard','directorCard','metaCard','signalsCard','recommendationCard','coldPanel','outOfAreaPanel','flagChannel','flagContact','manuallyQualifiedBadge'];
       sectionsToHide.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
       // Re-enable the confirm-to-CRM button + reset its text (hidden after previous add)
