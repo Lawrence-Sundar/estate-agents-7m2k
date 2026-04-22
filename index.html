@@ -668,6 +668,16 @@
         </div>
       </div>
 
+      <div id="lettingsModeBanner" style="display:none;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.35);border-left-width:3px;padding:12px 16px;margin-bottom:14px;font-size:13px;line-height:1.5;color:var(--text)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--warning);margin-bottom:4px">Lettings Mode</div>
+            <div>Sending to <strong id="lettingsModeAddr">—</strong>. This will not update the sales email sequence.</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="btnCancelLettingsMode">Cancel</button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="email-section-label">Step 1 — Select a Lead</div>
         <div><select id="emailLeadSelect" style="width:100%"><option value="">— choose an agency —</option></select></div>
@@ -792,7 +802,8 @@
         <div class="form-row"><div><label>Website URL</label><input id="e_websiteUrl" type="url"></div><div><label>Address</label><input id="e_address" type="text"></div></div>
         <div class="form-row"><div><label>Phone</label><input id="e_phone" type="text"></div><div class="w100"><label>Google Rating</label><input id="e_googleRating" type="text"></div><div class="w100"><label>Reviews</label><input id="e_reviewCount" type="text"></div></div>
         <div class="form-row"><div><label>Director Name</label><input id="e_directorName" type="text"></div><div><label>Director Email</label><input id="e_directorEmail" type="email"></div></div>
-        <div class="form-row"><div><label>Director LinkedIn</label><input id="e_directorLinkedinUrl" type="url"></div><div class="w100"><label>Branches</label><input id="e_branchCount" type="text"></div></div>
+        <div class="form-row"><div><label>Lettings Email</label><input id="e_lettingsEmail" type="email" placeholder="lettings@agency.co.uk"></div><div><label>Director LinkedIn</label><input id="e_directorLinkedinUrl" type="url"></div></div>
+        <div class="form-row"><div class="w100"><label>Branches</label><input id="e_branchCount" type="text"></div></div>
         <div class="form-row">
           <div class="w120"><label>Rightmove</label><select id="e_rightmoveListed"><option value="">-</option><option>Yes</option><option>No</option></select></div>
           <div class="w160"><label>Existing Tool</label><select id="e_existingTool"><option value="">-</option><option>None</option><option>Klikkit</option><option>SalesRook</option><option>Yomdel</option><option>Other</option></select></div>
@@ -847,14 +858,47 @@
     const SB_TABLE = 'daedalus_leads';
     let _sb = null;
     function getSB(){ if(!_sb && window.supabase) _sb = window.supabase.createClient(SB_URL, SB_KEY); return _sb; }
+
+    // ── Supabase write tracking + visible sync error banner ──
+    let _pendingWrites = 0;
+    function _sbTracked(promise, label){
+      _pendingWrites++;
+      return promise.then(result => {
+        _pendingWrites--;
+        if(result && result.error){ console.warn('['+label+'] Supabase:', result.error.message); showSyncError(label + ': ' + result.error.message); }
+        return result;
+      }, err => {
+        _pendingWrites--;
+        console.warn('['+label+'] Supabase threw:', err);
+        showSyncError(label + ': ' + (err && err.message ? err.message : 'unknown error'));
+        throw err;
+      });
+    }
+    function showSyncError(msg){
+      let el = document.getElementById('_syncErr');
+      if(!el){
+        el = document.createElement('div');
+        el.id = '_syncErr';
+        el.style.cssText = 'position:fixed;top:12px;right:12px;max-width:380px;padding:12px 16px;background:#E5484D;color:#fff;border-radius:8px;font-size:13px;z-index:99999;box-shadow:0 8px 32px rgba(0,0,0,0.4);cursor:pointer;font-family:inherit;line-height:1.45';
+        el.onclick = () => el.remove();
+        document.body.appendChild(el);
+      }
+      el.textContent = 'Sync failed — ' + msg + ' (click to dismiss)';
+      setTimeout(() => { const cur = document.getElementById('_syncErr'); if(cur) cur.remove(); }, 10000);
+    }
+    window.addEventListener('beforeunload', function(e){
+      if(_pendingWrites > 0){ e.preventDefault(); e.returnValue = 'Sync in progress — changes may be lost if you leave now.'; return e.returnValue; }
+    });
+
     const SB_FIELD_MAP = {
-      id:'id', agencyName:'agency_name', directorName:'director_name', directorEmail:'director_email',
+      id:'id', agencyName:'agency_name', directorName:'director_name', directorEmail:'director_email', lettingsEmail:'lettings_email',
       city:'city', address:'address', phone:'phone', websiteUrl:'website_url',
       googleRating:'google_rating', reviewCount:'review_count', branchCount:'branch_count',
       rightmoveListed:'rightmove_listed', existingTool:'existing_tool',
       status:'status', priority:'priority',
       email1SentDate:'email1_sent_date', email2Date:'email2_date', email2SentDate:'email2_sent_date',
-      email3Date:'email3_date', email3SentDate:'email3_sent_date', email4Date:'email4_date',
+      email3Date:'email3_date', email3SentDate:'email3_sent_date', email4Date:'email4_date', email4SentDate:'email4_sent_date',
+      lettingsSentDate:'lettings_sent_date',
       followUpDate:'follow_up_date',
       directorLinkedinUrl:'director_linkedin_url', linkedinConnected:'linkedin_connected',
       linkedinMessage1Date:'linkedin_message1_date', linkedinMessage2Date:'linkedin_message2_date',
@@ -867,7 +911,7 @@
       subjectLine:'subject_line', ctaVariant:'cta_variant'
     };
     const SB_REVERSE_MAP = Object.fromEntries(Object.entries(SB_FIELD_MAP).map(([k,v])=>[v,k]));
-    const SB_DATE_FIELDS = new Set(['email1_sent_date','email2_date','email2_sent_date','email3_date','email3_sent_date','email4_date','follow_up_date','linkedin_message1_date','linkedin_message2_date','linkedin_message3_date']);
+    const SB_DATE_FIELDS = new Set(['email1_sent_date','email2_date','email2_sent_date','email3_date','email3_sent_date','email4_date','email4_sent_date','lettings_sent_date','follow_up_date','linkedin_message1_date','linkedin_message2_date','linkedin_message3_date']);
     function leadToSnake(lead){ const row={}; for(const [k,v] of Object.entries(lead)){ const sk=SB_FIELD_MAP[k]; if(!sk) continue; let val=v; if(SB_DATE_FIELDS.has(sk)){ if(!val||val==='') val=null; else if(typeof val==='string'&&val.includes('T')) val=val.slice(0,10); } if(val===undefined) continue; row[sk]=val; } return row; }
     function rowToLead(row){ const lead={}; for(const [k,v] of Object.entries(row)){ const ck=SB_REVERSE_MAP[k]||k; lead[ck]=v; } return lead; }
     let leads = [];
@@ -954,9 +998,12 @@
 
     // ---- Core Data ----
     function save(){
+      // Dual-write: Supabase (authoritative, async) + localStorage (fallback)
       const sb=getSB();
-      if(sb){ const batch=leads.map(l=>leadToSnake(l)); const BSIZE=50; for(let i=0;i<batch.length;i+=BSIZE){ sb.from(SB_TABLE).upsert(batch.slice(i,i+BSIZE),{onConflict:'id'}).then(({error})=>{ if(error) console.warn('[save] Supabase batch '+i+':',error.message); }); } }
-      localStorage.setItem(STORAGE_KEY,JSON.stringify(leads)); saveBackup(); renderAll();
+      if(sb){ const batch=leads.map(l=>leadToSnake(l)); const BSIZE=50; for(let i=0;i<batch.length;i+=BSIZE){ _sbTracked(sb.from(SB_TABLE).upsert(batch.slice(i,i+BSIZE),{onConflict:'id'}), 'save batch '+i); } }
+      // Non-fatal localStorage — quota errors must not abort renderAll()
+      try { localStorage.setItem(STORAGE_KEY,JSON.stringify(leads)); saveBackup(); } catch (e) { console.warn('[save] localStorage skipped (non-fatal — Supabase is authoritative):', e && e.message); }
+      renderAll();
     }
 
     async function load(){
@@ -971,7 +1018,7 @@
           const raw=localStorage.getItem(STORAGE_KEY); leads=raw?JSON.parse(raw):[];
         }
       } else { const raw=localStorage.getItem(STORAGE_KEY); leads=raw?JSON.parse(raw):[]; }
-      if(!leads.length){ try{ const bRaw=localStorage.getItem(BACKUP_KEY); if(bRaw){ const backups=JSON.parse(bRaw); if(backups.length&&(backups[0].data||[]).length){ const b=backups[0]; if(confirm('No data found but a backup exists from '+formatBackupTimestamp(b.timestamp)+' with '+b.data.length+' agencies. Restore it?')){ leads=b.data; localStorage.setItem(STORAGE_KEY,JSON.stringify(leads)); } } } }catch(e){} }
+      if(!leads.length){ try{ const bRaw=localStorage.getItem(BACKUP_KEY); if(bRaw){ const backups=JSON.parse(bRaw); if(backups.length&&(backups[0].data||[]).length){ const b=backups[0]; if(confirm('No data found but a backup exists from '+formatBackupTimestamp(b.timestamp)+' with '+b.data.length+' agencies. Restore it?')){ leads=b.data; localStorage.setItem(STORAGE_KEY,JSON.stringify(leads)); } } } }catch(e){ console.warn('[load] Backup restore prompt failed:', e && e.message); } }
       leads.forEach(l=>{
         if(!l.status) l.status='New';
         if(!l.priority) l.priority='';
@@ -987,12 +1034,25 @@
       renderAll();
     }
 
-    function addLead(data){
+    async function addLead(data){
       const lead=Object.assign({id:Date.now(),dateAdded:new Date().toISOString()},data);
       ensureFollowUpDate(lead);
-      // Duplicate check
+      // Duplicate check — Supabase-authoritative with in-memory fallback
       const normUrl=s=>(s||'').replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/$/,'').toLowerCase();
-      const dup=leads.find(l=>l.agencyName&&lead.agencyName&&l.agencyName.toLowerCase()===lead.agencyName.toLowerCase()&&normUrl(l.websiteUrl)===normUrl(lead.websiteUrl));
+      const inputUrl=normUrl(lead.websiteUrl);
+      const inputName=(lead.agencyName||'').toLowerCase();
+      let dup=null;
+      const sb=getSB();
+      if(sb && inputUrl && inputName){
+        try {
+          const { data: rows, error } = await sb.from(SB_TABLE).select('agency_name,website_url').limit(5000);
+          if(!error && Array.isArray(rows)){
+            const hit = rows.find(r => r.agency_name && r.agency_name.toLowerCase()===inputName && normUrl(r.website_url)===inputUrl);
+            if(hit) dup = { agencyName: hit.agency_name };
+          } else if(error){ console.warn('[addLead] Supabase dup check error:', error.message); }
+        } catch(e) { console.warn('[addLead] Supabase dup check threw:', e && e.message); }
+      }
+      if(!dup){ dup=leads.find(l=>l.agencyName&&lead.agencyName&&l.agencyName.toLowerCase()===inputName&&normUrl(l.websiteUrl)===inputUrl) || null; }
       if(dup){ if(!confirm(lead.agencyName+' may already exist. Add anyway?')) return; }
       leads.unshift(lead); save();
     }
@@ -1018,7 +1078,7 @@
       lead.activityLog.push({action:'Status changed to '+newStatus,date:todayISO()});
     }
 
-    function deleteLead(id){ if(!confirm('Permanently delete this agency? This cannot be undone.')) return; leads=leads.filter(l=>l.id!=id); if(expandedLeadId==id) expandedLeadId=null; if(emailState.leadId==id){ emailState.leadId=null; emailState.type=null; } const sb=getSB(); if(sb) sb.from(SB_TABLE).delete().eq('id',id).then(({error})=>{ if(error) console.warn('[deleteLead] Supabase:',error.message); }); save(); }
+    function deleteLead(id){ if(!confirm('Permanently delete this agency? This cannot be undone.')) return; leads=leads.filter(l=>l.id!=id); if(expandedLeadId==id) expandedLeadId=null; if(emailState.leadId==id){ emailState.leadId=null; emailState.type=null; } const sb=getSB(); if(sb) _sbTracked(sb.from(SB_TABLE).delete().eq('id',id), 'deleteLead'); save(); }
 
     function getNextFollowUpDate(lead){ return lead.followUpDate||''; }
 
@@ -1554,7 +1614,7 @@
       const content=document.getElementById('leadDetailContent');
       if(title) title.textContent=lead.agencyName||'Agency Details';
       if(content){
-        content.innerHTML='<div class="expand-grid"><div class="expand-field"><span class="ef-label">Status</span><span class="ef-val" style="color:'+( STATUS_COLORS[lead.status]||'#6b7280')+'">'+escapeHtml(lead.status)+'</span></div><div class="expand-field"><span class="ef-label">Priority</span><span class="ef-val">'+escapeHtml(lead.priority||'-')+'</span></div><div class="expand-field"><span class="ef-label">Director</span><span class="ef-val">'+escapeHtml(lead.directorName||'-')+'</span></div><div class="expand-field"><span class="ef-label">Email</span><span class="ef-val">'+escapeHtml(lead.directorEmail||'-')+'</span></div><div class="expand-field"><span class="ef-label">Phone</span><span class="ef-val">'+escapeHtml(lead.phone||'-')+'</span></div><div class="expand-field"><span class="ef-label">Website</span><span class="ef-val">'+(lead.websiteUrl?'<a href="'+escapeHtml(lead.websiteUrl)+'" target="_blank" style="color:var(--accent)">'+escapeHtml(lead.websiteUrl)+'</a>':'-')+'</span></div><div class="expand-field"><span class="ef-label">City</span><span class="ef-val">'+escapeHtml(lead.city||'-')+'</span></div><div class="expand-field"><span class="ef-label">Address</span><span class="ef-val">'+escapeHtml(lead.address||'-')+'</span></div><div class="expand-field"><span class="ef-label">Google Rating</span><span class="ef-val">'+escapeHtml(lead.googleRating||'-')+' ('+escapeHtml(lead.reviewCount||'0')+' reviews)</span></div><div class="expand-field"><span class="ef-label">Branches</span><span class="ef-val">'+escapeHtml(lead.branchCount||'-')+'</span></div><div class="expand-field"><span class="ef-label">Rightmove Listed</span><span class="ef-val">'+escapeHtml(lead.rightmoveListed||'-')+'</span></div><div class="expand-field"><span class="ef-label">Existing Tool</span><span class="ef-val">'+escapeHtml(lead.existingTool||'-')+'</span></div><div class="expand-field"><span class="ef-label">Follow-Up Date</span><span class="ef-val">'+escapeHtml(formatDateFull(lead.followUpDate)||'-')+'</span></div><div class="expand-field"><span class="ef-label">Email Sequence</span><span class="ef-val">E1: '+(lead.email1SentDate?formatDateShort(lead.email1SentDate):'-')+' / E2: '+(lead.email2SentDate?formatDateShort(lead.email2SentDate):'-')+' / E3: '+(lead.email3SentDate?formatDateShort(lead.email3SentDate):'-')+'</span></div><div class="expand-field"><span class="ef-label">LinkedIn</span><span class="ef-val">Connected: '+escapeHtml(lead.linkedinConnected||'-')+' / Msg 1: '+(lead.linkedinMessage1Date?formatDateShort(lead.linkedinMessage1Date):'-')+' / Msg 2: '+(lead.linkedinMessage2Date?formatDateShort(lead.linkedinMessage2Date):'-')+' / Msg 3: '+(lead.linkedinMessage3Date?formatDateShort(lead.linkedinMessage3Date):'-')+'</span></div>'+'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Sequence Schedule</span><span class="ef-val">Email 2 '+(lead.email2Date?formatDateFull(lead.email2Date):'-')+' &middot; Email 3 '+(lead.email3Date?formatDateFull(lead.email3Date):'-')+' &middot; Email 4 '+(lead.email4Date?formatDateFull(lead.email4Date):'-')+'</span></div>'+(lead.customObservation?'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Custom Observation</span><span class="ef-val" style="white-space:pre-wrap">'+escapeHtml(lead.customObservation)+'</span></div>':'')+''+(lead.notes?'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Notes</span><span class="ef-val" style="white-space:pre-wrap">'+escapeHtml(lead.notes)+'</span></div>':'')+'</div>'+'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Update Status</div><div style="display:flex;gap:6px;flex-wrap:wrap" id="statusBtnsWrap"></div></div><div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" id="ldEditBtn">Edit</button><button class="btn btn-ghost btn-sm" id="ldComposeBtn">Compose Email</button><button class="btn btn-ghost btn-sm btn-delete" id="ldDeleteBtn">Delete</button></div>';
+        content.innerHTML='<div class="expand-grid"><div class="expand-field"><span class="ef-label">Status</span><span class="ef-val" style="color:'+( STATUS_COLORS[lead.status]||'#6b7280')+'">'+escapeHtml(lead.status)+'</span></div><div class="expand-field"><span class="ef-label">Priority</span><span class="ef-val">'+escapeHtml(lead.priority||'-')+'</span></div><div class="expand-field"><span class="ef-label">Director</span><span class="ef-val">'+escapeHtml(lead.directorName||'-')+'</span></div><div class="expand-field"><span class="ef-label">Email</span><span class="ef-val">'+escapeHtml(lead.directorEmail||'-')+'</span></div>'+(lead.lettingsEmail?'<div class="expand-field"><span class="ef-label">Lettings Email</span><span class="ef-val">'+escapeHtml(lead.lettingsEmail)+'</span></div>':'')+'<div class="expand-field"><span class="ef-label">Phone</span><span class="ef-val">'+escapeHtml(lead.phone||'-')+'</span></div><div class="expand-field"><span class="ef-label">Website</span><span class="ef-val">'+(lead.websiteUrl?'<a href="'+escapeHtml(lead.websiteUrl)+'" target="_blank" style="color:var(--accent)">'+escapeHtml(lead.websiteUrl)+'</a>':'-')+'</span></div><div class="expand-field"><span class="ef-label">City</span><span class="ef-val">'+escapeHtml(lead.city||'-')+'</span></div><div class="expand-field"><span class="ef-label">Address</span><span class="ef-val">'+escapeHtml(lead.address||'-')+'</span></div><div class="expand-field"><span class="ef-label">Google Rating</span><span class="ef-val">'+escapeHtml(lead.googleRating||'-')+' ('+escapeHtml(lead.reviewCount||'0')+' reviews)</span></div><div class="expand-field"><span class="ef-label">Branches</span><span class="ef-val">'+escapeHtml(lead.branchCount||'-')+'</span></div><div class="expand-field"><span class="ef-label">Rightmove Listed</span><span class="ef-val">'+escapeHtml(lead.rightmoveListed||'-')+'</span></div><div class="expand-field"><span class="ef-label">Existing Tool</span><span class="ef-val">'+escapeHtml(lead.existingTool||'-')+'</span></div><div class="expand-field"><span class="ef-label">Follow-Up Date</span><span class="ef-val">'+escapeHtml(formatDateFull(lead.followUpDate)||'-')+'</span></div><div class="expand-field"><span class="ef-label">Email Sequence</span><span class="ef-val">E1: '+(lead.email1SentDate?formatDateShort(lead.email1SentDate):'-')+' / E2: '+(lead.email2SentDate?formatDateShort(lead.email2SentDate):'-')+' / E3: '+(lead.email3SentDate?formatDateShort(lead.email3SentDate):'-')+'</span></div><div class="expand-field"><span class="ef-label">LinkedIn</span><span class="ef-val">Connected: '+escapeHtml(lead.linkedinConnected||'-')+' / Msg 1: '+(lead.linkedinMessage1Date?formatDateShort(lead.linkedinMessage1Date):'-')+' / Msg 2: '+(lead.linkedinMessage2Date?formatDateShort(lead.linkedinMessage2Date):'-')+' / Msg 3: '+(lead.linkedinMessage3Date?formatDateShort(lead.linkedinMessage3Date):'-')+'</span></div>'+'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Sequence Schedule</span><span class="ef-val">Email 2 '+(lead.email2Date?formatDateFull(lead.email2Date):'-')+' &middot; Email 3 '+(lead.email3Date?formatDateFull(lead.email3Date):'-')+' &middot; Email 4 '+(lead.email4Date?formatDateFull(lead.email4Date):'-')+'</span></div>'+(lead.customObservation?'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Custom Observation</span><span class="ef-val" style="white-space:pre-wrap">'+escapeHtml(lead.customObservation)+'</span></div>':'')+''+(lead.notes?'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Notes</span><span class="ef-val" style="white-space:pre-wrap">'+escapeHtml(lead.notes)+'</span></div>':'')+'</div>'+'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Update Status</div><div style="display:flex;gap:6px;flex-wrap:wrap" id="statusBtnsWrap"></div></div><div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" id="ldEditBtn">Edit</button><button class="btn btn-ghost btn-sm" id="ldComposeBtn">Compose Email</button><button class="btn btn-ghost btn-sm btn-delete" id="ldDeleteBtn">Delete</button></div>';
 
         // Status buttons
         const wrap=content.querySelector('#statusBtnsWrap');
@@ -1618,13 +1678,21 @@
         if(!l.draftSubject||!l.draftBody) return false;
         return true;
       });
+      // Sales sequence complete — try lettings email as second attempt
+      const lettingsReady=leads.filter(l=>{
+        if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified') return false;
+        if(!l.lettingsEmail) return false;
+        if(!l.email4SentDate) return false;
+        if(l.lettingsSentDate) return false;
+        return true;
+      });
       // Badge
       const badge=document.getElementById('followUpsNavBadge');
-      const total=overdueItems.length+dueTodayItems.length+unsent.length;
+      const total=overdueItems.length+dueTodayItems.length+unsent.length+lettingsReady.length;
       if(badge){ if(total>0){ badge.textContent=total; badge.style.display='inline-flex'; } else { badge.style.display='none'; } }
 
       // Update bulk-select snapshot (used by select-all + bulk send)
-      _lastFollowUpsItems=[...unsent,...overdueItems,...dueTodayItems];
+      _lastFollowUpsItems=[...unsent,...overdueItems,...dueTodayItems,...lettingsReady];
       // Drop any stale selection IDs that aren't currently rendered
       const visibleIds=new Set(_lastFollowUpsItems.map(l=>l.id));
       selectedFollowUpIds.forEach(id=>{ if(!visibleIds.has(id)) selectedFollowUpIds.delete(id); });
@@ -1676,8 +1744,28 @@
       renderSection(overdueItems,'Overdue',true);
       renderSection(dueTodayItems,'Due Today',false);
 
+      // Sales sequence complete — try lettings email as second attempt
+      if(lettingsReady.length){
+        const labelEl=document.createElement('div'); labelEl.className='fu-section-label'; labelEl.style.color='var(--warning)';
+        labelEl.textContent='SALES SEQUENCE COMPLETE — TRY LETTINGS ('+lettingsReady.length+')';
+        container.appendChild(labelEl);
+        lettingsReady.forEach(l=>{
+          const row=document.createElement('div'); row.className='fu-row-main';
+          row.innerHTML='<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'><span style="font-size:11px;font-weight:600;padding:3px 8px;background:rgba(245,158,11,0.12);color:var(--warning);border:1px solid rgba(245,158,11,0.25);letter-spacing:.06em;text-transform:uppercase">Lettings</span><div class="dash-row-info"><div class="dash-row-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="dash-row-sub">'+escapeHtml(l.lettingsEmail)+'</div></div><div class="fu-row-actions"><button class="btn-fu-action btn-fu-email" data-id="'+l.id+'" data-action="send-lettings">Send to Lettings</button></div>';
+          const sendBtn=row.querySelector('[data-action="send-lettings"]');
+          if(sendBtn) sendBtn.addEventListener('click',e=>{ e.stopPropagation(); sendToLettings(l.id); });
+          const chk=row.querySelector('.sel-followups');
+          if(chk){ chk.addEventListener('click',e=>e.stopPropagation()); chk.addEventListener('change',e=>{ e.stopPropagation(); if(chk.checked) selectedFollowUpIds.add(l.id); else selectedFollowUpIds.delete(l.id); updateFuBulkUI(); }); }
+          container.appendChild(row);
+        });
+      }
+
       updateFuBulkUI();
     }
+
+    // Open the Sequence Manager in lettings mode for the given lead — preview + edit flow.
+    // The actual send happens via sendViaOutlook, which branches on emailState.sendTo.
+    function sendToLettings(id){ goToEmailLettings(id); }
 
     // ---- Daily Actions ----
     function renderDailyActions(){
@@ -1817,7 +1905,29 @@
     }
 
     // ---- Email Sequence Manager ----
-    let emailState={leadId:null,type:null};
+    // sendTo: 'director' (default) or 'lettings' (second-attempt after sales sequence)
+    let emailState={leadId:null,type:null,sendTo:'director'};
+
+    function updateLettingsBanner(){
+      const banner=document.getElementById('lettingsModeBanner');
+      const addrEl=document.getElementById('lettingsModeAddr');
+      if(!banner) return;
+      if(emailState.sendTo==='lettings' && emailState.leadId){
+        const lead=leads.find(l=>l.id==emailState.leadId);
+        if(lead && lead.lettingsEmail){
+          banner.style.display='block';
+          if(addrEl) addrEl.textContent=lead.lettingsEmail;
+          return;
+        }
+      }
+      banner.style.display='none';
+    }
+
+    function cancelLettingsMode(){
+      emailState.sendTo='director';
+      updateLettingsBanner();
+      refreshEmailPreview();
+    }
 
     function populateEmailLeadDropdown(){
       const sel=document.getElementById('emailLeadSelect'); if(!sel) return;
@@ -1830,7 +1940,9 @@
     function emailAutofill(){
       const sel=document.getElementById('emailLeadSelect'); const id=sel.value;
       const autofill=document.getElementById('emailAutofill');
-      if(!id){ autofill.style.display='none'; emailState.leadId=null; refreshEmailPreview(); return; }
+      // If lead changes while in lettings mode, revert to director mode
+      if(String(emailState.leadId)!==String(id)) emailState.sendTo='director';
+      if(!id){ autofill.style.display='none'; emailState.leadId=null; updateLettingsBanner(); refreshEmailPreview(); return; }
       const lead=leads.find(l=>l.id==id); if(!lead){ autofill.style.display='none'; return; }
       emailState.leadId=id;
       const portal=(lead.rightmoveListed==='Yes')?'Rightmove':'your property portals';
@@ -1838,9 +1950,10 @@
       document.getElementById('af_director').textContent=lead.directorName||'—';
       document.getElementById('af_city').textContent=lead.city||'—';
       document.getElementById('af_portal').textContent=portal;
-      document.getElementById('af_email').textContent=lead.directorEmail||'—';
+      document.getElementById('af_email').textContent=(emailState.sendTo==='lettings' && lead.lettingsEmail) ? lead.lettingsEmail : (lead.directorEmail||'—');
       document.getElementById('af_customObs').textContent=lead.customObservation||'—';
       autofill.style.display='grid';
+      updateLettingsBanner();
       refreshEmailPreview();
     }
 
@@ -1901,6 +2014,7 @@
       document.getElementById('e_reviewCount').value=lead.reviewCount||'';
       document.getElementById('e_directorName').value=lead.directorName||'';
       document.getElementById('e_directorEmail').value=lead.directorEmail||'';
+      document.getElementById('e_lettingsEmail').value=lead.lettingsEmail||'';
       document.getElementById('e_directorLinkedinUrl').value=lead.directorLinkedinUrl||'';
       document.getElementById('e_branchCount').value=lead.branchCount||'';
       document.getElementById('e_rightmoveListed').value=lead.rightmoveListed||'';
@@ -1925,6 +2039,7 @@
       lead.reviewCount=document.getElementById('e_reviewCount').value.trim();
       lead.directorName=document.getElementById('e_directorName').value.trim();
       lead.directorEmail=document.getElementById('e_directorEmail').value.trim();
+      lead.lettingsEmail=document.getElementById('e_lettingsEmail').value.trim();
       lead.directorLinkedinUrl=document.getElementById('e_directorLinkedinUrl').value.trim();
       lead.branchCount=document.getElementById('e_branchCount').value.trim();
       lead.rightmoveListed=document.getElementById('e_rightmoveListed').value;
@@ -2042,10 +2157,10 @@
           if(lead.threadMessageId){ await sendGraphReply(lead.threadMessageId, htmlBody, lead.directorEmail); }
           else { const msgId=await sendGraphEmail(lead.directorEmail, subject, htmlBody); if(msgId) lead.threadMessageId=msgId; }
           // Mark email sent
-          if(!lead.email1SentDate){ lead.email1SentDate=todayISO(); lead.email2Date=addDays(todayISO(),3); lead.email3Date=addDays(todayISO(),7); lead.email4Date=addDays(todayISO(),14); updateStatus(lead,'Contacted'); }
-          else if(!lead.email2SentDate) lead.email2SentDate=todayISO();
-          else if(!lead.email3SentDate) lead.email3SentDate=todayISO();
-          lead.followUpDate=addDays(todayISO(),3);
+          if(!lead.email1SentDate){ lead.email1SentDate=todayISO(); lead.email2Date=addDays(todayISO(),3); lead.email3Date=addDays(todayISO(),7); lead.email4Date=addDays(todayISO(),14); updateStatus(lead,'Contacted'); lead.followUpDate=addDays(todayISO(),3); }
+          else if(!lead.email2SentDate){ lead.email2SentDate=todayISO(); lead.followUpDate=addDays(todayISO(),3); }
+          else if(!lead.email3SentDate){ lead.email3SentDate=todayISO(); lead.followUpDate=addDays(todayISO(),3); }
+          else if(!lead.email4SentDate){ lead.email4SentDate=todayISO(); lead.followUpDate=''; }
           sent++;
           if(statusEl) statusEl.innerHTML='<span style="color:var(--accent);font-size:12px">&#10003; Sent</span>';
         }catch(e){ failed++; if(statusEl) statusEl.innerHTML='<span style="color:var(--danger);font-size:12px" title="'+escapeHtml(e.message)+'">Failed</span>'; }
@@ -2058,9 +2173,30 @@
 
     // ---- Navigate to Email Tab ----
     function goToEmail(id){
+      emailState.sendTo='director';
       showTab('email');
       const sel=document.getElementById('emailLeadSelect');
       if(sel){ sel.value=id; emailAutofill(); setSeqType('1'); }
+    }
+
+    // Navigate into Email tab in lettings mode — sends Email 1 to lead.lettingsEmail
+    // after the full sales sequence is complete. Keeps the full preview/edit flow
+    // so the operator can review/tweak before sending.
+    function goToEmailLettings(id){
+      const lead=leads.find(l=>l.id==id);
+      if(!lead){ alert('Lead not found.'); return; }
+      if(!lead.lettingsEmail){ alert('No lettings email on file.'); return; }
+      if(!lead.email4SentDate){ alert('Sales sequence not yet complete — send Email 4 first.'); return; }
+      showTab('email');
+      const sel=document.getElementById('emailLeadSelect');
+      if(sel){ sel.value=id; emailState.sendTo='director'; emailAutofill(); }
+      // Flip to lettings mode after emailAutofill (which would otherwise reset sendTo)
+      emailState.sendTo='lettings';
+      setSeqType('1');
+      // Re-run the autofill email-address swap + banner
+      const lead2=leads.find(l=>l.id==id);
+      if(lead2){ const afEmail=document.getElementById('af_email'); if(afEmail) afEmail.textContent=lead2.lettingsEmail; }
+      updateLettingsBanner();
     }
 
     // ---- Tab System ----
@@ -2221,7 +2357,15 @@
       const lead=emailState.leadId?leads.find(l=>l.id==emailState.leadId):null;
       if(!lead){ alert('No agency selected.'); return; }
       if(lead.status==='Won'||lead.status==='Lost'||lead.status==='Unqualified'){ alert('This agency is '+lead.status+'. Cannot send.'); return; }
-      if(!lead.directorEmail){ alert('No email address. Add one via Edit first.'); return; }
+
+      const isLettings=(emailState.sendTo==='lettings');
+      const targetAddr=isLettings ? lead.lettingsEmail : lead.directorEmail;
+      if(isLettings){
+        if(!lead.lettingsEmail){ alert('No lettings email on file.'); return; }
+        if(!lead.email4SentDate){ alert('Sales sequence not yet complete — send Email 4 first.'); return; }
+      } else {
+        if(!lead.directorEmail){ alert('No email address. Add one via Edit first.'); return; }
+      }
       const draft=currentEmailDraft(); if(!draft){ alert('Draft not available.'); return; }
       const subject=draft.subject;
       const cleanBody=draft.body.replace(/<!--[\s\S]*?-->\s*\n?/g,'');
@@ -2230,12 +2374,22 @@
       const origText=btn.textContent;
       btn.textContent='Sending...'; btn.disabled=true;
       try{
-        if(lead.threadMessageId){ await sendGraphReply(lead.threadMessageId,htmlBody,lead.directorEmail); }
-        else { const msgId=await sendGraphEmail(lead.directorEmail,subject,htmlBody); if(msgId) lead.threadMessageId=msgId; }
-        if(!lead.email1SentDate){ lead.email1SentDate=todayISO(); lead.email2Date=addDays(todayISO(),3); lead.email3Date=addDays(todayISO(),7); lead.email4Date=addDays(todayISO(),14); updateStatus(lead,'Contacted'); }
-        else if(!lead.email2SentDate) lead.email2SentDate=todayISO();
-        else if(!lead.email3SentDate) lead.email3SentDate=todayISO();
-        lead.followUpDate=addDays(todayISO(),3);
+        if(isLettings){
+          // Lettings send — new conversation (NOT a reply on the sales thread); record separately
+          await sendGraphEmail(targetAddr,subject,htmlBody);
+          lead.lettingsSentDate=todayISO();
+          if(!Array.isArray(lead.activityLog)) lead.activityLog=[];
+          lead.activityLog.push({action:'Sent Email 1 to lettings ('+targetAddr+')',date:todayISO()});
+          emailState.sendTo='director';
+          updateLettingsBanner();
+        } else {
+          if(lead.threadMessageId){ await sendGraphReply(lead.threadMessageId,htmlBody,targetAddr); }
+          else { const msgId=await sendGraphEmail(targetAddr,subject,htmlBody); if(msgId) lead.threadMessageId=msgId; }
+          if(!lead.email1SentDate){ lead.email1SentDate=todayISO(); lead.email2Date=addDays(todayISO(),3); lead.email3Date=addDays(todayISO(),7); lead.email4Date=addDays(todayISO(),14); updateStatus(lead,'Contacted'); lead.followUpDate=addDays(todayISO(),3); }
+          else if(!lead.email2SentDate){ lead.email2SentDate=todayISO(); lead.followUpDate=addDays(todayISO(),3); }
+          else if(!lead.email3SentDate){ lead.email3SentDate=todayISO(); lead.followUpDate=addDays(todayISO(),3); }
+          else if(!lead.email4SentDate){ lead.email4SentDate=todayISO(); lead.followUpDate=''; }
+        }
         save();
         showCopyConfirm('Sent!');
       }catch(e){ alert('Send failed: '+e.message); }
@@ -2323,6 +2477,8 @@
       });
       const sendBtn=document.getElementById('btnSendOutlook');
       if(sendBtn) sendBtn.addEventListener('click', sendViaOutlook);
+      const cancelLettings=document.getElementById('btnCancelLettingsMode');
+      if(cancelLettings) cancelLettings.addEventListener('click', cancelLettingsMode);
     }
 
     function bindPipeline(){
@@ -2388,12 +2544,12 @@
         if(!l) return;
         if(TERMINAL.includes(l.status)){ skipped.push({lead:l,reason:'Terminal status ('+l.status+')'}); return; }
         if(!l.directorEmail){ skipped.push({lead:l,reason:'No email address'}); return; }
-        if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate){ skipped.push({lead:l,reason:'All emails already sent'}); return; }
+        if(l.email4SentDate){ skipped.push({lead:l,reason:'All emails already sent'}); return; }
         // Determine template stage
         let tplKey='1';
         if(l.email1SentDate&&!l.email2SentDate) tplKey='2';
         else if(l.email1SentDate&&l.email2SentDate&&!l.email3SentDate) tplKey='3';
-        else if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate) tplKey='4';
+        else if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate&&!l.email4SentDate) tplKey='4';
         // Email 1 requires the qualifier's personalised draft
         if(tplKey==='1'&&(!l.draftSubject||!l.draftBody)){ skipped.push({lead:l,reason:'No draft Email 1 — qualify this lead first'}); return; }
         eligible.push(l);
@@ -2437,12 +2593,12 @@
         if(!l) return;
         if(TERMINAL.includes(l.status)){ skipped.push({lead:l,reason:'Terminal status ('+l.status+')'}); return; }
         if(!l.directorEmail){ skipped.push({lead:l,reason:'No email address'}); return; }
-        if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate){ skipped.push({lead:l,reason:'All emails already sent'}); return; }
+        if(l.email4SentDate){ skipped.push({lead:l,reason:'All emails already sent'}); return; }
         // Determine template stage
         let tplKey='1';
         if(l.email1SentDate&&!l.email2SentDate) tplKey='2';
         else if(l.email1SentDate&&l.email2SentDate&&!l.email3SentDate) tplKey='3';
-        else if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate) tplKey='4';
+        else if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate&&!l.email4SentDate) tplKey='4';
         // Email 1 requires the qualifier's personalised draft; follow-ups use generic templates
         if(tplKey==='1'&&(!l.draftSubject||!l.draftBody)){ skipped.push({lead:l,reason:'No draft Email 1 — qualify this lead first'}); return; }
         eligible.push(l);
