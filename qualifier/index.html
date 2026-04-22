@@ -3,6 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- Prevent browser caching of this single-file app so Open ↗ new tabs always load the latest JS -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <title>Daedalus Atelier — Estate Agent Qualifier</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1087,12 +1091,16 @@ ${pageText}`;
         return obj;
       } catch { return {}; }
     }
+    // Throttle the quota warnings — once we know storage is full, noisy per-lead warnings add no info
+    let _quotaWarned = false;
     function writeBatchCacheEntry(hash, entry) {
       try {
         const cache = readBatchCache();
         cache[hash] = { ...entry, qualifiedAt: Date.now() };
         localStorage.setItem(BATCH_CACHE_KEY, JSON.stringify(cache));
-      } catch (e) { console.warn('[cache] write failed:', e && e.message); }
+      } catch (e) {
+        if (!_quotaWarned) { console.warn('[cache] localStorage full — results remain in RAM, Open ↗ uses opener-memory fallback'); _quotaWarned = true; }
+      }
     }
     function readBatchCacheEntry(hash) { return readBatchCache()[hash] || null; }
     function clearBatchCache() { try { localStorage.removeItem(BATCH_CACHE_KEY); } catch {} }
@@ -1113,7 +1121,7 @@ ${pageText}`;
       try { return JSON.parse(localStorage.getItem(BATCH_PROGRESS_KEY) || 'null'); } catch { return null; }
     }
     function writeBatchProgress(p) {
-      try { localStorage.setItem(BATCH_PROGRESS_KEY, JSON.stringify(p)); } catch (e) { console.warn('[progress]', e && e.message); }
+      try { localStorage.setItem(BATCH_PROGRESS_KEY, JSON.stringify(p)); } catch (e) { /* quota — _batchState already holds progress in RAM */ }
     }
     function clearBatchProgress() { try { localStorage.removeItem(BATCH_PROGRESS_KEY); } catch {} }
 
@@ -1338,6 +1346,10 @@ ${combinedText}`;
       // localStorage writes succeed, so clearing here is safe.
       clearBatchCache();
       clearBatchProgress();
+      // Also auto-clear CRM's rotating snapshots (da_crm_v1_snap_1..5) — these are the
+      // primary quota hog on lawrence-sundar.github.io. CRM's authoritative `da_crm_v1`
+      // lead data is NEVER touched; snapshots are regenerated on the CRM's next save.
+      try { for (let i = 1; i <= 10; i++) localStorage.removeItem('da_crm_v1_snap_' + i); } catch {}
 
       const btn = document.getElementById('btnBatchAnalyse');
       btn.disabled = true; btn.textContent = 'Running...';
@@ -2234,6 +2246,21 @@ ${pageText}`;
             if (fromMem && fromMem.result) { entry = fromMem; source = 'opener-memory'; }
           }
         } catch (e) { console.warn('[cached opener memory]', e && e.message); }
+        // Direct _batchState access — rescues the case where opener is running older JS
+        // that doesn't have findInMemoryEntry yet (browser cache served stale qualifier HTML)
+        if (!entry) {
+          try {
+            if (window.opener && window.opener._batchState && window.opener._batchState.results) {
+              const results = window.opener._batchState.results;
+              for (const u of Object.keys(results)) {
+                const rec = results[u];
+                if (rec && rec.urlHash === hash && rec.entry && rec.entry.result) {
+                  entry = rec.entry; source = 'opener-state-direct'; break;
+                }
+              }
+            }
+          } catch (e) { console.warn('[cached opener state]', e && e.message); }
+        }
         if (!entry) {
           try {
             if (window.opener && typeof window.opener.readBatchCacheEntry === 'function') {
