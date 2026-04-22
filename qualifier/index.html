@@ -36,7 +36,7 @@
       body.split-view #batchResults { grid-column: 1; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; margin-bottom: 0; }
       body.split-view #results { grid-column: 2; margin-top: 0; }
       body.split-view #emailDraftSection { grid-column: 2; margin-top: 0; }
-      body.split-view #inlineBatchBar { grid-column: 1 / -1; }
+      /* inlineBatchBar is now inside #results; no longer a grid child */
     }
 
     header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
@@ -263,14 +263,17 @@
       </div>
     </div>
 
-    <!-- Inline batch-mode nav bar — shown only when a batch row's Open is clicked -->
-    <div id="inlineBatchBar" style="display:none;background:rgba(16,185,129,0.08);border:1px solid var(--accent);padding:10px 14px;margin-bottom:14px;font-size:13px;line-height:1.5;color:var(--text);align-items:center;gap:10px;flex-wrap:wrap">
-      <button class="copy-btn" id="btnBackToBatch" style="font-size:12px">← Back to Batch</button>
-      <span style="color:var(--muted);font-size:12px" id="inlineBatchHint">Processing a lead from the batch list. Confirm to CRM below, then click Back to Batch to return to the list.</span>
-    </div>
-
     <!-- Results -->
     <div id="results">
+
+      <!-- Inline batch-mode nav bar — first child of #results so it's only visible when a lead is opened
+           AND (critically) not a direct grid child of .container, preventing grid-row auto-placement
+           from pushing #results below the batch list -->
+      <div id="inlineBatchBar" style="display:none;background:rgba(16,185,129,0.08);border:1px solid var(--accent);padding:10px 14px;margin-bottom:14px;font-size:13px;line-height:1.5;color:var(--text);align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="copy-btn" id="btnBackToBatch" style="font-size:12px">← Back to Batch</button>
+        <span style="color:var(--muted);font-size:12px" id="inlineBatchHint">Processing a lead. Confirm to CRM below, then click Back to Batch to return.</span>
+      </div>
+
 
       <!-- Score — always visible when results shown -->
       <div class="card" id="scoreCard">
@@ -1554,10 +1557,15 @@ ${combinedText}`;
       header.appendChild(counts);
       listEl.appendChild(header);
 
-      // Column labels
+      // Column labels — compact template (4 cols) in split-view, full (7 cols) otherwise
+      const compact = document.body.classList.contains('split-view');
+      const gridTmpl = compact ? '2fr 55px 60px 100px' : '2fr 70px 70px 80px 80px 70px 90px';
       const colLabels = document.createElement('div');
-      colLabels.style.cssText = 'display:grid;grid-template-columns:2fr 70px 70px 80px 80px 70px 90px;gap:10px;padding:7px 14px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);font-weight:600';
-      colLabels.innerHTML = '<span>Agency</span><span>Score</span><span>Reviews</span><span>City</span><span>Emails</span><span>Tool</span><span style="text-align:right">Action</span>';
+      colLabels.className = 'batch-row-header';
+      colLabels.style.cssText = 'display:grid;grid-template-columns:' + gridTmpl + ';gap:10px;padding:7px 14px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);font-weight:600';
+      colLabels.innerHTML = compact
+        ? '<span>Agency</span><span>Score</span><span>Reviews</span><span style="text-align:right">Action</span>'
+        : '<span>Agency</span><span>Score</span><span>Reviews</span><span>City</span><span>Emails</span><span>Tool</span><span style="text-align:right">Action</span>';
       listEl.appendChild(colLabels);
 
       if (!filtered.length) {
@@ -1571,14 +1579,27 @@ ${combinedText}`;
       // Rows
       filtered.forEach(r => {
         const row = document.createElement('div');
-        row.style.cssText = 'display:grid;grid-template-columns:2fr 70px 70px 80px 80px 70px 90px;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px';
+        row.className = 'batch-row';
+        row.style.cssText = 'display:grid;grid-template-columns:' + gridTmpl + ';gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px';
+        // Compact branch: 4 children (Agency / Score / Reviews / Action). Full branch: 7 children.
+        const urlTrim = esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45));
         if (r.status === 'pending') {
-          row.innerHTML = '<span style="color:var(--muted);opacity:.6">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span><span style="color:var(--muted);font-size:12px">queued</span><span></span><span></span><span></span><span></span><span></span>';
+          row.innerHTML = compact
+            ? '<span style="color:var(--muted);opacity:.6">' + urlTrim + '</span><span style="color:var(--muted);font-size:12px">queued</span><span></span><span></span>'
+            : '<span style="color:var(--muted);opacity:.6">' + urlTrim + '</span><span style="color:var(--muted);font-size:12px">queued</span><span></span><span></span><span></span><span></span><span></span>';
         } else if (r.status === 'dup') {
           row.style.opacity = '0.55';
-          row.innerHTML = '<span><span style="color:var(--text)">' + esc(r.dup.agencyName || '(unknown)') + '</span><span style="color:var(--muted);font-size:11px;display:block">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span></span><span style="color:var(--muted);font-size:12px;font-weight:600">DUP</span><span></span><span></span><span></span><span></span><span style="text-align:right;color:var(--muted);font-size:11px">in CRM</span>';
+          const dupAgency = '<span><span style="color:var(--text)">' + esc(r.dup.agencyName || '(unknown)') + '</span><span style="color:var(--muted);font-size:11px;display:block">' + urlTrim + '</span></span>';
+          const dupBadge = '<span style="color:var(--muted);font-size:12px;font-weight:600">DUP</span>';
+          const dupAction = '<span style="text-align:right;color:var(--muted);font-size:11px">in CRM</span>';
+          row.innerHTML = compact
+            ? dupAgency + dupBadge + '<span></span>' + dupAction
+            : dupAgency + dupBadge + '<span></span><span></span><span></span><span></span>' + dupAction;
         } else if (r.status === 'error') {
-          row.innerHTML = '<span style="color:var(--muted)">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span><span style="color:var(--danger);font-weight:600">ERR</span><span style="grid-column:span 3;color:var(--danger);font-size:12px;font-style:italic">' + esc(r.error) + '</span><span></span><span style="text-align:right;display:flex;gap:4px;justify-content:flex-end"><button class="copy-btn batch-retry-btn" data-url="' + esc(r.url) + '" style="font-size:11px;padding:3px 7px">Retry</button><button class="copy-btn batch-paste-btn" data-url="' + esc(r.url) + '" style="font-size:11px;padding:3px 7px">Paste HTML</button></span>';
+          const errAction = '<span style="text-align:right;display:flex;gap:4px;justify-content:flex-end"><button class="copy-btn batch-retry-btn" data-url="' + esc(r.url) + '" style="font-size:11px;padding:3px 7px">Retry</button><button class="copy-btn batch-paste-btn" data-url="' + esc(r.url) + '" style="font-size:11px;padding:3px 7px">Paste HTML</button></span>';
+          row.innerHTML = compact
+            ? '<span style="color:var(--muted)">' + urlTrim + '</span><span style="color:var(--danger);font-weight:600">ERR</span><span style="color:var(--danger);font-size:12px;font-style:italic">' + esc(r.error) + '</span>' + errAction
+            : '<span style="color:var(--muted)">' + urlTrim + '</span><span style="color:var(--danger);font-weight:600">ERR</span><span style="grid-column:span 3;color:var(--danger);font-size:12px;font-style:italic">' + esc(r.error) + '</span><span></span>' + errAction;
         } else {
           const s = r.result?.score || '?';
           const conf = r.result?.score_confidence || '';
@@ -1587,21 +1608,26 @@ ${combinedText}`;
           const tool = r.result?.existing_tool_detected && r.result.existing_tool_detected !== 'None' ? r.result.existing_tool_detected : '—';
           const emailCount = Array.isArray(r.result?.emails) ? r.result.emails.length : 0;
           const city = r.result?.city_name || r.result?.city || '—';
-          row.innerHTML =
-            '<span style="font-weight:500"><span style="color:var(--text)">' + esc(r.result?.agency_name || '(unknown)') + '</span><span style="color:var(--muted);font-size:11px;display:block">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span></span>' +
-            '<span style="color:' + scoreColor + ';font-weight:600">' + esc(s) + (conf && conf !== 'high' ? '<span style="font-weight:400;font-size:11px;display:block;color:var(--muted)">' + esc(conf) + '</span>' : '') + '</span>' +
-            '<span style="color:var(--muted)">' + esc(reviews) + '</span>' +
-            '<span style="color:var(--muted);font-size:12px">' + esc(city) + '</span>' +
-            '<span style="color:var(--muted);font-size:12px">' + emailCount + '</span>' +
-            '<span style="color:var(--muted);font-size:11px">' + esc(tool) + '</span>' +
-            '<span style="text-align:right;display:flex;gap:4px;justify-content:flex-end;align-items:center">' +
-              (r.addedToCRM
-                ? '<span style="font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.05em">✓ ADDED</span>'
-                : r.userMarkedDone
-                  ? '<span style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.05em">✓ DONE</span><button data-url="' + esc(r.url) + '" class="batch-undo-btn copy-btn" style="font-size:10px;padding:2px 6px" title="Undo done">Undo</button>'
-                  : '<button data-url="' + esc(r.url) + '" class="batch-open-btn primary" style="font-size:12px;padding:5px 12px">Open</button><button data-url="' + esc(r.url) + '" class="batch-mark-done-btn copy-btn" style="font-size:10px;padding:2px 6px" title="Mark this lead as processed — hides from action list">Done</button>'
-              ) +
-            '</span>';
+          const actionHTML = '<span style="text-align:right;display:flex;gap:4px;justify-content:flex-end;align-items:center">' +
+            (r.addedToCRM
+              ? '<span style="font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.05em">✓ ADDED</span>'
+              : r.userMarkedDone
+                ? '<span style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.05em">✓ DONE</span><button data-url="' + esc(r.url) + '" class="batch-undo-btn copy-btn" style="font-size:10px;padding:2px 6px" title="Undo done">Undo</button>'
+                : '<button data-url="' + esc(r.url) + '" class="batch-open-btn primary" style="font-size:12px;padding:5px 12px">Open</button><button data-url="' + esc(r.url) + '" class="batch-mark-done-btn copy-btn" style="font-size:10px;padding:2px 6px" title="Mark this lead as processed — hides from action list">Done</button>'
+            ) +
+          '</span>';
+          const agencyCell = '<span style="font-weight:500"><span style="color:var(--text)">' + esc(r.result?.agency_name || '(unknown)') + '</span><span style="color:var(--muted);font-size:11px;display:block">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span></span>';
+          const scoreCell  = '<span style="color:' + scoreColor + ';font-weight:600">' + esc(s) + (conf && conf !== 'high' ? '<span style="font-weight:400;font-size:11px;display:block;color:var(--muted)">' + esc(conf) + '</span>' : '') + '</span>';
+          const reviewsCell = '<span style="color:var(--muted)">' + esc(reviews) + '</span>';
+          if (compact) {
+            row.innerHTML = agencyCell + scoreCell + reviewsCell + actionHTML;
+          } else {
+            row.innerHTML = agencyCell + scoreCell + reviewsCell +
+              '<span style="color:var(--muted);font-size:12px">' + esc(city) + '</span>' +
+              '<span style="color:var(--muted);font-size:12px">' + emailCount + '</span>' +
+              '<span style="color:var(--muted);font-size:11px">' + esc(tool) + '</span>' +
+              actionHTML;
+          }
         }
         listEl.appendChild(row);
       });
@@ -1833,6 +1859,8 @@ ${pageText}`;
       document.getElementById('clinicUrl').value = entry.url;
       // Activate split-view: batch list stays on the LEFT, qualifier UI renders on the RIGHT
       document.body.classList.add('split-view');
+      // Re-render batch table so it uses the compact 4-column layout for the narrower left column
+      renderBatchTable();
       const bar = document.getElementById('inlineBatchBar');
       if (bar) bar.style.display = 'flex';
       renderResults(entry.result, entry.url);
@@ -1860,6 +1888,8 @@ ${pageText}`;
     function backToBatchView() {
       _inlineBatchUrl = null;
       document.body.classList.remove('split-view');
+      // Re-render batch table with full 7-column layout now that we have full width again
+      renderBatchTable();
       const bar = document.getElementById('inlineBatchBar');
       if (bar) bar.style.display = 'none';
       document.getElementById('results').style.display = 'none';
