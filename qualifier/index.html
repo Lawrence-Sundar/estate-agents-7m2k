@@ -619,7 +619,7 @@
     }
 
     // ── HTML → plain text ──
-    function htmlToText(html) {
+    function htmlToText(html, maxLen) {
       html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
       html = html.replace(/<style[\s\S]*?<\/style>/gi, '');
       html = html.replace(/<nav[\s\S]*?<\/nav>/gi, '');
@@ -628,7 +628,106 @@
       const div = document.createElement('div');
       div.innerHTML = html;
       const text = (div.textContent || div.innerText || '');
-      return text.replace(/\s+/g, ' ').trim().slice(0, 12000);
+      return text.replace(/\s+/g, ' ').trim().slice(0, maxLen || 12000);
+    }
+
+    // ── Extract emails from raw HTML (runs BEFORE htmlToText strips markup) ──
+    // Combines two passes: mailto: hrefs + plain-text email regex. Drops obvious
+    // platform/CDN emails so operator isn't shown noise. Returns lowercased, deduped.
+    const EMAIL_PLATFORM_BLACKLIST = new Set([
+      'wordpress.com','wordpress.org','wpengine.com','cloudflare.com','godaddy.com',
+      'sentry.io','sentry-next.wixpress.com','wix.com','wixsite.com','squarespace.com',
+      'shopify.com','mailchimp.com','mailchi.mp','hubspot.com','intercom.io','gmail.com',
+      'googlemail.com','example.com','example.org','test.com','domain.com','yourdomain.com',
+      'sentry.wixpress.com','example.co.uk','sentry.prod.wixpress.com'
+    ]);
+    function extractEmailsFromHTML(rawHTML) {
+      if (!rawHTML || typeof rawHTML !== 'string') return [];
+      const found = new Set();
+      // 1) mailto: href attributes
+      const mailtoRe = /mailto:([^"'\s?>&#]+)/gi;
+      let m;
+      while ((m = mailtoRe.exec(rawHTML)) !== null) {
+        const addr = m[1].trim().toLowerCase();
+        if (addr.includes('@')) found.add(addr);
+      }
+      // 2) plain-text emails (catches data attrs, JSON-LD, obfuscated inline JS)
+      const plainRe = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+      let p;
+      while ((p = plainRe.exec(rawHTML)) !== null) {
+        found.add(p[0].trim().toLowerCase());
+      }
+      // Filter platform/CDN noise + trailing-punctuation cleanup
+      const out = [];
+      for (const addr of found) {
+        const clean = addr.replace(/[.,;:)\]}>]+$/, '');
+        if (!/^[^@]+@[^@]+$/.test(clean)) continue;
+        const domain = clean.split('@')[1];
+        if (!domain || EMAIL_PLATFORM_BLACKLIST.has(domain)) continue;
+        out.push(clean);
+      }
+      return out;
+    }
+
+    // ── Discover internal "secondary" pages (team / about / contact) ──
+    // Returns up to 3 same-origin absolute URLs. Prefers contact > team > about.
+    const SECONDARY_PATH_RE = /\/(?:contact(?:-us)?|team|our-team|meet-the-team|meet|our-people|people|staff|about(?:-us)?)(?:\/|$|#|\?)/i;
+    const SECONDARY_PRIORITY = ['contact','team','people','about'];
+    function findSecondaryPages(rawHTML, baseURL) {
+      if (!rawHTML || !baseURL) return [];
+      // Normalise host for same-site check — treat www.foo.co.uk and foo.co.uk as equivalent
+      const normHost = (u) => { try { return new URL(u).hostname.replace(/^www\./, '').toLowerCase(); } catch { return ''; } };
+      const baseHost = normHost(baseURL);
+      if (!baseHost) return [];
+      // Permissive href matcher — handles quoted ("..."), quoted ('...'), and unquoted (href=foo) styles
+      const hrefRe = /<a\s[^>]*?href\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/gi;
+      const seen = new Set();
+      const candidates = [];
+      let h;
+      while ((h = hrefRe.exec(rawHTML)) !== null) {
+        const raw = (h[1] || h[2] || h[3] || '').trim();
+        if (!raw || raw.startsWith('#') || raw.startsWith('javascript:') || raw.startsWith('mailto:') || raw.startsWith('tel:')) continue;
+        let abs;
+        try { abs = new URL(raw, baseURL).href; } catch { continue; }
+        let urlObj;
+        try { urlObj = new URL(abs); } catch { continue; }
+        if (normHost(abs) !== baseHost) continue;                   // same-site only (www-agnostic)
+        if (!SECONDARY_PATH_RE.test(urlObj.pathname)) continue;     // matches one of our keywords
+        if (urlObj.href === baseURL) continue;                       // don't re-fetch homepage
+        const key = urlObj.hostname.replace(/^www\./, '') + urlObj.pathname;  // dedupe on normalised host+path
+        if (seen.has(key)) continue;
+        seen.add(key);
+        // Classify by priority token
+        const path = urlObj.pathname.toLowerCase();
+        let pri = 99;
+        if (/\/contact/.test(path))                pri = 0;
+        else if (/\/(team|our-team|meet)/.test(path)) pri = 1;
+        else if (/\/(people|our-people|staff)/.test(path)) pri = 2;
+        else if (/\/about/.test(path))             pri = 3;
+        candidates.push({ url: urlObj.href.split('#')[0].split('?')[0], pri });
+      }
+      candidates.sort((a, b) => a.pri - b.pri);
+      return candidates.slice(0, 3).map(c => c.url);
+    }
+
+    // ── 3-proxy fetch chain (shared by homepage + secondary pages) ──
+    async function fetchHtmlWithProxies(url, { firstTimeout = 10000, retryTimeout = 8000 } = {}) {
+      // Proxy 1: corsproxy.io
+      try {
+        const r = await fetch('https://corsproxy.io/?' + encodeURIComponent(url), { signal: AbortSignal.timeout(firstTimeout) });
+        if (r.ok) { const t = await r.text(); if (t && t.length > 50) return t; }
+      } catch (e) { console.debug('[fetch p1]', url, e && e.message); }
+      // Proxy 2: allorigins (JSON wrapper)
+      try {
+        const r = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(url), { signal: AbortSignal.timeout(retryTimeout) });
+        if (r.ok) { const d = await r.json(); if (d.contents && d.contents.length > 50) return d.contents; }
+      } catch (e) { console.debug('[fetch p2]', url, e && e.message); }
+      // Proxy 3: codetabs
+      try {
+        const r = await fetch('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url), { signal: AbortSignal.timeout(firstTimeout) });
+        if (r.ok) { const t = await r.text(); if (t && t.length > 50) return t; }
+      } catch (e) { console.debug('[fetch p3]', url, e && e.message); }
+      return null;
     }
 
     // ── Entry point ──
@@ -680,55 +779,57 @@
     async function proceedWithAnalysis(url, apiKey) {
       clearError();
       document.getElementById('results').style.display = 'none';
-      setLoading(true, 'Fetching page...');
+      setLoading(true, 'Fetching homepage...');
+
+      window._regexEmails  = [];
+      window._fetchedPages = [];  // array of {url, source:'homepage'|'secondary'} for metadata display
 
       let pageText = '';
       try {
-        let fetchedHtml = null;
-
-        // Proxy 1: corsproxy.io (raw HTML)
-        try {
-          setLoading(true, 'Fetching page...');
-          const p1res = await fetch('https://corsproxy.io/?' + encodeURIComponent(url),
-                                    { signal: AbortSignal.timeout(10000) });
-          if (p1res.ok) {
-            const text = await p1res.text();
-            if (text && text.length > 50) fetchedHtml = text;
-          }
-        } catch { /* fall through */ }
-
-        // Proxy 2: allorigins (JSON wrapper — response in .contents)
-        if (!fetchedHtml) {
-          try {
-            setLoading(true, 'Retrying with proxy 2...');
-            const p2res = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(url),
-                                      { signal: AbortSignal.timeout(8000) });
-            if (p2res.ok) {
-              const p2data = await p2res.json();
-              if (p2data.contents && p2data.contents.length > 50) fetchedHtml = p2data.contents;
-            }
-          } catch { /* fall through */ }
-        }
-
-        // Proxy 3: codetabs (raw HTML)
-        if (!fetchedHtml) {
-          try {
-            setLoading(true, 'Retrying with proxy 3...');
-            const p3res = await fetch('https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
-                                      { signal: AbortSignal.timeout(10000) });
-            if (p3res.ok) {
-              const text = await p3res.text();
-              if (text && text.length > 50) fetchedHtml = text;
-            }
-          } catch { /* fall through */ }
-        }
-
+        const fetchedHtml = await fetchHtmlWithProxies(url, { firstTimeout: 10000, retryTimeout: 8000 });
         if (!fetchedHtml) throw new Error('All proxies failed.');
 
         // Keep raw HTML for script-level tool detection
         const htmlLower = fetchedHtml.toLowerCase();
-        pageText = htmlToText(fetchedHtml);
-        if (pageText.length < 80) throw new Error('Very little text extracted.');
+        const homepageText = htmlToText(fetchedHtml);
+        if (homepageText.length < 80) throw new Error('Very little text extracted.');
+
+        // Regex-extract emails from homepage RAW html (before strip)
+        const homepageEmails = extractEmailsFromHTML(fetchedHtml);
+        window._regexEmails.push(...homepageEmails);
+        window._fetchedPages.push({ url, source: 'homepage', emails: homepageEmails.length });
+
+        // Discover + fetch up to 3 secondary pages (team / about / contact) in parallel.
+        // Each secondary miss is non-fatal — we still continue with homepage-only content.
+        const secondaryUrls = findSecondaryPages(fetchedHtml, url);
+        let combinedText = homepageText;
+        if (secondaryUrls.length) {
+          const labels = secondaryUrls.map(u => { try { return new URL(u).pathname; } catch { return u; } }).join(', ');
+          setLoading(true, 'Fetching ' + secondaryUrls.length + ' internal page' + (secondaryUrls.length > 1 ? 's' : '') + ' (' + labels + ')...');
+          const secResults = await Promise.allSettled(
+            secondaryUrls.map(u => fetchHtmlWithProxies(u, { firstTimeout: 8000, retryTimeout: 6000 }))
+          );
+          secResults.forEach((res, i) => {
+            const secUrl = secondaryUrls[i];
+            if (res.status !== 'fulfilled' || !res.value) {
+              window._fetchedPages.push({ url: secUrl, source: 'secondary', emails: 0, failed: true });
+              return;
+            }
+            const secHtml = res.value;
+            const secEmails = extractEmailsFromHTML(secHtml);
+            window._regexEmails.push(...secEmails);
+            const secText = htmlToText(secHtml, 4000);
+            if (secText.length >= 40) {
+              let label;
+              try { label = new URL(secUrl).pathname; } catch { label = secUrl; }
+              combinedText += '\n\n--- Page: ' + label + ' ---\n\n' + secText;
+            }
+            window._fetchedPages.push({ url: secUrl, source: 'secondary', emails: secEmails.length });
+          });
+        }
+        pageText = combinedText;
+        // Dedupe regex emails
+        window._regexEmails = Array.from(new Set(window._regexEmails));
 
         // Estate agent tool / instant-response detection (pre-analysis)
         const TOOL_SIGNALS = {
@@ -852,6 +953,16 @@ ${pageText}`;
           }
         }
 
+        // Merge regex-extracted emails (homepage + secondary pages) into Claude's emails[].
+        // Regex sees `<a href="mailto:">` + JSON-LD + data attrs that vanish during htmlToText strip.
+        if (Array.isArray(window._regexEmails) && window._regexEmails.length) {
+          const claudeEmails = Array.isArray(result.emails) ? result.emails.map(e => String(e).toLowerCase()) : [];
+          const merged = Array.from(new Set([...claudeEmails, ...window._regexEmails]));
+          result.emails = merged;
+          // If Claude returned no primary_email but we regex-found some, leave it null so
+          // the category-precedence picker in renderResults chooses (director > sales > general > lettings).
+        }
+
         // Store result for later stages
         window._lastResult = result;
         window._lastUrl    = url;
@@ -912,6 +1023,9 @@ ${pageText}`;
         return;
       }
       document.getElementById('pasteState').style.display = 'none';
+      // Paste path has no raw HTML — still try to mine emails from the visible text
+      window._regexEmails  = extractEmailsFromHTML(pastedText);
+      window._fetchedPages = [{ url: url || '(pasted)', source: 'pasted', emails: window._regexEmails.length }];
       await runClaudeAnalysis(pastedText, url, apiKey);
       // Clear the pasted text so it cannot be silently reused under a different URL next run
       const _pt = document.getElementById('pasteTextarea'); if (_pt) _pt.value = '';
