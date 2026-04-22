@@ -679,10 +679,13 @@
       return out;
     }
 
-    // ── Discover internal "secondary" pages (team / about / contact) ──
-    // Returns up to 3 same-origin absolute URLs. Prefers contact > team > about.
-    const SECONDARY_PATH_RE = /\/(?:contact(?:-us)?|team|our-team|meet-the-team|meet|our-people|people|staff|about(?:-us)?)(?:\/|$|#|\?)/i;
-    const SECONDARY_PRIORITY = ['contact','team','people','about'];
+    // ── Discover internal "secondary" pages (team / about / contact / branches) ──
+    // Returns up to 3 same-site absolute URLs. Priority order:
+    //   contact > team > branches > people > about
+    // Branches/offices pages are high-value for chain agents — they usually list
+    // every branch's email in one place, which is often what we need.
+    const SECONDARY_PATH_RE = /\/(?:contact(?:-us)?|get-in-touch|team|our-team|meet-the-team|meet|our-people|people|staff|about[a-z-]*|branches?|offices?|locations?)(?:\/|$|#|\?)/i;
+    const SECONDARY_PRIORITY = ['contact','team','branches','people','about'];
     function findSecondaryPages(rawHTML, baseURL) {
       if (!rawHTML || !baseURL) return [];
       // Normalise host for same-site check — treat www.foo.co.uk and foo.co.uk as equivalent
@@ -710,10 +713,11 @@
         // Classify by priority token
         const path = urlObj.pathname.toLowerCase();
         let pri = 99;
-        if (/\/contact/.test(path))                pri = 0;
-        else if (/\/(team|our-team|meet)/.test(path)) pri = 1;
-        else if (/\/(people|our-people|staff)/.test(path)) pri = 2;
-        else if (/\/about/.test(path))             pri = 3;
+        if (/\/(contact|get-in-touch)/.test(path))             pri = 0;
+        else if (/\/(team|our-team|meet)/.test(path))          pri = 1;
+        else if (/\/(branches?|offices?|locations?)/.test(path)) pri = 2;
+        else if (/\/(people|our-people|staff)/.test(path))     pri = 3;
+        else if (/\/about/.test(path))                         pri = 4;
         candidates.push({ url: urlObj.href.split('#')[0].split('?')[0], pri });
       }
       candidates.sort((a, b) => a.pri - b.pri);
