@@ -252,6 +252,12 @@
       </div>
     </div>
 
+    <!-- Inline batch-mode nav bar — shown only when a batch row's Open is clicked -->
+    <div id="inlineBatchBar" style="display:none;background:rgba(16,185,129,0.08);border:1px solid var(--accent);padding:10px 14px;margin-bottom:14px;font-size:13px;line-height:1.5;color:var(--text);align-items:center;gap:10px;flex-wrap:wrap">
+      <button class="copy-btn" id="btnBackToBatch" style="font-size:12px">← Back to Batch</button>
+      <span style="color:var(--muted);font-size:12px" id="inlineBatchHint">Processing a lead from the batch list. Confirm to CRM below, then click Back to Batch to return to the list.</span>
+    </div>
+
     <!-- Results -->
     <div id="results">
 
@@ -1482,7 +1488,7 @@ ${combinedText}`;
         if (!rec) { rows.push({ url, status: 'pending' }); continue; }
         if (rec.dup) { rows.push({ url, status: 'dup', dup: rec.dup, urlHash: rec.urlHash }); continue; }
         if (rec.error) { rows.push({ url, status: 'error', error: rec.error, urlHash: rec.urlHash }); continue; }
-        if (rec.entry) { rows.push({ url, status: 'done', result: rec.entry.result, urlHash: rec.urlHash }); continue; }
+        if (rec.entry) { rows.push({ url, status: 'done', result: rec.entry.result, urlHash: rec.urlHash, addedToCRM: !!rec.addedToCRM }); continue; }
       }
       // Filter
       const filter = _batchState.filter;
@@ -1576,13 +1582,18 @@ ${combinedText}`;
             '<span style="color:var(--muted);font-size:12px">' + esc(city) + '</span>' +
             '<span style="color:var(--muted);font-size:12px">' + emailCount + '</span>' +
             '<span style="color:var(--muted);font-size:11px">' + esc(tool) + '</span>' +
-            '<span style="text-align:right"><button data-hash="' + esc(r.urlHash) + '" class="batch-open-btn primary" style="font-size:12px;padding:5px 12px">Open ↗</button></span>';
+            '<span style="text-align:right">' +
+              (r.addedToCRM
+                ? '<span style="font-size:11px;color:var(--accent);font-weight:600;letter-spacing:.05em">✓ ADDED</span>'
+                : '<button data-url="' + esc(r.url) + '" class="batch-open-btn primary" style="font-size:12px;padding:5px 12px">Open</button>'
+              ) +
+            '</span>';
         }
         listEl.appendChild(row);
       });
-      // Wire Open buttons
+      // Wire Open buttons — inline expansion in same tab
       listEl.querySelectorAll('.batch-open-btn').forEach(btn => {
-        btn.addEventListener('click', () => openBatchInNewTab(btn.dataset.hash));
+        btn.addEventListener('click', () => openBatchInline(btn.dataset.url));
       });
       // Wire Retry buttons
       listEl.querySelectorAll('.batch-retry-btn').forEach(btn => {
@@ -1740,14 +1751,63 @@ ${pageText}`;
       renderBatchTable();
     }
 
-    function openBatchInNewTab(urlHash) {
-      const u = new URL(window.location.href);
-      u.searchParams.set('cached', urlHash);
-      u.searchParams.delete('resume');
-      // Deliberately NO 'noopener' — the new tab falls back to reading the cache
-      // from window.opener if browser storage-partitioning (Chrome Privacy Sandbox,
-      // Safari ITP, etc.) hides the localStorage cache from the opened tab.
-      window.open(u.toString(), '_blank');
+    // Inline expansion — stays in same tab, reads directly from in-memory _batchState.
+    // Completely sidesteps localStorage, cross-tab cache, browser cache, storage partitioning.
+    let _inlineBatchUrl = null;
+    function openBatchInline(url) {
+      const rec = _batchState && _batchState.results && _batchState.results[url];
+      if (!rec || !rec.entry || !rec.entry.result) {
+        alert('Lead data not available. The batch may still be running for this URL.');
+        return;
+      }
+      const entry = rec.entry;
+      _inlineBatchUrl = url;
+      // Populate globals so renderResults + draft + CRM push paths work identically to single-mode
+      window._lastResult        = entry.result;
+      window._lastUrl           = entry.url;
+      window._regexEmails       = entry.regexEmails || [];
+      window._fetchedPages      = entry.fetchedPages || [];
+      window._toolDetected      = entry.toolDetected || 'None';
+      window._oohDetected       = entry.oohDetected || false;
+      window._customObservation = entry.customObservation || '';
+      window._skipDupCheck      = true;  // already qualified by batch; no re-query
+      // API key is already in DOM + window._apiKey from the batch run — no cross-tab inheritance needed
+      document.getElementById('clinicUrl').value = entry.url;
+      // Hide batch controls + show back-to-batch nav
+      const batchResults = document.getElementById('batchResults');
+      if (batchResults) batchResults.style.display = 'none';
+      const bar = document.getElementById('inlineBatchBar');
+      if (bar) bar.style.display = 'flex';
+      renderResults(entry.result, entry.url);
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Generate observation if missing (uses same apiKey that ran the batch)
+      if (!entry.customObservation && entry.result.score !== 'Cold' && window._apiKey) {
+        const _load = document.getElementById('customObsEmailLoading');
+        if (_load) _load.style.display = 'flex';
+        generateCustomObservation(entry.result, window._apiKey).then(text => {
+          if (text) {
+            window._customObservation = text;
+            entry.customObservation = text;  // mutate in-memory so a second open shows it instantly
+            const _el = document.getElementById('customObsEmailInput');
+            if (_el) _el.value = text;
+          }
+          if (_load) _load.style.display = 'none';
+        }).catch(() => { if (_load) _load.style.display = 'none'; });
+      }
+    }
+
+    function backToBatchView() {
+      _inlineBatchUrl = null;
+      const bar = document.getElementById('inlineBatchBar');
+      if (bar) bar.style.display = 'none';
+      document.getElementById('results').style.display = 'none';
+      const draft = document.getElementById('emailDraftSection');
+      if (draft) draft.style.display = 'none';
+      const batchResults = document.getElementById('batchResults');
+      if (batchResults) { batchResults.style.display = 'block'; batchResults.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      // Clear single-mode state so a later direct URL qualify doesn't inherit it
+      window._lastResult = null;
+      window._skipDupCheck = false;
     }
 
     async function resumeBatchAnalysis() {
@@ -2334,6 +2394,10 @@ ${pageText}`;
     // Resume-unfinished-batch banner
     showResumeBannerIfApplicable();
 
+    // Wire Back-to-Batch button
+    const _btnBackToBatch = document.getElementById('btnBackToBatch');
+    if (_btnBackToBatch) _btnBackToBatch.addEventListener('click', backToBatchView);
+
     // Wire Clear Storage button — frees localStorage quota across qualifier's own keys
     const _btnClearStorage = document.getElementById('btnClearStorage');
     if (_btnClearStorage) _btnClearStorage.addEventListener('click', () => {
@@ -2552,6 +2616,10 @@ ${pageText}`;
         '✓ ' + name + ' added to CRM. Not marked as sent yet — email is still a draft.';
       show('confirmState');
       document.getElementById('confirmState').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // If this was opened from inline batch, mark the row as "Added" so the user sees which ones are done
+      if (_inlineBatchUrl && _batchState && _batchState.results && _batchState.results[_inlineBatchUrl]) {
+        _batchState.results[_inlineBatchUrl].addedToCRM = true;
+      }
     }
 
     // ── Mark as sent ──
