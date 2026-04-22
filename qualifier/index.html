@@ -641,6 +641,13 @@
       'googlemail.com','example.com','example.org','test.com','domain.com','yourdomain.com',
       'sentry.wixpress.com','example.co.uk','sentry.prod.wixpress.com'
     ]);
+    // TLDs that are actually asset/file extensions — `background@4x.jpg` otherwise passes a naive email regex
+    const EMAIL_TLD_BLACKLIST = new Set([
+      'jpg','jpeg','png','gif','svg','webp','bmp','ico','tiff',
+      'css','js','json','xml','html','htm','php','asp','aspx',
+      'woff','woff2','ttf','eot','otf',
+      'pdf','doc','docx','xls','xlsx','ppt','pptx','zip','mp3','mp4','webm','mov','avi'
+    ]);
     function extractEmailsFromHTML(rawHTML) {
       if (!rawHTML || typeof rawHTML !== 'string') return [];
       const found = new Set();
@@ -652,18 +659,21 @@
         if (addr.includes('@')) found.add(addr);
       }
       // 2) plain-text emails (catches data attrs, JSON-LD, obfuscated inline JS)
-      const plainRe = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
+      const plainRe = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,24}\b/g;
       let p;
       while ((p = plainRe.exec(rawHTML)) !== null) {
         found.add(p[0].trim().toLowerCase());
       }
-      // Filter platform/CDN noise + trailing-punctuation cleanup
+      // Strict post-filter — rejects CSS asset paths, JS-string cruft, platform noise
+      const STRICT_RE = /^[a-z0-9._%+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,8}$/;
       const out = [];
-      for (const addr of found) {
-        const clean = addr.replace(/[.,;:)\]}>]+$/, '');
-        if (!/^[^@]+@[^@]+$/.test(clean)) continue;
-        const domain = clean.split('@')[1];
-        if (!domain || EMAIL_PLATFORM_BLACKLIST.has(domain)) continue;
+      for (const raw of found) {
+        const clean = raw.replace(/[.,;:)\]}>]+$/, '');
+        if (!STRICT_RE.test(clean)) continue;                       // rejects newlines, parens, backslashes, etc.
+        const domain = clean.split('@')[1] || '';
+        if (EMAIL_PLATFORM_BLACKLIST.has(domain)) continue;
+        const tld = domain.split('.').pop();
+        if (EMAIL_TLD_BLACKLIST.has(tld)) continue;                 // rejects @4x.jpg, @sprite.png, etc.
         out.push(clean);
       }
       return out;
