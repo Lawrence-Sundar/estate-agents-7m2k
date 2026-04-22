@@ -201,11 +201,12 @@
       </div>
       <div id="batchUrlMode" style="display:none">
         <textarea id="batchUrls" rows="6" placeholder="Paste one URL per line&#10;https://agency1.co.uk&#10;https://agency2.co.uk" style="width:100%;margin-top:6px;background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:9px 11px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
-        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap">
           <button class="primary" id="btnBatchAnalyse" onclick="runBatchAnalysis()">Qualify All</button>
+          <button class="copy-btn" id="btnClearStorage" title="Free localStorage quota — removes old batch caches and qualifier snapshot rotation. Does NOT touch CRM leads.">Clear storage</button>
           <span id="batchProgress" class="muted small"></span>
         </div>
-        <div class="muted small" style="margin-top:6px">Each URL is qualified sequentially. ~5 seconds per agency.</div>
+        <div class="muted small" style="margin-top:6px">Up to 3 URLs qualified in parallel. ~10–15 seconds per agency.</div>
       </div>
     </div>
 
@@ -1094,6 +1095,19 @@ ${pageText}`;
       } catch (e) { console.warn('[cache] write failed:', e && e.message); }
     }
     function readBatchCacheEntry(hash) { return readBatchCache()[hash] || null; }
+    function clearBatchCache() { try { localStorage.removeItem(BATCH_CACHE_KEY); } catch {} }
+    // Scan in-memory _batchState.results for an entry matching `hash` — used by the new-tab fallback
+    // when localStorage is unavailable (quota exceeded, partitioning, etc.). Safe to call from window.opener.
+    function findInMemoryEntry(hash) {
+      try {
+        if (!_batchState || !_batchState.results) return null;
+        for (const url of Object.keys(_batchState.results)) {
+          const rec = _batchState.results[url];
+          if (rec && rec.urlHash === hash && rec.entry) return rec.entry;
+        }
+      } catch {}
+      return null;
+    }
 
     function readBatchProgress() {
       try { return JSON.parse(localStorage.getItem(BATCH_PROGRESS_KEY) || 'null'); } catch { return null; }
@@ -1319,6 +1333,11 @@ ${combinedText}`;
 
       window._apiKey = apiKey;
       _batchState = { running: true, urls, dupMap: {}, results: {}, filter: 'all' };
+      // Proactive cleanup — older batch runs' cache + any leftover progress checkpoint can eat quota.
+      // The current run's results will be kept in _batchState (in-memory) regardless of whether
+      // localStorage writes succeed, so clearing here is safe.
+      clearBatchCache();
+      clearBatchProgress();
 
       const btn = document.getElementById('btnBatchAnalyse');
       btn.disabled = true; btn.textContent = 'Running...';
@@ -1529,7 +1548,7 @@ ${combinedText}`;
           row.style.opacity = '0.55';
           row.innerHTML = '<span><span style="color:var(--text)">' + esc(r.dup.agencyName || '(unknown)') + '</span><span style="color:var(--muted);font-size:11px;display:block">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span></span><span style="color:var(--muted);font-size:12px;font-weight:600">DUP</span><span></span><span></span><span></span><span></span><span style="text-align:right;color:var(--muted);font-size:11px">in CRM</span>';
         } else if (r.status === 'error') {
-          row.innerHTML = '<span style="color:var(--muted)">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span><span style="color:var(--danger);font-weight:600">ERR</span><span style="grid-column:span 4;color:var(--danger);font-size:12px;font-style:italic">' + esc(r.error) + '</span><span></span>';
+          row.innerHTML = '<span style="color:var(--muted)">' + esc(r.url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 45)) + '</span><span style="color:var(--danger);font-weight:600">ERR</span><span style="grid-column:span 3;color:var(--danger);font-size:12px;font-style:italic">' + esc(r.error) + '</span><span></span><span style="text-align:right;display:flex;gap:4px;justify-content:flex-end"><button class="copy-btn batch-retry-btn" data-url="' + esc(r.url) + '" style="font-size:11px;padding:3px 7px">Retry</button><button class="copy-btn batch-paste-btn" data-url="' + esc(r.url) + '" style="font-size:11px;padding:3px 7px">Paste HTML</button></span>';
         } else {
           const s = r.result?.score || '?';
           const conf = r.result?.score_confidence || '';
@@ -1553,6 +1572,160 @@ ${combinedText}`;
       listEl.querySelectorAll('.batch-open-btn').forEach(btn => {
         btn.addEventListener('click', () => openBatchInNewTab(btn.dataset.hash));
       });
+      // Wire Retry buttons
+      listEl.querySelectorAll('.batch-retry-btn').forEach(btn => {
+        btn.addEventListener('click', () => retryBatchLead(btn.dataset.url));
+      });
+      // Wire Paste HTML buttons — insert an inline textarea panel below the clicked row
+      listEl.querySelectorAll('.batch-paste-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const url = btn.dataset.url;
+          const row = btn.closest('div[style*="grid-template-columns"]');
+          if (!row) return;
+          // If a panel already exists, toggle
+          const existing = row.nextElementSibling && row.nextElementSibling.classList && row.nextElementSibling.classList.contains('batch-paste-panel') ? row.nextElementSibling : null;
+          if (existing) { existing.remove(); return; }
+          const panel = document.createElement('div');
+          panel.className = 'batch-paste-panel';
+          panel.style.cssText = 'padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg)';
+          panel.innerHTML =
+            '<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Open ' + esc(url) + ' in a new tab, press Ctrl+A then Ctrl+C on the page, and paste here:</div>' +
+            '<textarea class="bp-ta" rows="5" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 10px;font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box" placeholder="Paste page content..."></textarea>' +
+            '<div style="display:flex;gap:6px;margin-top:6px;justify-content:flex-end">' +
+              '<button class="copy-btn bp-cancel" style="font-size:11px">Cancel</button>' +
+              '<button class="primary bp-run" style="font-size:12px;padding:5px 14px">Qualify from paste</button>' +
+            '</div>';
+          row.after(panel);
+          panel.querySelector('.bp-cancel').addEventListener('click', () => panel.remove());
+          panel.querySelector('.bp-run').addEventListener('click', () => {
+            const text = panel.querySelector('.bp-ta').value.trim();
+            if (!text) { alert('Paste something first.'); return; }
+            qualifyFromPastedHTML(url, text);
+          });
+          panel.querySelector('.bp-ta').focus();
+        });
+      });
+    }
+
+    // ── Recover a batch lead from an error state — paste HTML or retry fetch ──
+    // Runs the same Claude+regex+Places pipeline as qualifyOneURL but feeds in pasted text
+    // directly instead of fetching via proxy. On success, row transitions error -> done.
+    async function retryBatchLead(url) {
+      const apiKey = (document.getElementById('apiKey').value || window._apiKey || '').trim();
+      if (!apiKey) { alert('Enter your Anthropic API key first.'); return; }
+      const rec = _batchState.results[url];
+      if (!rec) return;
+      // Temporarily mark as pending so the UI reflects in-flight state
+      _batchState.results[url] = { urlHash: rec.urlHash };
+      renderBatchTable();
+      try {
+        const out = await qualifyOneURL(url, apiKey);
+        if (out.error) {
+          _batchState.results[url] = { urlHash: rec.urlHash, error: out.error };
+        } else {
+          const entry = { url, result: out.result, regexEmails: out.regexEmails, fetchedPages: out.fetchedPages, toolDetected: out.toolDetected, oohDetected: out.oohDetected, customObservation: '' };
+          writeBatchCacheEntry(rec.urlHash, entry);
+          _batchState.results[url] = { urlHash: rec.urlHash, entry };
+          if (out.result && out.result.score !== 'Cold') {
+            generateCustomObservation(out.result, apiKey).then(text => {
+              if (text) {
+                const latest = readBatchCacheEntry(rec.urlHash) || entry;
+                latest.customObservation = text;
+                writeBatchCacheEntry(rec.urlHash, latest);
+                if (_batchState.results[url] && _batchState.results[url].entry) _batchState.results[url].entry.customObservation = text;
+              }
+            }).catch(() => {});
+          }
+        }
+      } catch (e) {
+        _batchState.results[url] = { urlHash: rec.urlHash, error: e && e.message ? e.message : String(e) };
+      }
+      renderBatchTable();
+    }
+
+    async function qualifyFromPastedHTML(url, pastedText) {
+      const apiKey = (document.getElementById('apiKey').value || window._apiKey || '').trim();
+      if (!apiKey) { alert('Enter your Anthropic API key first.'); return; }
+      const rec = _batchState.results[url];
+      if (!rec || !pastedText || pastedText.length < 30) { alert('Paste some content first.'); return; }
+      _batchState.results[url] = { urlHash: rec.urlHash };
+      renderBatchTable();
+      try {
+        // Mine emails from the raw paste BEFORE strip
+        const regexEmails = extractEmailsFromHTML(pastedText);
+        const pageText = htmlToText(pastedText);
+        if (pageText.length < 30) { _batchState.results[url] = { urlHash: rec.urlHash, error: 'Pasted content too thin (' + pageText.length + ' chars after strip)' }; renderBatchTable(); return; }
+        // Build the same prompt qualifyOneURL uses
+        const systemPrompt = `You are a sales qualifier for Daedalus Atelier, a UK speed-to-lead automation company working with independent estate agents. You analyse estate agency websites and extract structured data to qualify them as outreach targets.
+
+TOOL DETECTION — Look carefully for any of the following keywords anywhere in the page text or visible copy: "klikkit", "salesrook", "yomdel", "giosg", "livechat", "intercom", "drift", "tawk", "instant response", "respond within minutes", "we reply instantly", "24/7 response", "always available to chat". If any are present, set existing_tool_detected to the matching tool name (or "Other" for generic instant-response claims) and score the agency Cold.
+
+SCORING:
+- Hot = independent agency (1–3 branches), manual enquiry handling (contact form or phone only), listed on Rightmove or Zoopla, no instant response tool detected
+- Warm = mixed signals, partial automation unclear, 4–6 branches, insufficient data
+- Cold = any instant response tool detected (Klikkit, SalesRook, Yomdel, Giosg, LiveChat, Intercom, Drift, Tawk), OR 7+ branches, OR "instant response guarantee" visible on site
+
+Detect enquiry_channel from page content. Detect branch_count from footer, about page mentions, or navigation. Detect rightmove_listed from any Rightmove logo, link, or mention on page.`;
+        const userPrompt = `Analyse the following webpage text from a UK estate agency website and return a JSON object with EXACTLY these fields:
+
+- score: "Hot", "Warm", or "Cold"
+- score_confidence: "high" | "medium" | "low"
+- score_reason: one sentence explaining the score
+- agency_name: detected agency name or null
+- director_name: Director/MD/Managing Director/Owner/Principal name if found, else null
+- office_manager_name: office/branch/lettings manager name if found, else null
+- director_name_confidence: "found" | "inferred" | "not_found"
+- emails: array of all email addresses detected
+- primary_email: single best email for outreach, or null
+- enquiry_channel: "contact_form" | "phone_only" | "email_only" | "whatsapp" | "live_chat" | "instant_response_tool" | "unknown"
+- enquiry_channel_confidence: "confirmed" | "inferred" | "unknown"
+- review_count: number or null
+- address: string or null
+- city: "London"|"Manchester"|"Birmingham"|"Leeds"|"Bristol"|"Edinburgh"|"Glasgow"|"Sheffield"|"Nottingham"|"Other"|"unknown"
+- city_name: string or null
+- branch_count: number or null
+- rightmove_listed: boolean
+- existing_tool_detected: "None"|"Klikkit"|"SalesRook"|"Yomdel"|"Giosg"|"LiveChat"|"Intercom"|"Drift"|"Tawk"|"Other"
+- disqualifiers: array of strings
+- detected_signals: array of strings
+
+Return ONLY a raw JSON object.
+
+Webpage text:
+${pageText}`;
+        const apiRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'x-api-key':apiKey, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+          body: JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:1000, system: systemPrompt, messages:[{role:'user', content:userPrompt}] })
+        });
+        if (!apiRes.ok) { const errBody = await apiRes.json().catch(() => ({})); _batchState.results[url] = { urlHash: rec.urlHash, error: errBody.error?.message || ('HTTP ' + apiRes.status) }; renderBatchTable(); return; }
+        const apiData = await apiRes.json();
+        const rawText = (apiData.content?.[0]?.text || '').trim();
+        let result;
+        try { result = JSON.parse(rawText.replace(/^```json?\s*/i, '').replace(/```\s*$/, '').trim()); }
+        catch { _batchState.results[url] = { urlHash: rec.urlHash, error: 'Claude returned unexpected format' }; renderBatchTable(); return; }
+        // Merge regex emails from the paste
+        if (regexEmails.length) {
+          const claudeEmails = Array.isArray(result.emails) ? result.emails.map(e => String(e).toLowerCase()) : [];
+          result.emails = Array.from(new Set([...claudeEmails, ...regexEmails]));
+        }
+        const entry = { url, result, regexEmails, fetchedPages: [{ url, source: 'pasted', emails: regexEmails.length }], toolDetected: 'None', oohDetected: false, customObservation: '' };
+        writeBatchCacheEntry(rec.urlHash, entry);
+        _batchState.results[url] = { urlHash: rec.urlHash, entry };
+        if (result.score !== 'Cold') {
+          generateCustomObservation(result, apiKey).then(text => {
+            if (text) {
+              const latest = readBatchCacheEntry(rec.urlHash) || entry;
+              latest.customObservation = text;
+              writeBatchCacheEntry(rec.urlHash, latest);
+              if (_batchState.results[url] && _batchState.results[url].entry) _batchState.results[url].entry.customObservation = text;
+            }
+          }).catch(() => {});
+        }
+      } catch (e) {
+        _batchState.results[url] = { urlHash: rec.urlHash, error: e && e.message ? e.message : String(e) };
+      }
+      renderBatchTable();
     }
 
     function openBatchInNewTab(urlHash) {
@@ -2049,27 +2222,35 @@ ${combinedText}`;
         const params = new URLSearchParams(window.location.search);
         const hash = params.get('cached');
         if (!hash) return;
-        let entry = readBatchCacheEntry(hash);
-        let fromOpener = false;
-        if (!entry || !entry.result) {
-          // Fallback — try reading from the batch tab's JS context directly
+        let entry = null;
+        let source = 'unknown';
+        // Lookup cascade — try increasingly fragile sources in order:
+        //   1. opener's in-memory _batchState (authoritative — survives full localStorage, survives partitioning)
+        //   2. opener's localStorage (works when same-origin and storage not partitioned)
+        //   3. own localStorage (works when storage is shared and write succeeded earlier)
+        try {
+          if (window.opener && typeof window.opener.findInMemoryEntry === 'function') {
+            const fromMem = window.opener.findInMemoryEntry(hash);
+            if (fromMem && fromMem.result) { entry = fromMem; source = 'opener-memory'; }
+          }
+        } catch (e) { console.warn('[cached opener memory]', e && e.message); }
+        if (!entry) {
           try {
             if (window.opener && typeof window.opener.readBatchCacheEntry === 'function') {
-              const op = window.opener.readBatchCacheEntry(hash);
-              if (op && op.result) {
-                entry = op;
-                fromOpener = true;
-                // Copy into this tab's localStorage so future opens don't need the opener
-                try { writeBatchCacheEntry(hash, entry); } catch {}
-              }
+              const fromLs = window.opener.readBatchCacheEntry(hash);
+              if (fromLs && fromLs.result) { entry = fromLs; source = 'opener-localStorage'; }
             }
-          } catch (e) { console.warn('[cached opener fallback]', e && e.message); }
+          } catch (e) { console.warn('[cached opener localStorage]', e && e.message); }
+        }
+        if (!entry) {
+          const fromOwn = readBatchCacheEntry(hash);
+          if (fromOwn && fromOwn.result) { entry = fromOwn; source = 'own-localStorage'; }
         }
         if (!entry || !entry.result) {
-          showError('Cached result not found. If the batch tab is closed, open this agency from a fresh batch run. (Storage partitioning may be hiding the cache — keep the batch tab open as a workaround.)');
+          showError('Cached result not available. The batch tab must stay open for Open ↗ to work. If the batch tab is closed, re-run the batch. If the batch tab IS open and you still see this, localStorage quota is likely full — click "Clear storage" in batch mode to free space.');
           return;
         }
-        if (fromOpener) console.log('[cached] loaded via window.opener (localStorage was partitioned)');
+        console.log('[cached] loaded via ' + source);
         // Populate globals so renderResults + downstream flow (draft, CRM push) works identically to single-mode
         window._lastResult        = entry.result;
         window._lastUrl           = entry.url;
@@ -2104,6 +2285,24 @@ ${combinedText}`;
 
     // Resume-unfinished-batch banner
     showResumeBannerIfApplicable();
+
+    // Wire Clear Storage button — frees localStorage quota across qualifier's own keys
+    const _btnClearStorage = document.getElementById('btnClearStorage');
+    if (_btnClearStorage) _btnClearStorage.addEventListener('click', () => {
+      let freed = 0;
+      const before = JSON.stringify(localStorage).length;
+      // Own keys
+      clearBatchCache();
+      clearBatchProgress();
+      // Qualifier-state snapshots (if any ever get added); CRM snapshots too since
+      // CRM uses this localStorage on the same origin
+      try {
+        for (let i = 1; i <= 10; i++) localStorage.removeItem('da_crm_v1_snap_' + i);
+      } catch {}
+      const after = JSON.stringify(localStorage).length;
+      freed = before - after;
+      alert('Storage cleared — ' + (freed / 1024).toFixed(1) + ' KB freed.\n\nCRM leads (da_crm_v1) were NOT touched. Only old batch caches + rotating snapshots removed.');
+    });
 
     // Task 1: Custom Observation (Email 3) — keep window state in sync with textarea
     const _customObsEmailEl = document.getElementById('customObsEmailInput');
