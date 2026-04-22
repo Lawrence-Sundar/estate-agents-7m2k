@@ -457,6 +457,38 @@
     const SB_TABLE = 'daedalus_leads';
     let _sb = null;
     function getSB(){ if(!_sb && window.supabase) _sb = window.supabase.createClient(SB_URL, SB_KEY); return _sb; }
+
+    // ── Supabase write tracking + visible sync error banner ──
+    let _pendingWrites = 0;
+    function _sbTracked(promise, label){
+      _pendingWrites++;
+      return promise.then(result => {
+        _pendingWrites--;
+        if(result && result.error){ console.warn('['+label+'] Supabase:', result.error.message); showSyncError(label + ': ' + result.error.message); }
+        return result;
+      }, err => {
+        _pendingWrites--;
+        console.warn('['+label+'] Supabase threw:', err);
+        showSyncError(label + ': ' + (err && err.message ? err.message : 'unknown error'));
+        throw err;
+      });
+    }
+    function showSyncError(msg){
+      let el = document.getElementById('_syncErr');
+      if(!el){
+        el = document.createElement('div');
+        el.id = '_syncErr';
+        el.style.cssText = 'position:fixed;top:12px;right:12px;max-width:380px;padding:12px 16px;background:#E5484D;color:#fff;border-radius:8px;font-size:13px;z-index:99999;box-shadow:0 8px 32px rgba(0,0,0,0.4);cursor:pointer;font-family:inherit;line-height:1.45';
+        el.onclick = () => el.remove();
+        document.body.appendChild(el);
+      }
+      el.textContent = 'Sync failed — ' + msg + ' (click to dismiss)';
+      setTimeout(() => { const cur = document.getElementById('_syncErr'); if(cur) cur.remove(); }, 10000);
+    }
+    window.addEventListener('beforeunload', function(e){
+      if(_pendingWrites > 0){ e.preventDefault(); e.returnValue = 'Sync in progress — changes may be lost if you leave now.'; return e.returnValue; }
+    });
+
     const SB_FIELD_MAP = {
       id:'id', agencyName:'agency_name', directorName:'director_name', directorEmail:'director_email', lettingsEmail:'lettings_email',
       city:'city', address:'address', phone:'phone', websiteUrl:'website_url',
@@ -919,8 +951,8 @@ ${pageText}`;
         if(dup){ appendBatchRow(listEl, url, null, 'Duplicate — ' + (dup.agencyName||'already in CRM')); continue; }
         try{
           let pageText = null;
-          try{ const p1=await fetch('https://corsproxy.io/?'+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)}); if(p1.ok) pageText=await p1.text(); }catch(e){}
-          if(!pageText){ try{ const p2=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(8000)}); if(p2.ok){ const d=await p2.json(); pageText=d.contents; } }catch(e){} }
+          try{ const p1=await fetch('https://corsproxy.io/?'+encodeURIComponent(url),{signal:AbortSignal.timeout(10000)}); if(p1.ok) pageText=await p1.text(); }catch(e){ console.debug('[batch fetch proxy 1]', e && e.message); }
+          if(!pageText){ try{ const p2=await fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(8000)}); if(p2.ok){ const d=await p2.json(); pageText=d.contents; } }catch(e){ console.debug('[batch fetch proxy 2]', e && e.message); } }
           if(!pageText){ appendBatchRow(listEl, url, null, 'Page fetch failed'); continue; }
           pageText = htmlToText(pageText);
           const resp = await fetch('https://api.anthropic.com/v1/messages',{
@@ -939,7 +971,7 @@ ${pageText}`;
               const pr=await fetch('https://corsproxy.io/?'+encodeURIComponent('https://maps.googleapis.com/maps/api/place/textsearch/json?query='+sq+'&key='+gk),{signal:AbortSignal.timeout(6000)});
               if(pr.ok){const pd=await pr.json();if(pd.results&&pd.results[0]){const pl=pd.results[0];if(pl.user_ratings_total)result.review_count=pl.user_ratings_total;if(pl.rating)result.google_rating=pl.rating;}}
             }
-          }catch(e){}
+          }catch(e){ console.debug('[batch Places enrich]', e && e.message); }
           appendBatchRow(listEl, url, result, null);
           if(result.score!=='Cold') added++;
         }catch(e){ appendBatchRow(listEl, url, null, 'Error: '+e.message); }
@@ -1631,7 +1663,7 @@ ${pageText}`;
         localStorage.setItem(TRACKER_KEY, JSON.stringify(leads));
         // Supabase update
         const sb=getSB();
-        if(sb){ sb.from(SB_TABLE).update({email1_sent_date:today,email2_date:leads[idx].email2Date||null,email3_date:leads[idx].email3Date||null,email4_date:leads[idx].email4Date||null,status:'Contacted',follow_up_date:leads[idx].followUpDate||null}).eq('id',id).then(({error})=>{ if(error) console.warn('[markAsSent] Supabase:',error.message); }); }
+        if(sb){ _sbTracked(sb.from(SB_TABLE).update({email1_sent_date:today,email2_date:leads[idx].email2Date||null,email3_date:leads[idx].email3Date||null,email4_date:leads[idx].email4Date||null,status:'Contacted',follow_up_date:leads[idx].followUpDate||null}).eq('id',id), 'markAsSent'); }
 
         document.getElementById('btnMarkSent').disabled = true;
         document.getElementById('btnMarkSent').textContent = '✓ Marked as Sent';
@@ -1640,8 +1672,9 @@ ${pageText}`;
           ' · FU2 due ' + formatDate(addDaysISO(7)) +
           ' · FU3 due ' + formatDate(addDaysISO(14));
         show('markSentState');
-      } catch {
-        showError('Could not update CRM storage.');
+      } catch (e) {
+        console.warn('[markAsSent]', e);
+        showError('Could not update CRM storage' + (e && e.message ? ': ' + e.message : '.'));
       }
     }
 
