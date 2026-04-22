@@ -2287,24 +2287,45 @@ ${pageText}`;
         window._oohDetected       = entry.oohDetected || false;
         window._customObservation = entry.customObservation || '';
         window._skipDupCheck      = true;  // already qualified from batch; don't re-query Supabase for the dup UI
+        // Pull API key from opener (batch tab) since this new tab has an empty key input.
+        // Required for Generate Email + custom-observation regen. If opener's key is missing,
+        // user can still paste it into the key input on this tab — both paths work.
+        try {
+          if (!window._apiKey && window.opener && window.opener._apiKey) {
+            window._apiKey = window.opener._apiKey;
+            const _k = document.getElementById('apiKey');
+            if (_k) _k.value = window.opener._apiKey;
+          }
+        } catch {}
         document.getElementById('clinicUrl').value = entry.url;
         renderResults(entry.result, entry.url);
         // If observation wasn't cached yet (race with batch-mode's non-blocking observation call), fire it now
         if (!entry.customObservation && entry.result.score !== 'Cold') {
-          const apiKey = (document.getElementById('apiKey').value || '').trim();
+          const apiKey = window._apiKey || (document.getElementById('apiKey').value || '').trim();
           if (apiKey) {
+            const _load = document.getElementById('customObsEmailLoading');
+            if (_load) _load.style.display = 'flex';
             generateCustomObservation(entry.result, apiKey).then(text => {
               if (text) {
                 window._customObservation = text;
                 const _el = document.getElementById('customObsEmailInput');
                 if (_el) _el.value = text;
-                const _load = document.getElementById('customObsEmailLoading');
                 if (_load) _load.style.display = 'none';
-                // Also update cache so subsequent opens benefit
-                const latest = readBatchCacheEntry(hash);
-                if (latest) { latest.customObservation = text; writeBatchCacheEntry(hash, latest); }
-              }
-            }).catch(e => console.warn('[cached observation]', e && e.message));
+                // Also update cache so subsequent opens benefit; update opener's in-memory state too
+                try {
+                  const latest = readBatchCacheEntry(hash);
+                  if (latest) { latest.customObservation = text; writeBatchCacheEntry(hash, latest); }
+                } catch {}
+                try {
+                  if (window.opener && window.opener._batchState && window.opener._batchState.results) {
+                    for (const u of Object.keys(window.opener._batchState.results)) {
+                      const rec = window.opener._batchState.results[u];
+                      if (rec && rec.urlHash === hash && rec.entry) { rec.entry.customObservation = text; break; }
+                    }
+                  }
+                } catch {}
+              } else if (_load) { _load.style.display = 'none'; }
+            }).catch(e => { console.warn('[cached observation]', e && e.message); if (_load) _load.style.display = 'none'; });
           }
         }
       } catch (e) { console.warn('[initCachedResult]', e && e.message); }
