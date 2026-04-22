@@ -1117,7 +1117,15 @@ ${pageText}`;
 
         const htmlLower = hpHtml.toLowerCase();
         const hpText = htmlToText(hpHtml);
-        if (hpText.length < 80) { out.error = 'Very little text extracted from homepage'; return out; }
+        // Classify the failure so the operator can tell SPA / captcha / thin content apart
+        if (hpText.length < 30) {
+          const isCaptcha = /sgcaptcha|cf-challenge|cf-browser-verification|cloudflare/.test(htmlLower);
+          const isSPA = /<div[^>]+id=["'](root|app|__next)["']|class=["']no-js["']|__next_data__|__nuxt__/.test(htmlLower);
+          if (isCaptcha)      out.error = 'Blocked by Cloudflare/captcha (site requires a real browser)';
+          else if (isSPA)     out.error = 'JavaScript-only site (SPA) — proxy sees empty shell';
+          else                out.error = 'Very little text extracted from homepage (' + hpText.length + ' chars)';
+          return out;
+        }
 
         const hpEmails = extractEmailsFromHTML(hpHtml);
         out.regexEmails.push(...hpEmails);
@@ -1551,7 +1559,10 @@ ${combinedText}`;
       const u = new URL(window.location.href);
       u.searchParams.set('cached', urlHash);
       u.searchParams.delete('resume');
-      window.open(u.toString(), '_blank', 'noopener');
+      // Deliberately NO 'noopener' — the new tab falls back to reading the cache
+      // from window.opener if browser storage-partitioning (Chrome Privacy Sandbox,
+      // Safari ITP, etc.) hides the localStorage cache from the opened tab.
+      window.open(u.toString(), '_blank');
     }
 
     async function resumeBatchAnalysis() {
@@ -2030,16 +2041,35 @@ ${combinedText}`;
 
     // ── Cached-result init — load a pre-qualified lead from localStorage cache via ?cached=<hash>
     // Skips the fetch + Claude phases entirely. Used when the operator clicks "Open ↗" on a batch row.
+    // FALLBACK: if localStorage is partitioned (Chrome Privacy Sandbox, Safari ITP, ad-blocker extensions,
+    // strict incognito), the new tab's localStorage may not see the batch tab's cache. In that case we
+    // reach into window.opener (still the batch tab) and read the cache via its live JS context.
     (function initCachedResult() {
       try {
         const params = new URLSearchParams(window.location.search);
         const hash = params.get('cached');
         if (!hash) return;
-        const entry = readBatchCacheEntry(hash);
+        let entry = readBatchCacheEntry(hash);
+        let fromOpener = false;
         if (!entry || !entry.result) {
-          showError('Cached result not found or expired. Re-qualify this agency from batch mode.');
+          // Fallback — try reading from the batch tab's JS context directly
+          try {
+            if (window.opener && typeof window.opener.readBatchCacheEntry === 'function') {
+              const op = window.opener.readBatchCacheEntry(hash);
+              if (op && op.result) {
+                entry = op;
+                fromOpener = true;
+                // Copy into this tab's localStorage so future opens don't need the opener
+                try { writeBatchCacheEntry(hash, entry); } catch {}
+              }
+            }
+          } catch (e) { console.warn('[cached opener fallback]', e && e.message); }
+        }
+        if (!entry || !entry.result) {
+          showError('Cached result not found. If the batch tab is closed, open this agency from a fresh batch run. (Storage partitioning may be hiding the cache — keep the batch tab open as a workaround.)');
           return;
         }
+        if (fromOpener) console.log('[cached] loaded via window.opener (localStorage was partitioned)');
         // Populate globals so renderResults + downstream flow (draft, CRM push) works identically to single-mode
         window._lastResult        = entry.result;
         window._lastUrl           = entry.url;
