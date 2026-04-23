@@ -7,7 +7,7 @@
   <title>Daedalus Atelier — Estate Agent CRM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script defer src="https://alcdn.msauth.net/browser/2.38.2/js/msal-browser.min.js"></script>
   <style>
     :root {
@@ -415,6 +415,211 @@
       .form-row{flex-wrap:wrap}
       .form-row .w100,.form-row .w120,.form-row .w160,.form-row .w200{width:100%;flex:1 1 120px}
     }
+
+    /* ════════════════════════════════════════════════════════════════════
+       AURORA DASHBOARD — scoped to #tab-dashboard only
+       Aurora palette from Personal Empire Zariel design system
+       Only animates the rotating conic-gradient border on neon cards
+       ════════════════════════════════════════════════════════════════════ */
+    #tab-dashboard{
+      --p-primary:#10B981;--p-primary-rgb:16,185,129;
+      --p-secondary:#3B82F6;--p-secondary-rgb:59,130,246;
+      --p-glow:#06D6A0;--p-glow-rgb:6,214,160;
+      --aur-bg:#0a0b1a;
+      --aur-text:#f0edf5;
+      --aur-text-bright:#e8e4f0;
+      --aur-text-std:#e0dce8;
+      --aur-text-muted:#9a95a8;
+      --aur-text-faint:#6b6580;
+      --aur-border-subtle:rgba(255,255,255,0.04);
+      --aur-border-default:rgba(255,255,255,0.06);
+    }
+    /* Hide topbar when dashboard tab active — Cormorant hero takes over */
+    body.on-dashboard #mainContent .content-topbar{display:none}
+
+    #tab-dashboard.tabPane.active{
+      padding:0;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(16,185,129,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 90%, rgba(59,130,246,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 40% at 50% 50%, rgba(6,214,160,0.04) 0%, transparent 50%),
+        var(--aur-bg);
+      color:var(--aur-text-std);
+    }
+    #tab-dashboard .dash-page{
+      padding:22px 32px 24px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      flex:1;
+      min-height:0;
+      position:relative;
+      z-index:2;
+    }
+    /* Noise overlay */
+    #tab-dashboard::after{
+      content:'';position:absolute;inset:0;
+      pointer-events:none;z-index:1;opacity:0.03;
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+    }
+
+    /* Hero — one row, compact */
+    #tab-dashboard .dash-hero{
+      flex:0 0 auto;
+      display:flex;align-items:baseline;justify-content:space-between;gap:24px;
+      padding-bottom:16px;
+      border-bottom:1px solid var(--aur-border-default);
+    }
+    #tab-dashboard .dash-greeting{
+      font-family:'Cormorant Garamond',serif;
+      font-weight:300;font-style:italic;
+      font-size:42px;line-height:1;
+      letter-spacing:-0.02em;margin:0;
+      background:linear-gradient(120deg,var(--p-primary) 0%,var(--p-secondary) 55%,var(--p-glow) 100%);
+      background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+    #tab-dashboard .dash-meta{
+      display:flex;align-items:center;gap:18px;
+      font-family:'JetBrains Mono',monospace;
+      font-size:14px;color:var(--aur-text-faint);
+      letter-spacing:0.06em;
+    }
+    #tab-dashboard .dash-meta .dot{width:6px;height:6px;background:var(--p-primary);box-shadow:0 0 8px rgba(var(--p-primary-rgb),0.5)}
+    #tab-dashboard .dash-meta .date{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:var(--aur-text-muted);letter-spacing:0}
+    #tab-dashboard .dash-meta .clock{
+      background:linear-gradient(90deg,var(--p-primary),var(--p-glow));
+      background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      opacity:0.75;
+    }
+
+    /* Section labels (static solid) */
+    #tab-dashboard .sec-label{
+      font-family:'JetBrains Mono',monospace;
+      font-size:13px;font-weight:600;
+      text-transform:uppercase;letter-spacing:0.2em;
+      margin-bottom:14px;
+      color:var(--p-primary);
+    }
+
+    /* Neon-bordered card (only animated element) */
+    #tab-dashboard .neon{position:relative;padding:1px;border-radius:14px !important;overflow:hidden;background:transparent;isolation:isolate;height:100%}
+    #tab-dashboard .neon::before{
+      content:'';position:absolute;top:50%;left:50%;
+      width:200%;height:200%;
+      margin-top:-100%;margin-left:-100%;
+      background:conic-gradient(from 0deg,var(--p-primary),var(--p-secondary),var(--p-glow),var(--p-primary));
+      animation:aur-neon-spin 6s linear infinite;
+      opacity:var(--neon-opacity,0.28);
+      transition:opacity .3s;
+      z-index:-1;
+    }
+    #tab-dashboard .neon:hover::before{opacity:var(--neon-hover-opacity,0.6)}
+    #tab-dashboard .neon-inner{
+      background:var(--aur-bg);
+      border-radius:13px !important;
+      padding:18px 22px;
+      position:relative;z-index:1;height:100%;
+      display:flex;flex-direction:column;
+    }
+    @keyframes aur-neon-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+    /* Stats row */
+    #tab-dashboard .dash-stats{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    #tab-dashboard .dash-stats .neon{--neon-opacity:0.3;--neon-hover-opacity:0.65}
+    #tab-dashboard .dash-stats .neon-inner{min-height:118px;justify-content:space-between;padding:16px 20px}
+    #tab-dashboard .st-label{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:var(--aur-text-faint)}
+    #tab-dashboard .st-num{font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;font-size:54px;line-height:0.95;letter-spacing:-0.02em;color:var(--tile-accent,var(--p-primary));margin:4px 0 6px}
+    #tab-dashboard .st-delta{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--aur-text-muted);letter-spacing:0.04em;display:flex;align-items:center;gap:8px}
+    #tab-dashboard .st-delta .d{width:5px;height:5px;background:var(--tile-accent,var(--p-primary));opacity:0.75}
+    #tab-dashboard .st-1{--tile-accent:color-mix(in srgb,var(--p-primary) 90%,#d4d0e0)}
+    #tab-dashboard .st-2{--tile-accent:color-mix(in srgb,var(--p-secondary) 85%,#d4d0e0)}
+    #tab-dashboard .st-3{--tile-accent:color-mix(in srgb,var(--p-glow) 85%,#d4d0e0)}
+    #tab-dashboard .st-4{--tile-accent:color-mix(in srgb,var(--p-primary) 75%,var(--p-glow) 25%)}
+
+    /* Main 3×2 grid */
+    #tab-dashboard .dash-main{
+      flex:1;min-height:0;
+      display:grid;
+      grid-template-columns:1fr 1.35fr 1fr;
+      grid-template-rows:1fr 1fr;
+      gap:16px;
+    }
+    #tab-dashboard .cell-funnel{grid-column:1;grid-row:1 / span 2}
+    #tab-dashboard .cell-activity{grid-column:2;grid-row:1}
+    #tab-dashboard .cell-recent{grid-column:3;grid-row:1}
+    #tab-dashboard .cell-priority{grid-column:2;grid-row:2}
+    #tab-dashboard .cell-action{grid-column:3;grid-row:2}
+
+    /* Funnel */
+    #tab-dashboard .aur-funnel{flex:1;display:flex;flex-direction:column;justify-content:space-around;padding-top:4px}
+    #tab-dashboard .aur-f-row{display:flex;align-items:center;gap:14px;padding:6px 0}
+    #tab-dashboard .aur-f-label{width:120px;flex-shrink:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:var(--aur-text-std)}
+    #tab-dashboard .aur-f-track{flex:1;height:6px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden}
+    #tab-dashboard .aur-f-fill{height:100%;background:linear-gradient(90deg,var(--p-primary),var(--p-glow));opacity:0.85;box-shadow:0 0 12px rgba(var(--p-primary-rgb),0.22)}
+    #tab-dashboard .aur-f-val{width:38px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
+    #tab-dashboard .aur-f-pct{width:44px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--aur-text-faint);font-variant-numeric:tabular-nums}
+
+    /* Weekly activity */
+    #tab-dashboard .aur-wa-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    #tab-dashboard .aur-wa-legend{display:flex;gap:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--aur-text-faint);letter-spacing:0.08em;text-transform:uppercase}
+    #tab-dashboard .aur-wa-legend span{display:flex;align-items:center;gap:6px}
+    #tab-dashboard .aur-wa-legend .d{width:8px;height:8px}
+    #tab-dashboard .aur-wa-legend .d-sent{background:var(--p-primary)}
+    #tab-dashboard .aur-wa-legend .d-rep{background:var(--p-secondary)}
+    #tab-dashboard .aur-wa-chart{flex:1;display:flex;align-items:flex-end;gap:10px;padding-top:8px;min-height:0}
+    #tab-dashboard .aur-wa-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+    #tab-dashboard .aur-wa-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--aur-text-muted);text-align:center}
+    #tab-dashboard .aur-wa-bars{display:flex;gap:3px;width:100%;align-items:flex-end;padding:0 6px;flex:1}
+    #tab-dashboard .aur-wa-bar{flex:1;min-height:2px}
+    #tab-dashboard .aur-wa-bar.sent{background:linear-gradient(180deg,var(--p-primary),color-mix(in srgb,var(--p-primary) 55%,transparent))}
+    #tab-dashboard .aur-wa-bar.rep{background:linear-gradient(180deg,var(--p-secondary),color-mix(in srgb,var(--p-secondary) 55%,transparent))}
+    #tab-dashboard .aur-wa-label{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--aur-text-faint);letter-spacing:0.04em}
+    #tab-dashboard .aur-wa-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--aur-text-faint);font-size:13px;font-family:'JetBrains Mono',monospace}
+
+    /* Priority */
+    #tab-dashboard .aur-pri{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    #tab-dashboard .aur-pri-card{padding:16px 18px;background:rgba(255,255,255,0.02);border:1px solid var(--aur-border-default);display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+    #tab-dashboard .aur-pri-card.green{--acc:var(--p-primary)}
+    #tab-dashboard .aur-pri-card.amber{--acc:#F59E0B}
+    #tab-dashboard .aur-pri-card.skip{--acc:var(--aur-text-faint)}
+    #tab-dashboard .aur-pri-card::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 10%,transparent) 0%,transparent 70%)}
+    #tab-dashboard .aur-pri-label{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--acc);margin-bottom:8px;position:relative;z-index:1}
+    #tab-dashboard .aur-pri-val{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:300;font-size:40px;line-height:1;color:var(--aur-text-bright);position:relative;z-index:1}
+    #tab-dashboard .aur-pri-sub{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--aur-text-faint);margin-top:6px;letter-spacing:0.04em;position:relative;z-index:1}
+
+    /* Recent activity feed */
+    #tab-dashboard .aur-feed{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding-top:2px;overflow:hidden}
+    #tab-dashboard .aur-feed-item{display:flex;align-items:center;gap:12px;padding:8px 2px;border-bottom:1px solid var(--aur-border-subtle)}
+    #tab-dashboard .aur-feed-item:last-child{border-bottom:none}
+    #tab-dashboard .aur-feed-dot{width:7px;height:7px;flex-shrink:0;background:var(--p-primary);opacity:0.85}
+    #tab-dashboard .aur-feed-dot.d-rep{background:var(--p-secondary)}
+    #tab-dashboard .aur-feed-dot.d-call{background:var(--p-glow)}
+    #tab-dashboard .aur-feed-text{flex:1;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:var(--aur-text-std);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #tab-dashboard .aur-feed-text strong{font-weight:500;color:var(--aur-text-bright)}
+    #tab-dashboard .aur-feed-time{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--aur-text-faint);letter-spacing:0.04em;flex-shrink:0}
+    #tab-dashboard .aur-feed-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--aur-text-faint);font-size:13px;font-family:'JetBrains Mono',monospace}
+
+    /* Action required */
+    #tab-dashboard .aur-action{--neon-opacity:0.4;--neon-hover-opacity:0.75}
+    #tab-dashboard .aur-action-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    #tab-dashboard .aur-action-count{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--aur-text-muted);letter-spacing:0.06em}
+    #tab-dashboard .aur-action-count strong{color:var(--p-glow);font-weight:600}
+    #tab-dashboard .aur-action-list{flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+    #tab-dashboard .aur-action-row{display:flex;align-items:center;gap:12px;padding:7px 2px;border-bottom:1px solid var(--aur-border-subtle);cursor:pointer;transition:padding-left .2s}
+    #tab-dashboard .aur-action-row:last-child{border-bottom:none}
+    #tab-dashboard .aur-action-row:hover{padding-left:8px}
+    #tab-dashboard .aur-action-dot{width:7px;height:7px;background:var(--p-primary);flex-shrink:0;opacity:0.85}
+    #tab-dashboard .aur-action-name{flex:1;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:var(--aur-text-bright);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #tab-dashboard .aur-action-chip{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:3px 9px;border:1px solid;flex-shrink:0}
+    #tab-dashboard .aur-action-chip.overdue{color:#F87171;border-color:rgba(248,113,113,0.35);background:rgba(248,113,113,0.06)}
+    #tab-dashboard .aur-action-chip.today{color:var(--p-primary);border-color:rgba(var(--p-primary-rgb),0.35);background:rgba(var(--p-primary-rgb),0.06)}
+    #tab-dashboard .aur-action-chip.reply{color:var(--p-secondary);border-color:rgba(var(--p-secondary-rgb),0.35);background:rgba(var(--p-secondary-rgb),0.06)}
+    #tab-dashboard .aur-action-arrow{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--aur-text-faint);opacity:0.4;transition:opacity .2s,transform .2s}
+    #tab-dashboard .aur-action-row:hover .aur-action-arrow{opacity:1;transform:translateX(3px);color:var(--p-glow)}
+    #tab-dashboard .aur-action-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--aur-text-faint);font-size:15px;font-family:'Cormorant Garamond',serif;font-style:italic}
   </style>
 </head>
 <body>
@@ -471,50 +676,82 @@
     </div>
 
     <!-- Dashboard -->
-    <section id="tab-dashboard" class="tabPane" style="padding:24px 32px">
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-card-label">Total Agencies</div><div class="stat-card-value" id="dashTotal">0</div><div class="stat-card-sub" id="dashTotalSub">--</div></div>
-        <div class="stat-card"><div class="stat-card-label">Contacted Today</div><div class="stat-card-value" id="dashContactedToday">0</div><div class="stat-card-sub" id="dashContactedTodaySub">--</div></div>
-        <div class="stat-card"><div class="stat-card-label">Replies</div><div class="stat-card-value" id="dashReplies">0</div><div class="stat-card-sub" id="dashRepliesSub">--</div></div>
-        <div class="stat-card"><div class="stat-card-label">Calls Booked</div><div class="stat-card-value" id="dashCallsBooked">0</div><div class="stat-card-sub" id="dashCallsBookedSub">--</div></div>
-      </div>
+    <section id="tab-dashboard" class="tabPane">
+      <div class="dash-page">
 
-      <div class="dash-grid">
-        <div class="card" style="padding:20px">
-          <div class="dash-section">Pipeline Funnel</div>
-          <div id="dashFunnelRows"></div>
-        </div>
-        <div class="card" style="padding:20px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-            <div class="dash-section" style="margin-bottom:0">Weekly Activity</div>
-            <div style="display:flex;gap:14px;font-size:12px;color:var(--muted)">
-              <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></span> Sent</span>
-              <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6"></span> Replies</span>
-            </div>
+        <!-- Hero -->
+        <div class="dash-hero">
+          <h1 class="dash-greeting" id="dashGreeting">Good morning, Lawrence.</h1>
+          <div class="dash-meta">
+            <span class="dot"></span>
+            <span class="date" id="dashDate"></span>
+            <span class="clock" id="dashClock">--:--:--</span>
           </div>
-          <div id="dashBarChart" class="bar-chart-row"></div>
-          <div id="dashBarLabels" class="bar-chart-row" style="height:auto;padding:8px 0 0;font-size:12px;color:var(--muted);align-items:center"></div>
-          <div id="dashBarEmpty" style="display:none;color:var(--muted);font-size:12px;text-align:center;padding:50px 0">Start sending emails to see weekly activity</div>
         </div>
-      </div>
 
-      <div class="dash-grid">
-        <div class="card" style="padding:20px">
-          <div class="dash-section">Priority Breakdown</div>
-          <div class="priority-grid" id="dashPriority"></div>
+        <!-- Stats -->
+        <div class="dash-stats">
+          <div class="neon st-1"><div class="neon-inner">
+            <div class="st-label">Total Agencies</div>
+            <div class="st-num" id="dashTotal">0</div>
+            <div class="st-delta"><span class="d"></span><span id="dashTotalSub">--</span></div>
+          </div></div>
+          <div class="neon st-2"><div class="neon-inner">
+            <div class="st-label">Contacted Today</div>
+            <div class="st-num" id="dashContactedToday">0</div>
+            <div class="st-delta"><span class="d"></span><span id="dashContactedTodaySub">--</span></div>
+          </div></div>
+          <div class="neon st-3"><div class="neon-inner">
+            <div class="st-label">Replies</div>
+            <div class="st-num" id="dashReplies">0</div>
+            <div class="st-delta"><span class="d"></span><span id="dashRepliesSub">--</span></div>
+          </div></div>
+          <div class="neon st-4"><div class="neon-inner">
+            <div class="st-label">Calls Booked</div>
+            <div class="st-num" id="dashCallsBooked">0</div>
+            <div class="st-delta"><span class="d"></span><span id="dashCallsBookedSub">--</span></div>
+          </div></div>
         </div>
-        <div class="card" style="padding:20px">
-          <div class="dash-section">Recent Activity</div>
-          <div id="dashActivityFeed"></div>
-        </div>
-      </div>
 
-      <div class="card" style="padding:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div class="dash-section" style="margin-bottom:0">Action Required</div>
-          <div style="font-size:12px;color:var(--muted)" id="dashActionCount"></div>
+        <!-- Main 3×2 grid -->
+        <div class="dash-main">
+          <div class="neon cell-funnel"><div class="neon-inner">
+            <div class="sec-label">Pipeline Funnel</div>
+            <div class="aur-funnel" id="dashFunnelRows"></div>
+          </div></div>
+
+          <div class="neon cell-activity"><div class="neon-inner">
+            <div class="aur-wa-head">
+              <div class="sec-label" style="margin-bottom:0">Weekly Activity</div>
+              <div class="aur-wa-legend">
+                <span><span class="d d-sent"></span>Sent</span>
+                <span><span class="d d-rep"></span>Replies</span>
+              </div>
+            </div>
+            <div class="aur-wa-chart" id="dashBarChart"></div>
+            <div id="dashBarLabels" style="display:none"></div>
+            <div id="dashBarEmpty" class="aur-wa-empty" style="display:none">Start sending emails to see weekly activity</div>
+          </div></div>
+
+          <div class="neon cell-recent"><div class="neon-inner">
+            <div class="sec-label">Recent Activity</div>
+            <div class="aur-feed" id="dashActivityFeed"></div>
+          </div></div>
+
+          <div class="neon cell-priority"><div class="neon-inner">
+            <div class="sec-label">Priority Breakdown</div>
+            <div class="aur-pri" id="dashPriority"></div>
+          </div></div>
+
+          <div class="neon aur-action cell-action"><div class="neon-inner">
+            <div class="aur-action-head">
+              <div class="sec-label" style="margin-bottom:0">Action Required</div>
+              <div class="aur-action-count"><strong id="dashActionCount">0</strong> need attention</div>
+            </div>
+            <div class="aur-action-list" id="dashActionList"></div>
+          </div></div>
         </div>
-        <div id="dashActionList"></div>
+
       </div>
     </section>
 
@@ -1368,45 +1605,64 @@
       const callsBooked=leads.filter(l=>l.status==='Call Booked').length;
       const contacted=leads.filter(l=>l.status!=='New'&&l.status!=='Unqualified').length;
 
+      // Hero greeting + date
+      const hour=new Date().getHours();
+      const greet=hour<12?'Good morning':hour<18?'Good afternoon':'Good evening';
+      if(_s('dashGreeting')) _s('dashGreeting').textContent=greet+', Lawrence.';
+      if(_s('dashDate')){
+        const d=new Date();
+        const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const day=d.getDate();
+        const suffix=(day%10===1&&day!==11)?'st':(day%10===2&&day!==12)?'nd':(day%10===3&&day!==13)?'rd':'th';
+        _s('dashDate').textContent=days[d.getDay()]+', '+day+suffix+' '+months[d.getMonth()]+' '+d.getFullYear();
+      }
+
+      // Stats
       if(_s('dashTotal')) _s('dashTotal').textContent=total;
       if(_s('dashTotalSub')) _s('dashTotalSub').textContent=contacted+' contacted';
       if(_s('dashContactedToday')) _s('dashContactedToday').textContent=contactedToday;
       if(_s('dashContactedTodaySub')) _s('dashContactedTodaySub').textContent='emails + messages';
       if(_s('dashReplies')) _s('dashReplies').textContent=replied;
-      if(_s('dashRepliesSub')) _s('dashRepliesSub').textContent=contacted>0?(replied/contacted*100).toFixed(1)+'% rate':'--';
+      if(_s('dashRepliesSub')) _s('dashRepliesSub').textContent=contacted>0?(replied/contacted*100).toFixed(1)+'% reply rate':'—';
       if(_s('dashCallsBooked')) _s('dashCallsBooked').textContent=callsBooked;
       if(_s('dashCallsBookedSub')) _s('dashCallsBookedSub').textContent=leads.filter(l=>l.status==='Won').length+' won';
 
-      // Pipeline Funnel
+      // Pipeline Funnel — Aurora structure
       const funnelEl=_s('dashFunnelRows');
       if(funnelEl){
         const t=total||1;
         const counts={};
         leads.forEach(l=>{ counts[l.status]=(counts[l.status]||0)+1; });
         const rows=[
-          {label:'New',count:counts['New']||0,color:'#6b7280'},
-          {label:'Contacted',count:counts['Contacted']||0,color:'#10B981'},
-          {label:'Replied',count:counts['Replied']||0,color:'#3b82f6'},
-          {label:'Interested',count:counts['Interested']||0,color:'#8b5cf6'},
-          {label:'Won',count:counts['Won']||0,color:'#10B981'}
+          {label:'New',count:counts['New']||0},
+          {label:'Contacted',count:counts['Contacted']||0},
+          {label:'Replied',count:counts['Replied']||0},
+          {label:'Interested',count:counts['Interested']||0},
+          {label:'Call Booked',count:counts['Call Booked']||0},
+          {label:'Proposal',count:counts['Proposal Sent']||0},
+          {label:'Won',count:counts['Won']||0}
         ];
         funnelEl.innerHTML=rows.map(r=>{
           const pct=Math.round((r.count/t)*100);
-          return '<div class="funnel-row"><div class="funnel-row-label">'+r.label+'</div><div class="funnel-row-track"><div class="funnel-row-fill" style="width:'+pct+'%;background:'+r.color+'"></div></div><div class="funnel-row-val">'+r.count+'</div><div class="funnel-row-pct">'+pct+'%</div></div>';
+          return '<div class="aur-f-row"><span class="aur-f-label">'+r.label+'</span><span class="aur-f-track"><span class="aur-f-fill" style="width:'+pct+'%"></span></span><span class="aur-f-val">'+r.count+'</span><span class="aur-f-pct">'+pct+'%</span></div>';
         }).join('');
       }
 
-      // Priority breakdown
+      // Priority breakdown — Aurora structure
       const prioEl=_s('dashPriority');
       if(prioEl){
         const g=leads.filter(l=>l.priority==='Green').length;
         const a=leads.filter(l=>l.priority==='Amber').length;
         const sk=leads.filter(l=>l.priority==='Skip').length;
-        prioEl.innerHTML='<div class="priority-card"><div class="priority-card-label">Green</div><div class="priority-card-value" style="color:#10B981">'+g+'</div></div><div class="priority-card"><div class="priority-card-label">Amber</div><div class="priority-card-value" style="color:#f59e0b">'+a+'</div></div><div class="priority-card"><div class="priority-card-label">Skip</div><div class="priority-card-value" style="color:#6b7280">'+sk+'</div></div>';
+        prioEl.innerHTML=
+          '<div class="aur-pri-card green"><div class="aur-pri-label">Green</div><div class="aur-pri-val">'+g+'</div><div class="aur-pri-sub">high intent</div></div>'+
+          '<div class="aur-pri-card amber"><div class="aur-pri-label">Amber</div><div class="aur-pri-val">'+a+'</div><div class="aur-pri-sub">mixed signals</div></div>'+
+          '<div class="aur-pri-card skip"><div class="aur-pri-label">Skip</div><div class="aur-pri-val">'+sk+'</div><div class="aur-pri-sub">deprioritised</div></div>';
       }
 
-      // Weekly bar chart
-      const barChart=_s('dashBarChart'); const barLabels=_s('dashBarLabels'); const barEmpty=_s('dashBarEmpty');
+      // Weekly bar chart — Aurora structure, percentage-based bar heights (parent flex:1)
+      const barChart=_s('dashBarChart'); const barEmpty=_s('dashBarEmpty');
       if(barChart){
         const weekMap={};
         const getWeekKey=dateStr=>{ if(!dateStr) return null; const d=new Date(normDateStr(dateStr)||dateStr); if(isNaN(d.getTime())) return null; const jan1=new Date(d.getFullYear(),0,1); const weekNum=Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7); return d.getFullYear()+'-W'+String(weekNum).padStart(2,'0'); };
@@ -1422,60 +1678,89 @@
           if(first&&last){ const cursor=new Date(first); while(cursor<=last){ const jan1=new Date(cursor.getFullYear(),0,1); const wn=Math.ceil(((cursor-jan1)/86400000+jan1.getDay()+1)/7); const wk=cursor.getFullYear()+'-W'+String(wn).padStart(2,'0'); if(!weekMap[wk]) weekMap[wk]={sent:0,replies:0,start:new Date(cursor)}; allWeeks.push(wk); cursor.setDate(cursor.getDate()+7); } }
         }
         allWeeks=[...new Set(allWeeks)].sort();
-        const last8=allWeeks.slice(-8);
-        if(!last8.length){ barChart.style.display='none'; if(barLabels) barLabels.style.display='none'; if(barEmpty) barEmpty.style.display='block'; }
+        const last5=allWeeks.slice(-5);
+        if(!last5.length){ barChart.style.display='none'; if(barEmpty) barEmpty.style.display='flex'; }
         else {
-          barChart.style.display=''; if(barLabels) barLabels.style.display=''; if(barEmpty) barEmpty.style.display='none';
-          const maxVal=Math.max(...last8.map(k=>weekMap[k].sent),1);
-          const chartH=150;
-          barChart.innerHTML=last8.map(k=>{ const w=weekMap[k]; const sH=Math.max(Math.round(w.sent/maxVal*chartH),w.sent>0?6:0); const rH=Math.max(Math.round(w.replies/maxVal*chartH),w.replies>0?6:0); return '<div class="bar-group"><div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px">'+(w.sent||'')+'</div><div class="bar-stack"><div class="bar-col" style="height:'+sH+'px;background:var(--accent)"></div><div class="bar-col" style="height:'+rH+'px;background:#3b82f6"></div></div></div>'; }).join('');
-          if(barLabels){ const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; let _pm=''; barLabels.innerHTML=last8.map(k=>{ const ws=weekMap[k].start; if(!ws) return '<div style="flex:1;text-align:center">'+k+'</div>'; const m=months[ws.getMonth()]; const sm=(m!==_pm); _pm=m; return '<div style="flex:1;text-align:center">'+(sm?m+' ':'')+ws.getDate()+'</div>'; }).join(''); }
+          barChart.style.display='flex'; if(barEmpty) barEmpty.style.display='none';
+          const maxVal=Math.max(...last5.map(k=>weekMap[k].sent),1);
+          const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+          let _pm='';
+          barChart.innerHTML=last5.map((k,idx)=>{
+            const w=weekMap[k];
+            const sPct=Math.round((w.sent/maxVal)*100);
+            const rPct=Math.round((w.replies/maxVal)*100);
+            let lbl;
+            const ws=w.start;
+            if(ws){ const m=months[ws.getMonth()]; const sm=(m!==_pm); _pm=m; lbl=(sm?m+' ':'')+ws.getDate(); }
+            else lbl=k;
+            if(idx===last5.length-1) lbl='This wk';
+            return '<div class="aur-wa-col"><div class="aur-wa-count">'+(w.sent||'')+'</div><div class="aur-wa-bars"><span class="aur-wa-bar sent" style="height:'+sPct+'%"></span><span class="aur-wa-bar rep" style="height:'+rPct+'%"></span></div><span class="aur-wa-label">'+lbl+'</span></div>';
+          }).join('');
         }
       }
 
-      // Recent Activity
+      // Recent Activity — Aurora structure
       const actFeed=_s('dashActivityFeed');
       if(actFeed){
         const _ago=dateStr=>{ if(!dateStr) return ''; const d=new Date(normDateStr(dateStr)||dateStr); if(isNaN(d.getTime())) return ''; const days=Math.round((new Date(td)-d)/86400000); if(days<0) return ''; if(days===0) return 'Today'; if(days===1) return '1d ago'; if(days<7) return days+'d ago'; return Math.floor(days/7)+'w ago'; };
         const acts=[];
         leads.forEach(l=>{
           const name=escapeHtml(l.agencyName||'');
-          if(l.email1SentDate) acts.push({action:'Email 1 sent',name,date:l.email1SentDate,color:'var(--accent)'});
-          if(l.email2SentDate) acts.push({action:'Email 2 sent',name,date:l.email2SentDate,color:'var(--accent)'});
-          if(l.email3SentDate) acts.push({action:'Email 3 sent',name,date:l.email3SentDate,color:'#f59e0b'});
-          if(l.linkedinMessage1Date) acts.push({action:'LinkedIn msg 1',name,date:l.linkedinMessage1Date,color:'#3b82f6'});
-          if(l.status==='Replied') acts.push({action:'replied',name,date:l.email1SentDate||l.dateAdded||'',color:'#8b5cf6'});
+          if(l.email1SentDate) acts.push({action:'Email 1 sent to',name,date:l.email1SentDate,kind:'sent'});
+          if(l.email2SentDate) acts.push({action:'Email 2 sent to',name,date:l.email2SentDate,kind:'sent'});
+          if(l.email3SentDate) acts.push({action:'Email 3 sent to',name,date:l.email3SentDate,kind:'sent'});
+          if(l.linkedinMessage1Date) acts.push({action:'LinkedIn msg 1 to',name,date:l.linkedinMessage1Date,kind:'sent'});
+          if(l.status==='Replied') acts.push({action:'replied',name,date:l.email1SentDate||l.dateAdded||'',kind:'rep'});
+          if(l.status==='Call Booked') acts.push({action:'Call booked with',name,date:l.dateAdded||'',kind:'call'});
         });
         acts.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-        const top8=acts.slice(0,8);
-        if(top8.length){
-          actFeed.innerHTML=top8.map(g=>{ const ago=_ago(g.date); let text=g.action==='replied'?'<strong>'+g.name+'</strong> replied':g.action+' to <strong>'+g.name+'</strong>'; return '<div class="activity-item"><div class="activity-dot" style="background:'+g.color+'"></div><div class="activity-text">'+text+'</div>'+(ago?'<div class="activity-time">'+ago+'</div>':'')+'</div>'; }).join('');
-        } else { actFeed.innerHTML='<div class="activity-item"><div class="activity-text" style="color:var(--muted)">No recent activity</div></div>'; }
+        const top5=acts.slice(0,5);
+        if(top5.length){
+          actFeed.innerHTML=top5.map(g=>{
+            const ago=_ago(g.date);
+            const dotCls=g.kind==='rep'?'d-rep':g.kind==='call'?'d-call':'';
+            const text=g.kind==='rep'?'<strong>'+g.name+'</strong> replied':g.action+' <strong>'+g.name+'</strong>';
+            return '<div class="aur-feed-item"><span class="aur-feed-dot '+dotCls+'"></span><span class="aur-feed-text">'+text+'</span>'+(ago?'<span class="aur-feed-time">'+ago+'</span>':'')+'</div>';
+          }).join('');
+        } else { actFeed.innerHTML='<div class="aur-feed-empty">No recent activity</div>'; }
       }
 
-      // Action Required
+      // Action Required — Aurora structure
       const actionList=_s('dashActionList');
       const actionCountEl=_s('dashActionCount');
       if(actionList){
         const overdueItems=[];
         leads.forEach(l=>{
           if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified') return;
+          if(l.status==='Replied') { overdueItems.push({lead:l,kind:'reply'}); return; }
           if(l.followUpDate&&normDateStr(l.followUpDate)<=td){
-            overdueItems.push(l);
+            const isOverdue=normDateStr(l.followUpDate)<td;
+            overdueItems.push({lead:l,kind:isOverdue?'overdue':'today'});
           }
         });
-        if(actionCountEl) actionCountEl.textContent=overdueItems.length+' overdue';
-        if(!overdueItems.length){ actionList.innerHTML='<div class="dash-empty">All clear - no follow-ups due.</div>'; return; }
+        if(actionCountEl) actionCountEl.textContent=overdueItems.length;
+        if(!overdueItems.length){ actionList.innerHTML='<div class="aur-action-empty">All clear — no follow-ups due.</div>'; return; }
         actionList.innerHTML='';
-        overdueItems.slice(0,20).forEach(l=>{
-          const isOverdue=normDateStr(l.followUpDate)<td;
-          const row=document.createElement('div'); row.className='dash-row';
-          row.innerHTML='<span class="dash-fu-label'+(isOverdue?' dash-fu-label-overdue':'')+'">'+( isOverdue?'OVERDUE':'TODAY')+'</span><div class="dash-row-info"><div class="dash-row-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="dash-row-sub">'+escapeHtml(l.directorName||'')+' - '+escapeHtml(l.status)+'</div></div><button class="btn-view-lead" data-id="'+l.id+'">View</button>';
-          const vb=row.querySelector('.btn-view-lead'); if(vb) vb.addEventListener('click',()=>openLeadDetail(l.id));
+        overdueItems.slice(0,6).forEach(item=>{
+          const l=item.lead;
+          const chipCls=item.kind==='overdue'?'overdue':item.kind==='reply'?'reply':'today';
+          const chipTxt=item.kind==='overdue'?'Overdue':item.kind==='reply'?'Reply':'Today';
+          const row=document.createElement('div'); row.className='aur-action-row';
+          row.innerHTML='<span class="aur-action-dot"></span><span class="aur-action-name">'+escapeHtml(l.agencyName||'(no name)')+'</span><span class="aur-action-chip '+chipCls+'">'+chipTxt+'</span><span class="aur-action-arrow">→</span>';
+          row.addEventListener('click',()=>openLeadDetail(l.id));
           actionList.appendChild(row);
         });
       }
     }
+
+    // Aurora dashboard live clock
+    function _aurTickClock(){
+      const el=document.getElementById('dashClock');
+      if(!el) return;
+      const d=new Date();
+      el.textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+    }
+    setInterval(_aurTickClock, 1000);
 
     // ---- Pipeline ----
     let expandedLeadId=null;
@@ -2205,7 +2490,10 @@
       document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
       const titles={dashboard:'Dashboard',pipeline:'Pipeline',inbox:'Inbox',followups:'Follow Ups',email:'Email',linkedin:'LinkedIn'};
       const mt=document.getElementById('mobileTitle'); if(mt) mt.textContent=titles[name]||name;
-      const tt=document.getElementById('topbarTitle'); if(tt){ if(name==='dashboard') tt.innerHTML='Hi, <strong style="font-weight:600">Lawrence!</strong>'; else tt.textContent=titles[name]||name; }
+      const tt=document.getElementById('topbarTitle'); if(tt){ if(name==='dashboard') tt.textContent=''; else tt.textContent=titles[name]||name; }
+      // Toggle Aurora on-dashboard body class (hides topbar, applies dashboard-scoped CSS)
+      if(name==='dashboard'){ document.body.classList.add('on-dashboard'); _aurTickClock(); }
+      else document.body.classList.remove('on-dashboard');
       if(name==='email'){ populateEmailLeadDropdown(); refreshEmailPreview(); }
       if(name==='linkedin') renderLinkedIn();
       closeMobileSidebar();
