@@ -546,8 +546,9 @@
 
     /* Row layouts — flex column of stacked rows */
     #tab-dashboard .dash-main{flex:1;min-height:0;display:flex;flex-direction:column;gap:16px}
-    #tab-dashboard .hero-row{display:grid;grid-template-columns:3fr 2fr;gap:16px;flex:0 0 auto}
-    #tab-dashboard .hero-row .dash-hero{border-bottom:none;padding-bottom:0;height:100%;display:flex;align-items:center;justify-content:space-between;gap:24px;margin:0}
+    #tab-dashboard .hero-bar{flex:0 0 auto;padding:14px 2px 16px;border-bottom:1px solid var(--aur-border-default);margin-bottom:2px}
+    #tab-dashboard .hero-bar .dash-hero{margin:0;padding:0;border-bottom:none;display:flex;align-items:baseline;justify-content:space-between;gap:24px}
+    #tab-dashboard .r100-row{flex:0 0 auto}
     #tab-dashboard .kpi-row{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
     #tab-dashboard .tasks-row{flex:0 0 auto}
     #tab-dashboard .funnel-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0}
@@ -832,18 +833,20 @@
 
         <div class="dash-main">
 
-          <!-- Row 1: Hero + Rule of 100 -->
-          <div class="hero-row">
-            <div class="neon"><div class="neon-inner">
-              <div class="dash-hero">
-                <h1 class="dash-greeting" id="dashGreeting">Good morning, Lawrence.</h1>
-                <div class="dash-meta">
-                  <span class="dot"></span>
-                  <span class="date" id="dashDate"></span>
-                  <span class="clock" id="dashClock">--:--:--</span>
-                </div>
+          <!-- Row 1: Slim hero bar (full width, no card) -->
+          <div class="hero-bar">
+            <div class="dash-hero">
+              <h1 class="dash-greeting" id="dashGreeting">Good morning, Lawrence.</h1>
+              <div class="dash-meta">
+                <span class="dot"></span>
+                <span class="date" id="dashDate"></span>
+                <span class="clock" id="dashClock">--:--:--</span>
               </div>
-            </div></div>
+            </div>
+          </div>
+
+          <!-- Row 2: Rule of 100 (full width) -->
+          <div class="r100-row">
             <div class="neon"><div class="neon-inner">
               <div class="sec-head">
                 <div class="sec-label">Rule of 100 &mdash; Today</div>
