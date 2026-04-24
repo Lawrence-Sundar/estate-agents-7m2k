@@ -2171,7 +2171,11 @@ ${pageText}`;
             emailSelector.appendChild(row);
           });
           emailSelector.querySelectorAll('input[type=radio]').forEach(radio =>
-            radio.addEventListener('change', () => { selectedEmail = radio.value; })
+            radio.addEventListener('change', () => {
+              selectedEmail = radio.value;
+              const ets = document.getElementById('emailToSendInput');
+              if (ets) ets.value = radio.value;
+            })
           );
         }
 
