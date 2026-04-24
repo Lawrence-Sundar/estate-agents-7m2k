@@ -702,7 +702,7 @@
     #tab-performance .btn-thresh .arrow{margin-left:10px;opacity:0.6}
 
     /* Neon card */
-    #tab-performance .neon{position:relative;padding:1px;border-radius:14px !important;overflow:hidden;background:transparent;isolation:isolate}
+    #tab-performance .neon{position:relative;padding:1px;border-radius:14px !important;overflow:hidden;background:transparent;isolation:isolate;height:100%}
     #tab-performance .neon::before{
       content:'';position:absolute;top:50%;left:50%;
       width:200%;height:200%;margin-top:-100%;margin-left:-100%;
@@ -767,7 +767,7 @@
     #tab-performance .pillar.status-red .p-status{color:var(--st-red);border-color:rgba(var(--st-red-rgb),0.35);background:rgba(var(--st-red-rgb),0.08)}
 
     /* Bottom row: Notable (wide) + Summary (narrow) */
-    #tab-performance .bottom-grid{flex:1;min-height:0;display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+    #tab-performance .bottom-grid{flex:1;min-height:0;display:grid;grid-template-columns:1.5fr 1fr;grid-template-rows:1fr;gap:16px}
     #tab-performance .notable{--neon-opacity:0.3;--neon-hover-opacity:0.55}
     #tab-performance .notable-list{flex:1;display:flex;flex-direction:column;gap:10px;padding-top:4px;overflow:hidden}
     #tab-performance .n-item{display:flex;align-items:flex-start;gap:14px;padding:8px 2px;border-bottom:1px solid var(--aur-border-subtle)}
