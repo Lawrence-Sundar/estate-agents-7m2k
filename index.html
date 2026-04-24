@@ -525,6 +525,99 @@
     #tab-linkedin .li-url-input{padding:6px 10px;font-size:12px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#e0dce8;width:180px;outline:none;border-radius:6px;font-family:inherit}
     #tab-linkedin .li-url-input:focus{border-color:rgba(16,185,129,0.4)}
 
+    /* Follow Ups tab — Aurora */
+    body.on-followups #mainContent .content-topbar{display:none}
+    #tab-followups.tabPane.active{
+      display:flex !important;flex-direction:column;gap:16px;
+      padding:22px 32px 28px !important;overflow:hidden;
+      position:relative;height:100%;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(16,185,129,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 90%, rgba(59,130,246,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 40% at 50% 50%, rgba(6,214,160,0.04) 0%, transparent 50%),
+        #0a0b1a;
+      color:#e0dce8;
+    }
+    #tab-followups::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0.03;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>")}
+    #tab-followups > *{position:relative;z-index:2}
+    /* Hide legacy daily-actions-bar — moved to hero */
+    body.on-followups #dailyActionsBar{display:none}
+    /* Hero */
+    #tab-followups .fu-hero{flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
+    #tab-followups .fu-h1{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:42px;line-height:1;margin:0;letter-spacing:-0.02em;background:linear-gradient(120deg,#10B981 0%,#3B82F6 55%,#06D6A0 100%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    #tab-followups .fu-sub{margin-top:8px;font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:#9a95a8}
+    #tab-followups .fu-today-actions{display:flex;align-items:center;gap:18px;padding:10px 18px;border:1px solid rgba(16,185,129,0.3);border-radius:10px;background:rgba(16,185,129,0.05)}
+    #tab-followups .fu-today-label{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#6b6580}
+    #tab-followups .fu-today-stat{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:#e0dce8}
+    #tab-followups .fu-today-stat strong{font-family:'Fraunces',serif;font-weight:500;font-size:20px;color:#10B981;margin-right:4px;font-variant-numeric:tabular-nums}
+    #tab-followups .fu-today-sep{color:#6b6580;opacity:0.5}
+    /* Stats strip */
+    #tab-followups .fu-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;flex:0 0 auto}
+    #tab-followups .fu-stat{padding:1px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,rgba(16,185,129,0.55) 0%,rgba(59,130,246,0.45) 50%,rgba(6,214,160,0.55) 100%);box-shadow:0 4px 24px rgba(16,185,129,0.08),0 0 40px rgba(59,130,246,0.04);transition:box-shadow .25s}
+    #tab-followups .fu-stat:hover{box-shadow:0 4px 32px rgba(16,185,129,0.16),0 0 60px rgba(59,130,246,0.08)}
+    #tab-followups .fu-stat.red{background:linear-gradient(135deg,rgba(239,68,68,0.6) 0%,rgba(220,38,38,0.35) 50%,rgba(239,68,68,0.55) 100%);box-shadow:0 4px 24px rgba(239,68,68,0.12),0 0 36px rgba(239,68,68,0.06)}
+    #tab-followups .fu-stat.amber{background:linear-gradient(135deg,rgba(245,158,11,0.6) 0%,rgba(251,191,36,0.35) 50%,rgba(217,119,6,0.55) 100%);box-shadow:0 4px 24px rgba(245,158,11,0.12),0 0 36px rgba(251,191,36,0.06)}
+    #tab-followups .fu-stat.emerald{background:linear-gradient(135deg,rgba(16,185,129,0.6) 0%,rgba(6,214,160,0.35) 50%,rgba(16,185,129,0.55) 100%);box-shadow:0 4px 24px rgba(16,185,129,0.12),0 0 36px rgba(6,214,160,0.06)}
+    #tab-followups .fu-stat-inner{background:#0a0b1a;border-radius:13px;padding:14px 18px;display:flex;flex-direction:column;gap:4px}
+    #tab-followups .fu-stat-label{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#6b6580}
+    #tab-followups .fu-stat-value{font-family:'Fraunces',serif;font-weight:400;font-style:italic;font-size:28px;line-height:1;font-variant-numeric:tabular-nums;color:#e8e4f0}
+    #tab-followups .fu-stat-value.red{color:#ef4444}
+    #tab-followups .fu-stat-value.amber{color:#f59e0b}
+    #tab-followups .fu-stat-value.emerald{color:#10B981}
+    #tab-followups .fu-stat-sub{font-family:'Inter',sans-serif;font-size:11px;color:#9a95a8;margin-top:2px}
+    /* Bulk action bar (aurora restyle — overrides inline style) */
+    #tab-followups #followUpsBulkBar{display:none;align-items:center !important;gap:10px !important;flex-wrap:wrap !important;padding:10px 18px !important;margin-bottom:0 !important;border-radius:10px !important;background:rgba(255,255,255,0.02) !important;border:1px solid rgba(255,255,255,0.06) !important;flex:0 0 auto}
+    #tab-followups #followUpsBulkBar #fuSelCount{font-size:11px !important;color:#9a95a8 !important;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif}
+    #tab-followups #followUpsBulkBar > span{color:rgba(255,255,255,0.06) !important;font-size:12px !important}
+    #tab-followups #followUpsBulkBar #btnFuSelClear{background:transparent !important;border:1px solid rgba(255,255,255,0.06) !important;color:#9a95a8 !important;font-size:11px !important;font-weight:600 !important;letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px !important;border-radius:6px;transition:all .15s;font-family:'Inter',sans-serif}
+    #tab-followups #followUpsBulkBar #btnFuSelClear:hover{border-color:rgba(16,185,129,0.35) !important;color:#e0dce8 !important}
+    #tab-followups #followUpsBulkBar #btnFuBulkSendOutlook{background:transparent !important;border:1px solid rgba(59,130,246,0.35) !important;color:#3B82F6 !important;font-size:11px !important;font-weight:600 !important;letter-spacing:0.08em;text-transform:uppercase;padding:7px 16px !important;border-radius:6px;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:8px}
+    #tab-followups #followUpsBulkBar #btnFuBulkSendOutlook:hover{background:rgba(59,130,246,0.08) !important;border-color:#3B82F6 !important}
+    #tab-followups #followUpsBulkBar #fuSelectAll{width:14px;height:14px;accent-color:#10B981;cursor:pointer}
+    /* Sections container — fills remaining space, scrolls internally */
+    #tab-followups #followUpsList{flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#1e1e1e transparent;padding-right:4px}
+    /* Section (neon card) */
+    #tab-followups .fu-section{padding:1px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,rgba(16,185,129,0.55) 0%,rgba(59,130,246,0.45) 50%,rgba(6,214,160,0.55) 100%);box-shadow:0 4px 24px rgba(16,185,129,0.08),0 0 40px rgba(59,130,246,0.04);flex:0 0 auto}
+    #tab-followups .fu-section.red{background:linear-gradient(135deg,rgba(239,68,68,0.6) 0%,rgba(220,38,38,0.35) 50%,rgba(239,68,68,0.55) 100%);box-shadow:0 4px 24px rgba(239,68,68,0.12),0 0 36px rgba(239,68,68,0.06)}
+    #tab-followups .fu-section.amber{background:linear-gradient(135deg,rgba(245,158,11,0.6) 0%,rgba(251,191,36,0.35) 50%,rgba(217,119,6,0.55) 100%);box-shadow:0 4px 24px rgba(245,158,11,0.12),0 0 36px rgba(251,191,36,0.06)}
+    #tab-followups .fu-section.emerald{background:linear-gradient(135deg,rgba(16,185,129,0.6) 0%,rgba(6,214,160,0.35) 50%,rgba(16,185,129,0.55) 100%);box-shadow:0 4px 24px rgba(16,185,129,0.12),0 0 36px rgba(6,214,160,0.06)}
+    #tab-followups .fu-section.warn{background:linear-gradient(135deg,rgba(245,158,11,0.55) 0%,rgba(245,158,11,0.3) 50%,rgba(245,158,11,0.5) 100%);box-shadow:0 4px 24px rgba(245,158,11,0.1),0 0 36px rgba(245,158,11,0.05)}
+    #tab-followups .fu-section-inner{background:#0a0b1a;border-radius:13px;padding:16px 20px}
+    #tab-followups .fu-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.04)}
+    #tab-followups .fu-section-title{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.22em;display:flex;align-items:center;gap:10px}
+    #tab-followups .fu-section-title .dot{width:7px;height:7px;border-radius:50%}
+    #tab-followups .fu-section.red .fu-section-title{color:#ef4444}
+    #tab-followups .fu-section.red .fu-section-title .dot{background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,0.6)}
+    #tab-followups .fu-section.amber .fu-section-title{color:#f59e0b}
+    #tab-followups .fu-section.amber .fu-section-title .dot{background:#f59e0b;box-shadow:0 0 8px rgba(245,158,11,0.6)}
+    #tab-followups .fu-section.emerald .fu-section-title{color:#10B981}
+    #tab-followups .fu-section.emerald .fu-section-title .dot{background:#10B981;box-shadow:0 0 8px rgba(16,185,129,0.6)}
+    #tab-followups .fu-section.warn .fu-section-title{color:#f59e0b}
+    #tab-followups .fu-section.warn .fu-section-title .dot{background:#f59e0b;box-shadow:0 0 8px rgba(245,158,11,0.6)}
+    #tab-followups .fu-section-count{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:#9a95a8}
+    /* Row */
+    #tab-followups .fu-row{display:grid;grid-template-columns:auto 100px 100px 1fr auto;align-items:center;gap:14px;padding:11px 4px;border-bottom:1px solid rgba(255,255,255,0.04);transition:background .15s;cursor:pointer;border-radius:6px}
+    #tab-followups .fu-row:last-child{border-bottom:none}
+    #tab-followups .fu-row:hover{background:rgba(255,255,255,0.02)}
+    #tab-followups .fu-row input[type="checkbox"]{width:14px;height:14px;accent-color:#10B981;cursor:pointer;margin-left:4px}
+    #tab-followups .fu-badge{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;padding:4px 10px;border-radius:6px;text-align:center;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap}
+    #tab-followups .fu-badge.overdue{background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.3)}
+    #tab-followups .fu-badge.today{background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)}
+    #tab-followups .fu-badge.initial{background:rgba(16,185,129,0.12);color:#10B981;border:1px solid rgba(16,185,129,0.3)}
+    #tab-followups .fu-badge.lettings{background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.3)}
+    #tab-followups .fu-next{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.03);color:#9a95a8;border:1px solid rgba(255,255,255,0.06);letter-spacing:0.06em;text-transform:uppercase;text-align:center;white-space:nowrap}
+    #tab-followups .fu-info{min-width:0;display:flex;flex-direction:column;gap:2px}
+    #tab-followups .fu-name{font-family:'Fraunces',serif;font-style:italic;font-size:17px;color:#e8e4f0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #tab-followups .fu-director{font-family:'Inter',sans-serif;font-size:12px;color:#9a95a8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #tab-followups .fu-actions{display:flex;gap:6px;flex-shrink:0}
+    #tab-followups .btn-fu{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#9a95a8;padding:6px 12px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border-radius:6px;transition:all .15s;white-space:nowrap;font-family:'Inter',sans-serif;cursor:pointer}
+    #tab-followups .btn-fu:hover{border-color:rgba(16,185,129,0.35);color:#e0dce8}
+    #tab-followups .btn-fu-compose{background:linear-gradient(135deg,#10B981,#06D6A0);color:#001a12;border:none;font-weight:700;box-shadow:0 0 14px rgba(16,185,129,0.2)}
+    #tab-followups .btn-fu-compose:hover{opacity:0.9}
+    #tab-followups .btn-fu-lettings{background:rgba(245,158,11,0.1);color:#f59e0b;border:1px solid rgba(245,158,11,0.35)}
+    #tab-followups .btn-fu-lettings:hover{background:rgba(245,158,11,0.18);border-color:#f59e0b}
+    #tab-followups .fu-empty{text-align:center;padding:40px 20px;color:#10B981;font-family:'Fraunces',serif;font-style:italic;font-size:18px;line-height:1.6}
+
     /* Bulk select */
     .sel-check{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
     .lead-row-main.row-selected{background:var(--accent-dim)}
@@ -1154,28 +1247,37 @@
 
     <!-- Follow Ups -->
     <section id="tab-followups" class="tabPane">
-      <div class="page-header">
+      <div class="fu-hero">
         <div>
-          <div class="page-title">Follow Ups</div>
-          <div class="page-sub">Everything overdue or due today.</div>
+          <h1 class="fu-h1">Follow Ups.</h1>
+          <div class="fu-sub">Everything overdue, due today, or awaiting first send.</div>
+        </div>
+        <div class="fu-today-actions" id="fuTodayActions">
+          <span class="fu-today-label">Today's Actions</span>
+          <span class="fu-today-stat"><strong id="daEmails">0</strong>Emails</span>
+          <span class="fu-today-sep">·</span>
+          <span class="fu-today-stat"><strong id="daLinkedin">0</strong>LinkedIn</span>
+          <span class="fu-today-sep">·</span>
+          <span class="fu-today-stat"><strong id="daTotal">0</strong>Total</span>
         </div>
       </div>
-      <div class="daily-actions-bar" id="dailyActionsBar">
+      <div class="daily-actions-bar" id="dailyActionsBar" style="display:none">
         <span class="da-label">Today's Actions</span>
-        <span class="da-stat"><span class="da-val" id="daEmails">0</span> Emails</span>
-        <span class="da-sep">|</span>
-        <span class="da-stat"><span class="da-val" id="daLinkedin">0</span> LinkedIn</span>
-        <span class="da-sep">|</span>
-        <span class="da-total">Total: <span id="daTotal">0</span></span>
+        <span class="da-stat"><span class="da-val">0</span> Emails</span>
       </div>
 
-      <div id="followUpsBulkBar" style="display:none;align-items:center;gap:8px;padding:8px 12px;margin-bottom:4px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border)">
+      <div class="fu-stats" id="fuStats"></div>
+
+      <div id="followUpsBulkBar" style="display:none">
         <input type="checkbox" class="sel-check" id="fuSelectAll" title="Select / deselect all follow-ups">
-        <span id="fuSelCount" style="font-size:12px;color:var(--muted);white-space:nowrap">0 selected</span>
-        <span style="color:var(--border);font-size:12px">|</span>
-        <button class="btn-ghost btn-sm" style="font-size:12px;padding:3px 8px" id="btnFuSelClear">Clear</button>
+        <span id="fuSelCount">0 selected</span>
+        <span>|</span>
+        <button class="btn-ghost btn-sm" id="btnFuSelClear">Clear</button>
         <div style="margin-left:auto;display:flex;align-items:center;gap:8px" id="fuBulkActionArea" class="hidden">
-          <button class="btn-send-outlook btn-sm" id="btnFuBulkSendOutlook">Send via Outlook</button>
+          <button class="btn-send-outlook btn-sm" id="btnFuBulkSendOutlook">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Send via Outlook
+          </button>
         </div>
       </div>
 
@@ -2297,15 +2399,12 @@
         if(nd<td) overdueItems.push(l);
         else if(nd===td) dueTodayItems.push(l);
       });
-
-      // Unsent initial emails (qualifier leads with no email1SentDate)
       const unsent=leads.filter(l=>{
         if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified') return false;
         if(l.email1SentDate) return false;
         if(!l.draftSubject||!l.draftBody) return false;
         return true;
       });
-      // Sales sequence complete — try lettings email as second attempt
       const lettingsReady=leads.filter(l=>{
         if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified') return false;
         if(!l.lettingsEmail) return false;
@@ -2313,81 +2412,91 @@
         if(l.lettingsSentDate) return false;
         return true;
       });
-      // Badge
       const badge=document.getElementById('followUpsNavBadge');
       const total=overdueItems.length+dueTodayItems.length+unsent.length+lettingsReady.length;
       if(badge){ if(total>0){ badge.textContent=total; badge.style.display='inline-flex'; } else { badge.style.display='none'; } }
-
-      // Update bulk-select snapshot (used by select-all + bulk send)
       _lastFollowUpsItems=[...unsent,...overdueItems,...dueTodayItems,...lettingsReady];
-      // Drop any stale selection IDs that aren't currently rendered
       const visibleIds=new Set(_lastFollowUpsItems.map(l=>l.id));
       selectedFollowUpIds.forEach(id=>{ if(!visibleIds.has(id)) selectedFollowUpIds.delete(id); });
-
+      const statsEl=document.getElementById('fuStats');
+      if(statsEl){
+        statsEl.innerHTML=
+          '<div class="fu-stat red"><div class="fu-stat-inner"><div class="fu-stat-label">Overdue</div><div class="fu-stat-value red">'+overdueItems.length+'</div><div class="fu-stat-sub">Past their due date</div></div></div>'+
+          '<div class="fu-stat amber"><div class="fu-stat-inner"><div class="fu-stat-label">Due today</div><div class="fu-stat-value amber">'+dueTodayItems.length+'</div><div class="fu-stat-sub">Action today</div></div></div>'+
+          '<div class="fu-stat emerald"><div class="fu-stat-inner"><div class="fu-stat-label">Initial not sent</div><div class="fu-stat-value emerald">'+unsent.length+'</div><div class="fu-stat-sub">Qualifier drafts ready</div></div></div>'+
+          '<div class="fu-stat"><div class="fu-stat-inner"><div class="fu-stat-label">Try lettings</div><div class="fu-stat-value">'+lettingsReady.length+'</div><div class="fu-stat-sub">Sales sequence complete</div></div></div>';
+      }
       const bulkBar=document.getElementById('followUpsBulkBar');
       if(bulkBar) bulkBar.style.display=total>0?'flex':'none';
-
-      if(!total){ container.innerHTML='<div class="fu-empty-state">All clear - no follow-ups due.</div>'; updateFuBulkUI(); return; }
-      // Render unsent section
-      if(unsent.length){
-        const labelEl=document.createElement('div'); labelEl.className='fu-section-label'; labelEl.style.color='var(--accent)'; labelEl.textContent='INITIAL NOT SENT ('+unsent.length+')'; container.appendChild(labelEl);
-        unsent.forEach(l=>{
-          const wrapper=document.createElement('div');
-          const row=document.createElement('div'); row.className='fu-row-main'; row.style.cursor='pointer';
-          row.innerHTML='<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'><span style="font-size:12px;font-weight:600;padding:3px 8px;background:var(--elevated);color:var(--accent)">Initial</span><div class="dash-row-info"><div class="dash-row-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="dash-row-sub">'+escapeHtml(l.directorName||'')+'</div></div><div class="fu-row-actions"><button class="btn-fu-action btn-fu-email" data-id="'+l.id+'">Compose</button></div>';
-          const expand=document.createElement('div'); expand.style.cssText='display:none;padding:12px 16px;background:var(--elevated);border-top:1px solid var(--border);font-size:13px';
-          expand.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Email</span><div>'+escapeHtml(l.directorEmail||'\u2014')+'</div></div><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Website</span><div>'+escapeHtml(l.websiteUrl||'\u2014')+'</div></div><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">City</span><div>'+escapeHtml(l.city||'\u2014')+'</div></div><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Reviews</span><div>'+escapeHtml(l.reviewCount||'\u2014')+'</div></div><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Rightmove</span><div>'+escapeHtml(l.rightmoveListed||'\u2014')+'</div></div><div><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Address</span><div>'+escapeHtml(l.address||'\u2014')+'</div></div></div>'+(l.customObservation?'<div style="margin-top:8px"><span style="color:var(--muted);font-size:11px;text-transform:uppercase">Observation</span><div>'+escapeHtml(l.customObservation)+'</div></div>':'');
-          row.addEventListener('click',e=>{ if(e.target.closest('.btn-fu-action')||e.target.classList.contains('sel-followups')) return; expand.style.display=expand.style.display==='none'?'block':'none'; });
-          const compBtn=row.querySelector('.btn-fu-email'); if(compBtn) compBtn.addEventListener('click',()=>goToEmail(l.id));
-          const chk=row.querySelector('.sel-followups');
-          if(chk){ chk.addEventListener('click',e=>e.stopPropagation()); chk.addEventListener('change',e=>{ e.stopPropagation(); if(chk.checked) selectedFollowUpIds.add(l.id); else selectedFollowUpIds.delete(l.id); updateFuBulkUI(); }); }
-          wrapper.appendChild(row); wrapper.appendChild(expand); container.appendChild(wrapper);
-        });
-      }
-
-      const renderSection=(items,label,isOverdue)=>{
-        if(!items.length) return;
-        const sectionLabel=document.createElement('div'); sectionLabel.className='fu-section-label';
-        sectionLabel.textContent=label+' ('+items.length+')';
-        if(isOverdue) sectionLabel.style.color='var(--danger)';
-        container.appendChild(sectionLabel);
-        items.forEach(l=>{
-          const row=document.createElement('div'); row.className='fu-row-main';
-          // Determine next email to send
-          let nextEmail='Email 1';
-          if(l.email1SentDate&&!l.email2SentDate) nextEmail='Email 2';
-          else if(l.email2SentDate&&!l.email3SentDate) nextEmail='Email 3';
-          else if(l.email3SentDate) nextEmail='Follow-up call';
-
-          row.innerHTML='<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'><span class="fu-due-badge '+(isOverdue?'fu-due-badge-overdue':'fu-due-badge-today')+'">'+(isOverdue?'OVERDUE':'TODAY')+'</span><span style="font-size:12px;font-weight:600;padding:3px 8px;background:var(--elevated);color:var(--text-dim)">'+nextEmail+'</span><div class="dash-row-info"><div class="dash-row-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="dash-row-sub">'+escapeHtml(l.directorName||'')+'</div></div><div class="fu-row-actions"><button class="btn-fu-action btn-fu-email" data-id="'+l.id+'">Compose</button><button class="btn-fu-action" data-id="'+l.id+'" data-action="snooze">Snooze 3d</button></div>';
-          const compBtn=row.querySelector('.btn-fu-email'); if(compBtn) compBtn.addEventListener('click',()=>goToEmail(l.id));
-          const snoozeBtn=row.querySelector('[data-action="snooze"]'); if(snoozeBtn) snoozeBtn.addEventListener('click',()=>{ l.followUpDate=addDays(todayISO(),3); save(); });
-          const chk=row.querySelector('.sel-followups');
-          if(chk){ chk.addEventListener('click',e=>e.stopPropagation()); chk.addEventListener('change',e=>{ e.stopPropagation(); if(chk.checked) selectedFollowUpIds.add(l.id); else selectedFollowUpIds.delete(l.id); updateFuBulkUI(); }); }
-          container.appendChild(row);
-        });
+      if(!total){ container.innerHTML='<div class="fu-empty">All clear — no follow-ups due.</div>'; updateFuBulkUI(); syncSelectAllState(); return; }
+      const nextEmailFor=(l)=>{
+        if(!l.email1SentDate) return 'Email 1';
+        if(!l.email2SentDate) return 'Email 2';
+        if(!l.email3SentDate) return 'Email 3';
+        if(!l.email4SentDate) return 'Email 4';
+        return 'Follow-up call';
       };
-
-      renderSection(overdueItems,'Overdue',true);
-      renderSection(dueTodayItems,'Due Today',false);
-
-      // Sales sequence complete — try lettings email as second attempt
-      if(lettingsReady.length){
-        const labelEl=document.createElement('div'); labelEl.className='fu-section-label'; labelEl.style.color='var(--warning)';
-        labelEl.textContent='SALES SEQUENCE COMPLETE — TRY LETTINGS ('+lettingsReady.length+')';
-        container.appendChild(labelEl);
-        lettingsReady.forEach(l=>{
-          const row=document.createElement('div'); row.className='fu-row-main';
-          row.innerHTML='<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'><span style="font-size:11px;font-weight:600;padding:3px 8px;background:rgba(245,158,11,0.12);color:var(--warning);border:1px solid rgba(245,158,11,0.25);letter-spacing:.06em;text-transform:uppercase">Lettings</span><div class="dash-row-info"><div class="dash-row-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="dash-row-sub">'+escapeHtml(l.lettingsEmail)+'</div></div><div class="fu-row-actions"><button class="btn-fu-action btn-fu-email" data-id="'+l.id+'" data-action="send-lettings">Send to Lettings</button></div>';
-          const sendBtn=row.querySelector('[data-action="send-lettings"]');
-          if(sendBtn) sendBtn.addEventListener('click',e=>{ e.stopPropagation(); sendToLettings(l.id); });
-          const chk=row.querySelector('.sel-followups');
-          if(chk){ chk.addEventListener('click',e=>e.stopPropagation()); chk.addEventListener('change',e=>{ e.stopPropagation(); if(chk.checked) selectedFollowUpIds.add(l.id); else selectedFollowUpIds.delete(l.id); updateFuBulkUI(); }); }
-          container.appendChild(row);
+      const renderSection=(items,cls,titleText,countText,rowBuilder)=>{
+        if(!items.length) return;
+        const sec=document.createElement('div'); sec.className='fu-section '+cls;
+        const secInner=document.createElement('div'); secInner.className='fu-section-inner';
+        secInner.innerHTML='<div class="fu-section-head"><div class="fu-section-title"><span class="dot"></span>'+escapeHtml(titleText)+'</div><div class="fu-section-count">'+escapeHtml(countText)+'</div></div>';
+        items.forEach(l=>{
+          const row=document.createElement('div'); row.className='fu-row';
+          row.innerHTML=rowBuilder(l);
+          const chk=row.querySelector('input[type="checkbox"]');
+          if(chk){
+            chk.addEventListener('click',e=>e.stopPropagation());
+            chk.addEventListener('change',e=>{ e.stopPropagation(); if(chk.checked) selectedFollowUpIds.add(l.id); else selectedFollowUpIds.delete(l.id); syncSelectAllState(); updateFuBulkUI(); });
+          }
+          const compBtn=row.querySelector('[data-action="compose"]');
+          if(compBtn) compBtn.addEventListener('click',e=>{ e.stopPropagation(); goToEmail(l.id); });
+          const snoozeBtn=row.querySelector('[data-action="snooze"]');
+          if(snoozeBtn) snoozeBtn.addEventListener('click',e=>{ e.stopPropagation(); l.followUpDate=addDays(todayISO(),3); save(); });
+          const lettingsBtn=row.querySelector('[data-action="send-lettings"]');
+          if(lettingsBtn) lettingsBtn.addEventListener('click',e=>{ e.stopPropagation(); sendToLettings(l.id); });
+          secInner.appendChild(row);
         });
-      }
-
+        sec.appendChild(secInner); container.appendChild(sec);
+      };
+      renderSection(unsent,'emerald','Initial not sent',unsent.length+' '+(unsent.length===1?'agency':'agencies')+' · qualifier draft ready',(l)=>
+        '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'>'+
+        '<span class="fu-badge initial">Initial</span>'+
+        '<span class="fu-next">Email 1</span>'+
+        '<div class="fu-info"><div class="fu-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="fu-director">'+escapeHtml(l.directorName||'')+(l.city?' · '+escapeHtml(l.city):'')+'</div></div>'+
+        '<div class="fu-actions"><button class="btn-fu btn-fu-compose" data-action="compose">Compose</button></div>'
+      );
+      renderSection(overdueItems,'red','Overdue',overdueItems.length+' '+(overdueItems.length===1?'agency':'agencies')+' · past due date',(l)=>{
+        const daysLate=daysBetween(normDateStr(l.followUpDate),td);
+        return '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'>'+
+          '<span class="fu-badge overdue">Overdue · '+daysLate+'d</span>'+
+          '<span class="fu-next">'+nextEmailFor(l)+'</span>'+
+          '<div class="fu-info"><div class="fu-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="fu-director">'+escapeHtml(l.directorName||'')+(l.city?' · '+escapeHtml(l.city):'')+'</div></div>'+
+          '<div class="fu-actions"><button class="btn-fu btn-fu-compose" data-action="compose">Compose</button><button class="btn-fu" data-action="snooze">Snooze 3d</button></div>';
+      });
+      renderSection(dueTodayItems,'amber','Due today',dueTodayItems.length+' '+(dueTodayItems.length===1?'agency':'agencies')+' · action today',(l)=>
+        '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'>'+
+        '<span class="fu-badge today">Today</span>'+
+        '<span class="fu-next">'+nextEmailFor(l)+'</span>'+
+        '<div class="fu-info"><div class="fu-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="fu-director">'+escapeHtml(l.directorName||'')+(l.city?' · '+escapeHtml(l.city):'')+'</div></div>'+
+        '<div class="fu-actions"><button class="btn-fu btn-fu-compose" data-action="compose">Compose</button><button class="btn-fu" data-action="snooze">Snooze 3d</button></div>'
+      );
+      renderSection(lettingsReady,'warn','Sales sequence complete — try lettings',lettingsReady.length+' '+(lettingsReady.length===1?'agency':'agencies')+' · second attempt via lettings inbox',(l)=>
+        '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'>'+
+        '<span class="fu-badge lettings">Lettings</span>'+
+        '<span class="fu-next">New thread</span>'+
+        '<div class="fu-info"><div class="fu-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="fu-director">'+escapeHtml(l.lettingsEmail||'')+'</div></div>'+
+        '<div class="fu-actions"><button class="btn-fu btn-fu-lettings" data-action="send-lettings">Send to Lettings</button></div>'
+      );
+      syncSelectAllState();
       updateFuBulkUI();
+    }
+    function syncSelectAllState(){
+      const sel=document.getElementById('fuSelectAll'); if(!sel) return;
+      const total=_lastFollowUpsItems.length;
+      const count=selectedFollowUpIds.size;
+      sel.checked=(total>0 && count===total);
+      sel.indeterminate=(count>0 && count<total);
     }
 
     // Open the Sequence Manager in lettings mode for the given lead — preview + edit flow.
@@ -2910,6 +3019,9 @@
       // Toggle Aurora on-linkedin body class (hides topbar, aurora bg)
       if(name==='linkedin') document.body.classList.add('on-linkedin');
       else document.body.classList.remove('on-linkedin');
+      // Toggle Aurora on-followups body class (hides topbar, aurora bg)
+      if(name==='followups') document.body.classList.add('on-followups');
+      else document.body.classList.remove('on-followups');
       if(name==='email'){ populateEmailLeadDropdown(); refreshEmailPreview(); }
       if(name==='linkedin') renderLinkedIn();
       closeMobileSidebar();
