@@ -661,21 +661,16 @@
     #tab-performance .btn-thresh:hover{border-color:var(--p-primary);background:rgba(var(--p-primary-rgb),0.08)}
     #tab-performance .btn-thresh .arrow{margin-left:10px;opacity:0.6}
 
-    /* Neon card */
-    #tab-performance .neon{position:relative;padding:1px;border-radius:14px !important;overflow:hidden;background:transparent;isolation:isolate;height:100%}
-    #tab-performance .neon::before{
-      content:'';position:absolute;top:50%;left:50%;
-      width:200%;height:200%;margin-top:-100%;margin-left:-100%;
-      background:conic-gradient(from 0deg,var(--p-primary),var(--p-secondary),var(--p-glow),var(--p-primary));
-      animation:aur-neon-spin 6s linear infinite;
-      opacity:var(--neon-opacity,0.28);
-      transition:opacity .3s;z-index:-1;
-    }
-    /* Status-tinted neon gradients per pillar */
-    #tab-performance .neon.status-green::before{background:conic-gradient(from 0deg,var(--st-green),var(--p-glow),var(--p-primary),var(--st-green))}
-    #tab-performance .neon.status-amber::before{background:conic-gradient(from 0deg,var(--st-amber),#FBBF24,var(--st-amber),#D97706)}
-    #tab-performance .neon.status-red::before{background:conic-gradient(from 0deg,var(--st-red),#DC2626,var(--st-red),#991B1B)}
-    #tab-performance .neon:hover::before{opacity:var(--neon-hover-opacity,0.6)}
+    /* Neon card — static Aurora gradient edge + soft bloom glow */
+    #tab-performance .neon{padding:1px;border-radius:14px !important;overflow:hidden;height:100%;background:linear-gradient(135deg,rgba(var(--p-primary-rgb),0.55) 0%,rgba(var(--p-secondary-rgb),0.45) 50%,rgba(var(--p-glow-rgb),0.55) 100%);box-shadow:0 4px 24px rgba(var(--p-primary-rgb),0.08),0 0 40px rgba(var(--p-secondary-rgb),0.04);transition:box-shadow .25s}
+    #tab-performance .neon:hover{box-shadow:0 4px 32px rgba(var(--p-primary-rgb),0.16),0 0 60px rgba(var(--p-secondary-rgb),0.08)}
+    /* Status-tinted static gradients per pillar */
+    #tab-performance .neon.status-green{background:linear-gradient(135deg,rgba(45,125,70,0.65) 0%,rgba(var(--p-glow-rgb),0.35) 50%,rgba(45,125,70,0.55) 100%);box-shadow:0 4px 24px rgba(45,125,70,0.12),0 0 36px rgba(6,214,160,0.06)}
+    #tab-performance .neon.status-green:hover{box-shadow:0 4px 32px rgba(45,125,70,0.22),0 0 48px rgba(6,214,160,0.10)}
+    #tab-performance .neon.status-amber{background:linear-gradient(135deg,rgba(201,168,76,0.65) 0%,rgba(251,191,36,0.35) 50%,rgba(217,119,6,0.55) 100%);box-shadow:0 4px 24px rgba(201,168,76,0.12),0 0 36px rgba(251,191,36,0.06)}
+    #tab-performance .neon.status-amber:hover{box-shadow:0 4px 32px rgba(201,168,76,0.22),0 0 48px rgba(251,191,36,0.10)}
+    #tab-performance .neon.status-red{background:linear-gradient(135deg,rgba(139,32,32,0.65) 0%,rgba(220,38,38,0.35) 50%,rgba(153,27,27,0.55) 100%);box-shadow:0 4px 24px rgba(139,32,32,0.14),0 0 36px rgba(220,38,38,0.06)}
+    #tab-performance .neon.status-red:hover{box-shadow:0 4px 32px rgba(139,32,32,0.24),0 0 48px rgba(220,38,38,0.10)}
     #tab-performance .neon-inner{
       background:var(--aur-bg);border-radius:13px !important;
       padding:22px 26px;position:relative;z-index:1;height:100%;
@@ -685,16 +680,15 @@
     /* Section label */
     #tab-performance .sec-label{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.2em;color:var(--p-primary);margin-bottom:12px}
 
-    /* Pillars */
-    #tab-performance .pillars{flex:0 0 auto;display:flex;flex-direction:column;gap:14px}
-    #tab-performance .pillar{--neon-opacity:0.32;--neon-hover-opacity:0.65}
+    /* Pillars — compact */
+    #tab-performance .pillars{flex:0 0 auto;display:flex;flex-direction:column;gap:10px}
     #tab-performance .pillar .neon-inner{
-      display:grid;grid-template-columns:60px 280px 1fr auto;
-      align-items:center;gap:28px;padding:22px 30px;
+      display:grid;grid-template-columns:44px 220px 1fr auto;
+      align-items:center;gap:22px;padding:14px 24px;
     }
     #tab-performance .p-icon{
-      width:48px;height:48px;display:flex;align-items:center;justify-content:center;
-      font-family:'Inter',sans-serif;font-size:24px;
+      width:40px;height:40px;display:flex;align-items:center;justify-content:center;
+      font-family:'Inter',sans-serif;font-size:18px;
       border:1.5px solid;border-color:var(--icon-col,var(--p-primary));
       color:var(--icon-col,var(--p-primary));
       background:color-mix(in srgb,var(--icon-col,var(--p-primary)) 8%,transparent);
@@ -703,25 +697,25 @@
     #tab-performance .pillar.status-green{--icon-col:var(--st-green)}
     #tab-performance .pillar.status-amber{--icon-col:var(--st-amber)}
     #tab-performance .pillar.status-red{--icon-col:var(--st-red)}
-    #tab-performance .p-head{display:flex;flex-direction:column;gap:8px}
-    #tab-performance .p-label{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.22em;color:var(--aur-text-faint)}
-    #tab-performance .p-num{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:54px;line-height:0.95;letter-spacing:-0.02em;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
-    #tab-performance .p-num .perf-pillar-unit{font-family:'Fraunces',serif;font-size:22px;color:var(--aur-text-faint);font-style:italic;margin-left:4px;font-weight:400}
-    #tab-performance .p-meta{display:flex;flex-direction:column;gap:12px;min-width:0}
-    #tab-performance .p-subs{font-family:'Fraunces',serif;font-style:italic;font-size:17px;color:var(--aur-text-std);line-height:1.5}
+    #tab-performance .p-head{display:flex;flex-direction:column;gap:5px}
+    #tab-performance .p-label{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.22em;color:var(--aur-text-faint)}
+    #tab-performance .p-num{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:42px;line-height:0.95;letter-spacing:-0.02em;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
+    #tab-performance .p-num .perf-pillar-unit{font-family:'Fraunces',serif;font-size:18px;color:var(--aur-text-faint);font-style:italic;margin-left:4px;font-weight:400}
+    #tab-performance .p-meta{display:flex;flex-direction:column;gap:8px;min-width:0}
+    #tab-performance .p-subs{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--aur-text-std);line-height:1.5}
     /* Support both .metric-value (legacy from compute fns) and .metric (Aurora-native) */
     #tab-performance .p-subs .metric-value,
     #tab-performance .p-subs .metric{
-      font-family:'Inter',sans-serif;font-style:normal;font-size:14px;font-weight:600;
+      font-family:'Inter',sans-serif;font-style:normal;font-size:13px;font-weight:600;
       color:var(--aur-text-bright);font-variant-numeric:tabular-nums;margin-right:2px;
     }
-    #tab-performance .p-bar{height:5px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden}
+    #tab-performance .p-bar{height:4px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden;border-radius:2px}
     #tab-performance .p-bar-fill{
       height:100%;
       background:linear-gradient(90deg,var(--icon-col,var(--p-primary)),color-mix(in srgb,var(--icon-col,var(--p-primary)) 70%,var(--p-glow)));
-      box-shadow:0 0 12px color-mix(in srgb,var(--icon-col,var(--p-primary)) 40%,transparent);
+      box-shadow:0 0 10px color-mix(in srgb,var(--icon-col,var(--p-primary)) 40%,transparent);
     }
-    #tab-performance .p-status{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;padding:6px 14px;border:1px solid;white-space:nowrap}
+    #tab-performance .p-status{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;padding:5px 12px;border:1px solid;white-space:nowrap}
     #tab-performance .pillar.status-green .p-status{color:var(--st-green);border-color:rgba(var(--st-green-rgb),0.35);background:rgba(var(--st-green-rgb),0.08)}
     #tab-performance .pillar.status-amber .p-status{color:var(--st-amber);border-color:rgba(var(--st-amber-rgb),0.35);background:rgba(var(--st-amber-rgb),0.08)}
     #tab-performance .pillar.status-red .p-status{color:var(--st-red);border-color:rgba(var(--st-red-rgb),0.35);background:rgba(var(--st-red-rgb),0.08)}
