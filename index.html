@@ -247,19 +247,75 @@
     .btn-view-lead{background:transparent;border:1px solid var(--border);color:var(--text-dim);padding:4px 12px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
     .btn-view-lead:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
 
-    /* Email tab */
+    /* Email tab — Aurora */
+    body.on-email #mainContent .content-topbar{display:none}
+    #tab-email.tabPane.active{
+      display:flex !important;flex-direction:column;gap:16px;
+      padding:22px 32px 28px !important;overflow-y:auto;overflow-x:hidden;
+      position:relative;height:100%;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(16,185,129,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 90%, rgba(59,130,246,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 40% at 50% 50%, rgba(6,214,160,0.04) 0%, transparent 50%),
+        #0a0b1a;
+      color:#e0dce8;
+    }
+    /* Email hero — flat row identical to dashboard/performance hero */
+    #tab-email .email-hero{flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
+    #tab-email .email-h1{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:42px;line-height:1;margin:0;letter-spacing:-0.02em;background:linear-gradient(120deg,#10B981 0%,#3B82F6 55%,#06D6A0 100%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    #tab-email .email-sub{margin-top:8px;font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:#9a95a8}
+    /* Cards get aurora gradient border via background-clip trick — no wrapper div needed */
+    #tab-email .card{
+      background:linear-gradient(#0a0b1a,#0a0b1a) padding-box,linear-gradient(135deg,rgba(16,185,129,0.55) 0%,rgba(59,130,246,0.45) 50%,rgba(6,214,160,0.55) 100%) border-box;
+      border:1px solid transparent;border-radius:14px !important;
+      box-shadow:0 4px 24px rgba(16,185,129,0.08),0 0 40px rgba(59,130,246,0.04);
+      transition:box-shadow .25s;padding:20px 24px;margin-bottom:0;
+    }
+    #tab-email .card:hover{box-shadow:0 4px 32px rgba(16,185,129,0.16),0 0 60px rgba(59,130,246,0.08)}
+    /* Lettings banner gets rounded corners */
+    #tab-email #lettingsModeBanner{border-radius:14px !important}
+    /* Step labels */
     .email-section-label{font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px}
+    #tab-email .step-label{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.22em;color:#10B981;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+    #tab-email .step-num{width:20px;height:20px;border-radius:50%;border:1px solid rgba(16,185,129,0.4);background:rgba(16,185,129,0.08);display:flex;align-items:center;justify-content:center;font-size:10px;color:#10B981;font-weight:700;flex-shrink:0}
+    /* Lead select dropdown */
+    #tab-email .lead-select{width:100%;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:#e0dce8;padding:10px 14px;font-size:14px;outline:none;transition:border-color .18s;border-radius:8px;font-family:inherit}
+    #tab-email .lead-select:focus{border-color:rgba(16,185,129,0.4)}
+    /* Autofill grid */
     .btn-group{display:flex;gap:6px;flex-wrap:wrap}
+    .email-autofill{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+    #tab-email .email-autofill{gap:8px;margin-top:14px}
+    .autofill-field{background:var(--elevated);padding:8px 10px;border:1px solid var(--border)}
+    #tab-email .autofill-field{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:8px;padding:10px 12px}
+    .autofill-field span{display:block;font-size:12px;color:var(--muted);margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em}
+    #tab-email .autofill-field span{font-size:10px;letter-spacing:0.2em;color:#6b6580;margin-bottom:4px}
+    .autofill-field strong{font-size:14px}
+    #tab-email .autofill-field strong{font-size:14px;font-weight:500;color:#e8e4f0}
+    /* Toggle buttons */
     .toggle-btn{border:1px solid var(--border);background:transparent;color:var(--muted);padding:7px 14px;font-size:12px;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap}
     .toggle-btn:hover{border-color:var(--border-hover);color:var(--text-dim)}
     .toggle-btn.active-type{background:var(--accent);color:#fff;border-color:transparent}
-    .email-autofill{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
-    .autofill-field{background:var(--elevated);padding:8px 10px;border:1px solid var(--border)}
-    .autofill-field span{display:block;font-size:12px;color:var(--muted);margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em}
-    .autofill-field strong{font-size:14px}
+    #tab-email .toggle-btn{border-color:rgba(255,255,255,0.06);color:#9a95a8;padding:9px 18px;font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;border-radius:8px;transition:all .18s}
+    #tab-email .toggle-btn:hover{border-color:rgba(16,185,129,0.35);color:#e0dce8}
+    #tab-email .toggle-btn.active-type{background:rgba(16,185,129,0.12);color:#10B981;border-color:rgba(16,185,129,0.4);box-shadow:0 0 14px rgba(16,185,129,0.12)}
+    #tab-email .day-badge{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:#6b6580;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);border-radius:999px;padding:3px 10px;margin-left:6px}
+    /* Subject line */
     .email-preview-box{background:var(--elevated);border:1px solid var(--border);padding:16px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word;color:#d4e8f0}
+    #tab-email .email-preview-box{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);border-radius:10px;padding:18px;line-height:1.7;color:#e0dce8}
+    #tab-email .email-preview-box a{color:#10B981}
     .subject-line{font-size:14px;font-weight:600;color:var(--accent);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+    #tab-email .subject-line{font-family:'Fraunces',serif;font-style:italic;font-size:20px;font-weight:400;letter-spacing:-0.01em;color:#e8e4f0;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.04)}
+    #tab-email .subject-line::before{content:'Subject';display:block;font-family:'Inter',sans-serif;font-style:normal;font-size:10px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#6b6580;margin-bottom:6px}
+    /* Action buttons */
     .email-actions{display:flex;gap:8px;margin-top:12px;align-items:center}
+    #tab-email .email-actions{flex-wrap:wrap}
+    #tab-email .btn.btn-ghost.btn-sm{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#9a95a8;padding:8px 16px;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;border-radius:8px;transition:all .18s}
+    #tab-email .btn.btn-ghost.btn-sm:hover{border-color:rgba(16,185,129,0.35);color:#e0dce8}
+    #tab-email .btn.btn-primary.btn-sm{background:linear-gradient(135deg,#10B981,#06D6A0);border:none;color:#001a12;padding:9px 20px;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;border-radius:8px;box-shadow:0 0 20px rgba(16,185,129,0.25);transition:opacity .18s}
+    #tab-email .btn.btn-primary.btn-sm:hover{opacity:0.9}
+    #tab-email .btn-send-outlook{background:transparent;border:1px solid rgba(59,130,246,0.35);color:#3B82F6;padding:9px 20px;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;border-radius:8px;transition:all .18s}
+    #tab-email .btn-send-outlook:hover{background:rgba(59,130,246,0.08);border-color:#3B82F6}
+    #tab-email .muted.small{font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:#6b6580;text-align:center;padding:32px 0}
     .copy-confirm{font-size:14px;color:var(--success);opacity:0;transition:opacity .2s}
     .copy-confirm.show{opacity:1}
 
@@ -1045,10 +1101,10 @@
 
     <!-- Email -->
     <section id="tab-email" class="tabPane">
-      <div class="page-header">
+      <div class="email-hero">
         <div>
-          <div class="page-title">Email Sequence Manager</div>
-          <div class="page-sub">Select a lead, choose the email, and generate a ready-to-send message.</div>
+          <h1 class="email-h1">Email Sequence.</h1>
+          <div class="email-sub">Select a lead, choose the email type, and send.</div>
         </div>
       </div>
 
@@ -1063,8 +1119,8 @@
       </div>
 
       <div class="card">
-        <div class="email-section-label">Step 1 — Select a Lead</div>
-        <div><select id="emailLeadSelect" style="width:100%"><option value="">— choose an agency —</option></select></div>
+        <div class="step-label"><span class="step-num">1</span>Select a Lead</div>
+        <div><select id="emailLeadSelect" class="lead-select"><option value="">— choose an agency —</option></select></div>
         <div class="email-autofill" id="emailAutofill" style="display:none;margin-top:12px">
           <div class="autofill-field"><span>Agency</span><strong id="af_agency">—</strong></div>
           <div class="autofill-field"><span>Director</span><strong id="af_director">—</strong></div>
@@ -1076,17 +1132,17 @@
       </div>
 
       <div class="card">
-        <div class="email-section-label">Step 2 — Select Email Type</div>
+        <div class="step-label"><span class="step-num">2</span>Select Email Type</div>
         <div class="btn-group">
-          <button class="toggle-btn" data-seq-type="1">Initial</button>
-          <button class="toggle-btn" data-seq-type="2">FU1</button>
-          <button class="toggle-btn" data-seq-type="3">FU2</button>
-          <button class="toggle-btn" data-seq-type="4">FU3</button>
+          <button class="toggle-btn" data-seq-type="1">Initial <span class="day-badge">Day 0</span></button>
+          <button class="toggle-btn" data-seq-type="2">FU1 <span class="day-badge">Day 3</span></button>
+          <button class="toggle-btn" data-seq-type="3">FU2 <span class="day-badge">Day 7</span></button>
+          <button class="toggle-btn" data-seq-type="4">FU3 <span class="day-badge">Day 14</span></button>
         </div>
       </div>
 
       <div class="card">
-        <div class="email-section-label">Step 3 — Generated Email</div>
+        <div class="step-label"><span class="step-num">3</span>Generated Email</div>
         <div id="emailPreviewWrap" style="display:none">
           <div class="subject-line" id="emailSubjectPreview"></div>
           <div class="email-preview-box" id="emailBodyPreview"></div>
@@ -2693,6 +2749,9 @@
       // Toggle Aurora on-performance body class (hides topbar, theming for thresholds modal)
       if(name==='performance') document.body.classList.add('on-performance');
       else document.body.classList.remove('on-performance');
+      // Toggle Aurora on-email body class (hides topbar, aurora bg)
+      if(name==='email') document.body.classList.add('on-email');
+      else document.body.classList.remove('on-email');
       if(name==='email'){ populateEmailLeadDropdown(); refreshEmailPreview(); }
       if(name==='linkedin') renderLinkedIn();
       closeMobileSidebar();
