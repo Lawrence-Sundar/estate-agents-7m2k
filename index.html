@@ -318,6 +318,21 @@
     #tab-email .muted.small{font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:#6b6580;text-align:center;padding:32px 0}
     .copy-confirm{font-size:14px;color:var(--success);opacity:0;transition:opacity .2s}
     .copy-confirm.show{opacity:1}
+    /* Lead search-as-you-type */
+    #tab-email .lead-search-wrap{position:relative}
+    #tab-email .lead-search-results{
+      position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:50;
+      background:#0d0e20;
+      border:1px solid rgba(16,185,129,0.3);
+      border-radius:10px;overflow:hidden;
+      box-shadow:0 8px 32px rgba(0,0,0,0.45),0 0 24px rgba(16,185,129,0.08);
+      max-height:260px;overflow-y:auto;
+    }
+    #tab-email .lead-result-item{padding:11px 16px;font-size:14px;color:#e0dce8;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background .12s}
+    #tab-email .lead-result-item:last-child{border-bottom:none}
+    #tab-email .lead-result-item:hover,#tab-email .lead-result-item.focused{background:rgba(16,185,129,0.1)}
+    #tab-email .lr-meta{color:#9a95a8;font-size:13px}
+    #tab-email .lr-city{color:#6b6580;font-size:12px;margin-left:6px}
 
     /* Modal */
     .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;justify-content:flex-end;opacity:0;pointer-events:none;transition:opacity .22s;z-index:100}
@@ -1120,7 +1135,11 @@
 
       <div class="card">
         <div class="step-label"><span class="step-num">1</span>Select a Lead</div>
-        <div><select id="emailLeadSelect" class="lead-select"><option value="">— choose an agency —</option></select></div>
+        <div class="lead-search-wrap" id="emailLeadSearchWrap">
+          <input type="text" id="emailLeadSearch" class="lead-select" placeholder="Type to search agencies..." autocomplete="off">
+          <div class="lead-search-results" id="emailLeadResults" style="display:none"></div>
+          <input type="hidden" id="emailLeadSelect">
+        </div>
         <div class="email-autofill" id="emailAutofill" style="display:none;margin-top:12px">
           <div class="autofill-field"><span>Agency</span><strong id="af_agency">—</strong></div>
           <div class="autofill-field"><span>Director</span><strong id="af_director">—</strong></div>
@@ -2466,10 +2485,14 @@
 
     function populateEmailLeadDropdown(){
       const sel=document.getElementById('emailLeadSelect'); if(!sel) return;
+      const input=document.getElementById('emailLeadSearch');
       const current=sel.value;
-      sel.innerHTML='<option value="">— choose an agency —</option>';
-      leads.forEach(l=>{ if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified') return; const opt=document.createElement('option'); opt.value=l.id; opt.textContent=(l.agencyName||'(no name)')+(l.directorName?' — '+l.directorName:'')+(l.city?' ('+l.city+')':''); sel.appendChild(opt); });
-      if(current&&leads.find(l=>l.id==current)) sel.value=current;
+      // Sync visible text if the selected lead still exists
+      if(current && input){
+        const lead=leads.find(l=>l.id==current);
+        if(lead) input.value=(lead.agencyName||'')+(lead.directorName?' — '+lead.directorName:'');
+        else { input.value=''; sel.value=''; }
+      }
     }
 
     function emailAutofill(){
@@ -2490,6 +2513,51 @@
       autofill.style.display='grid';
       updateLettingsBanner();
       refreshEmailPreview();
+    }
+
+    function bindEmailSearch(){
+      const input=document.getElementById('emailLeadSearch');
+      const results=document.getElementById('emailLeadResults');
+      const hidden=document.getElementById('emailLeadSelect');
+      if(!input||!results||!hidden) return;
+      function activeLeads(){ return leads.filter(l=>l.status!=='Won'&&l.status!=='Lost'&&l.status!=='Unqualified'); }
+      function renderResults(list){
+        if(!list.length){ results.style.display='none'; return; }
+        results.innerHTML=list.map(l=>`<div class="lead-result-item" data-id="${l.id}">${escapeHtml(l.agencyName||'(no name)')}${l.directorName?'<span class="lr-meta"> — '+escapeHtml(l.directorName)+'</span>':''}${l.city?'<span class="lr-city">'+escapeHtml(l.city)+'</span>':''}</div>`).join('');
+        results.style.display='block';
+      }
+      function selectLead(id){
+        const lead=leads.find(l=>l.id==id); if(!lead) return;
+        hidden.value=id;
+        input.value=(lead.agencyName||'')+(lead.directorName?' — '+lead.directorName:'');
+        results.style.display='none';
+        emailAutofill();
+      }
+      input.addEventListener('input', ()=>{
+        const q=input.value.trim().toLowerCase();
+        if(!q){ results.style.display='none'; return; }
+        const filtered=activeLeads().filter(l=>
+          (l.agencyName||'').toLowerCase().includes(q)||
+          (l.directorName||'').toLowerCase().includes(q)||
+          (l.city||'').toLowerCase().includes(q)
+        ).slice(0,8);
+        renderResults(filtered);
+      });
+      input.addEventListener('focus', ()=>{ if(input.value.trim()) input.dispatchEvent(new Event('input')); });
+      input.addEventListener('keydown', e=>{
+        if(e.key==='Escape'){ results.style.display='none'; }
+        if(e.key==='Enter'){
+          const first=results.querySelector('.lead-result-item');
+          if(first) selectLead(first.dataset.id);
+        }
+      });
+      results.addEventListener('mousedown', e=>{
+        const item=e.target.closest('.lead-result-item'); if(!item) return;
+        e.preventDefault(); selectLead(item.dataset.id);
+      });
+      document.addEventListener('click', e=>{
+        if(!e.target.closest('#emailLeadSearchWrap')) results.style.display='none';
+      });
     }
 
     function setSeqType(key){
@@ -2713,7 +2781,7 @@
       emailState.sendTo='director';
       showTab('email');
       const sel=document.getElementById('emailLeadSelect');
-      if(sel){ sel.value=id; emailAutofill(); setSeqType('1'); }
+      if(sel){ sel.value=id; const si=document.getElementById('emailLeadSearch'); if(si){ const l=leads.find(x=>x.id==id); si.value=l?(l.agencyName||'')+(l.directorName?' — '+l.directorName:''):''; } emailAutofill(); setSeqType('1'); }
     }
 
     // Navigate into Email tab in lettings mode — sends Email 1 to lead.lettingsEmail
@@ -2726,7 +2794,7 @@
       if(!lead.email4SentDate){ alert('Sales sequence not yet complete — send Email 4 first.'); return; }
       showTab('email');
       const sel=document.getElementById('emailLeadSelect');
-      if(sel){ sel.value=id; emailState.sendTo='director'; emailAutofill(); }
+      if(sel){ sel.value=id; const si=document.getElementById('emailLeadSearch'); if(si){ const l=leads.find(x=>x.id==id); si.value=l?(l.agencyName||'')+(l.directorName?' — '+l.directorName:''):''; } emailState.sendTo='director'; emailAutofill(); }
       // Flip to lettings mode after emailAutofill (which would otherwise reset sendTo)
       emailState.sendTo='lettings';
       setSeqType('1');
@@ -3005,8 +3073,7 @@
     }
 
     function bindEmailTab(){
-      const sel=document.getElementById('emailLeadSelect');
-      if(sel) sel.addEventListener('change', emailAutofill);
+      bindEmailSearch();
       document.querySelectorAll('[data-seq-type]').forEach(btn=>{
         btn.addEventListener('click', ()=> setSeqType(btn.dataset.seqType));
       });
