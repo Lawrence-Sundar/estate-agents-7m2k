@@ -24,24 +24,23 @@
     html{zoom:0.75}
     body{font-family:'Inter',-apple-system,sans-serif;font-size:16px;background:var(--bg);color:var(--text);min-height:133.333vh;display:flex;overflow:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scrollbar-width:thin;scrollbar-color:#1e1e1e transparent}
 
-    /* Sidebar */
-    #sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;height:133.333vh;position:sticky;top:0;z-index:20}
-    .sidebar-brand{padding:24px 18px;display:flex;align-items:center;gap:12px}
-    .sidebar-brand-avatar{width:32px;height:32px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
-    .sidebar-brand-name{font-size:16px;font-weight:600}
-    .sidebar-brand-sub{font-size:12px;font-weight:400;color:var(--muted)}
-    .sidebar-nav{padding:8px 10px;flex:1}
-    .nav-item{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;border:none;background:transparent;color:var(--muted);font-size:16px;font-family:inherit;font-weight:500;cursor:pointer;text-align:left;transition:all .15s;margin-bottom:1px}
-    .nav-item:hover{background:rgba(16,185,129,0.06);color:var(--text)}
-    .nav-item.active{background:var(--sidebar-accent);color:var(--accent)}
-    .nav-icon{width:20px;height:20px;opacity:0.5;flex-shrink:0}
+    /* Sidebar — Aurora palette */
+    #sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:rgba(10,11,26,0.65);border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;height:133.333vh;position:sticky;top:0;z-index:20}
+    .sidebar-brand{padding:22px 18px 18px;display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,0.04)}
+    .sidebar-brand-wordmark{font-family:'Fraunces',serif;font-weight:400;font-style:italic;font-size:22px;letter-spacing:-0.01em;background:linear-gradient(120deg,#10B981 0%,#3B82F6 55%,#06D6A0 100%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .sidebar-brand-sub{font-family:'Inter',sans-serif;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#6b6580;margin-top:4px}
+    .sidebar-nav{padding:14px 10px;flex:1;display:flex;flex-direction:column;gap:2px}
+    .nav-item{display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;border:1px solid transparent;background:transparent;color:#9a95a8;font-size:14px;font-family:inherit;font-weight:500;cursor:pointer;text-align:left;transition:all .18s;border-radius:10px}
+    .nav-item:hover{background:rgba(16,185,129,0.06);color:#e0dce8;border-color:rgba(255,255,255,0.06)}
+    .nav-item.active{background:linear-gradient(90deg,rgba(16,185,129,0.14) 0%,rgba(59,130,246,0.08) 60%,transparent 100%);color:#10B981;border-color:rgba(16,185,129,0.25);box-shadow:inset 2px 0 0 #10B981,0 0 14px rgba(16,185,129,0.10)}
+    .nav-icon{width:18px;height:18px;opacity:0.55;flex-shrink:0}
     .nav-item.active .nav-icon{opacity:1}
     .sidebar-section-label{display:none}
-    .sidebar-actions{padding:10px 10px;border-top:1px solid var(--sidebar-border);display:flex;flex-direction:column;gap:2px;margin-top:auto}
-    .sidebar-action-btn{display:flex;align-items:center;width:100%;padding:7px 10px;border:none;background:transparent;color:var(--muted);font-size:12px;font-family:inherit;cursor:pointer;text-align:left;transition:background .12s,color .12s}
-    .sidebar-action-btn:hover{background:rgba(16,185,129,0.06);color:var(--text)}
+    .sidebar-actions{padding:10px 10px 12px;border-top:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:4px;margin-top:auto}
+    .sidebar-action-btn{display:flex;align-items:center;width:100%;padding:7px 10px;border:none;background:transparent;color:#9a95a8;font-size:12px;font-family:inherit;cursor:pointer;text-align:left;transition:background .12s,color .12s;border-radius:8px}
+    .sidebar-action-btn:hover{background:rgba(16,185,129,0.06);color:#e0dce8}
     .sidebar-action-btn.danger:hover{color:var(--danger)}
-    .sidebar-stats{padding:14px 16px;border-top:1px solid var(--sidebar-border);display:flex;flex-direction:column;gap:6px}
+    .sidebar-stats{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:6px}
     .stat-item{display:flex;justify-content:space-between;align-items:center}
     .stat-label{font-size:12px;color:var(--muted)}
     .stat-value{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -509,19 +508,9 @@
       color:var(--p-primary);
     }
 
-    /* Neon-bordered card (only animated element) */
-    #tab-dashboard .neon{position:relative;padding:1px;border-radius:14px !important;overflow:hidden;background:transparent;isolation:isolate;height:100%}
-    #tab-dashboard .neon::before{
-      content:'';position:absolute;top:50%;left:50%;
-      width:200%;height:200%;
-      margin-top:-100%;margin-left:-100%;
-      background:conic-gradient(from 0deg,var(--p-primary),var(--p-secondary),var(--p-glow),var(--p-primary));
-      animation:aur-neon-spin 6s linear infinite;
-      opacity:var(--neon-opacity,0.28);
-      transition:opacity .3s;
-      z-index:-1;
-    }
-    #tab-dashboard .neon:hover::before{opacity:var(--neon-hover-opacity,0.6)}
+    /* Neon-bordered card — static Aurora gradient edge + soft bloom glow */
+    #tab-dashboard .neon{padding:1px;border-radius:14px !important;overflow:hidden;height:100%;background:linear-gradient(135deg,rgba(var(--p-primary-rgb),0.55) 0%,rgba(var(--p-secondary-rgb),0.45) 50%,rgba(var(--p-glow-rgb),0.55) 100%);box-shadow:0 4px 24px rgba(var(--p-primary-rgb),0.08),0 0 40px rgba(var(--p-secondary-rgb),0.04);transition:box-shadow .25s}
+    #tab-dashboard .neon:hover{box-shadow:0 4px 32px rgba(var(--p-primary-rgb),0.16),0 0 60px rgba(var(--p-secondary-rgb),0.08)}
     #tab-dashboard .neon-inner{
       background:var(--aur-bg);
       border-radius:13px !important;
@@ -779,9 +768,10 @@
   <!-- Sidebar -->
   <aside id="sidebar">
     <div class="sidebar-brand">
-      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#10B981,#34d399);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0">L</div>
-      <div class="sidebar-brand-name">Lawrence</div>
-      <div class="sidebar-brand-sub" style="display:none">Estate Agent CRM</div>
+      <div>
+        <div class="sidebar-brand-wordmark">Daedalus</div>
+        <div class="sidebar-brand-sub">Estate Agent CRM</div>
+      </div>
     </div>
 
     <nav class="sidebar-nav">
