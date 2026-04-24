@@ -698,7 +698,6 @@
       padding:22px 32px 24px;
       display:flex;flex-direction:column;gap:16px;
       flex:1;min-height:0;position:relative;z-index:2;
-      max-width:1200px;
     }
     #tab-performance::after{
       content:'';position:absolute;inset:0;
@@ -755,7 +754,7 @@
     /* Pillars — compact */
     #tab-performance .pillars{flex:0 0 auto;display:flex;flex-direction:column;gap:10px}
     #tab-performance .pillar .neon-inner{
-      display:grid;grid-template-columns:44px 220px minmax(200px,580px) auto;
+      display:grid;grid-template-columns:44px 220px 1fr auto;
       align-items:center;gap:22px;padding:14px 24px;
     }
     #tab-performance .p-icon{
@@ -1393,29 +1392,29 @@
       '1': {
         label: 'Initial Outreach',
         day: 0,
-        subject: '[Agency Name] - quick question',
-        body: 'Hi [Director Name],\n\nQuick question - how many of your [Portal] leads from last month got a response within 5 minutes?\n\nMost independent agencies I speak to are paying \u00a31,500+ a month to [Portal] and quietly losing a third of those leads before anyone picks up the phone. Not because of anything wrong - just because the response gap is invisible until you measure it.\n\nI build automated enquiry response systems for independent agencies - sits on top of your existing setup, no migration, live in 7 days.\n\nWorth a quick look?\n\nLawrence\nDaedalus Atelier',
+        subject: '5 minutes',
+        body: 'Hi [Director Name],\n\nQuick question - how many of your [Portal] leads from last month got a response within 5 minutes?\n\nMost independent agencies I speak to are paying \u00a31,000+ a month to [Portal] and quietly losing leads before anyone picks up the phone. Not because of anything wrong - just because the response gap is invisible until you measure it.\n\nI build automated enquiry response systems for independent agencies - sits on top of your existing setup, no migration, live in 7 days. Your team picks up a clean, organised queue instead of a scattered inbox.\n\nWorth a quick look?\n\nLawrence\nDaedalus Atelier',
         note: ''
       },
       '2': {
         label: 'Follow Up + Loom',
         day: 3,
         subject: 'Re: [Agency Name] - quick question',
-        body: 'Hi [Director Name],\n\nFollowing up on my earlier note \u2014 thought this might be easier than reading about it. Put together a quick two-minute walkthrough showing exactly how it works:\n\n<a href="https://www.loom.com/share/c1bb0c8d43e44ef9b6a1f8486cf4ea7a">Watch the 2-minute demo \u2192</a>\n(https://www.loom.com/share/c1bb0c8d43e44ef9b6a1f8486cf4ea7a)\n\nHappy to discuss if it\u2019s relevant.\n\nLawrence\nDaedalus Atelier',
+        body: 'Hi [Director Name],\n\nFollowing up on my earlier note.\n\nIf easier than typing a reply, I put together a quick two-minute walkthrough showing how the system works:\n\n<a href="https://www.loom.com/share/c1bb0c8d43e44ef9b6a1f8486cf4ea7a">Watch here</a>\n(https://www.loom.com/share/c1bb0c8d43e44ef9b6a1f8486cf4ea7a)\n\nLawrence\nDaedalus Atelier',
         note: ''
       },
       '3': {
         label: 'Observation',
         day: 7,
         subject: 'Re: [Agency Name] - quick question',
-        body: 'Hi [Director Name],\n\n[customObservation]\n\nLink here if you missed the demo: <a href="https://www.loom.com/share/c1bb0c8d43e44ef9b6a1f8486cf4ea7a">Watch the 2-minute demo \u2192</a>\n\nHappy to answer any questions if the timing isn\u2019t right.\n\nLawrence\nDaedalus Atelier',
-        note: 'Replace [customObservation] with qualifier output or enter manually before sending'
+        body: 'Hi [Director Name],\n\nOne question: when a potential buyer sends an enquiry through Rightmove at 10pm on a weeknight, what happens to it before your team is back at 9am?\n\nThat\'s the gap the system closes.\n\nHappy to show you in 10 minutes.\n\nLawrence\nDaedalus Atelier',
+        note: ''
       },
       '4': {
         label: 'Final Close',
         day: 14,
         subject: 'Re: [Agency Name] - quick question',
-        body: 'Hi [Director Name],\n\nLast one from me - if the timing is not right, no problem at all. The system is not going anywhere. If you ever want to know exactly how many leads [Agency Name] is losing to slow response times, the offer stands.\n\nLawrence\nDaedalus Atelier',
+        body: 'Hi [Director Name],\n\nLast note from me on this. If the timing isn\'t right, no problem at all. Happy to pick this up whenever it suits.\n\nLawrence\nDaedalus Atelier',
         note: ''
       }
     };

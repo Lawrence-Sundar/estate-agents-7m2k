@@ -438,13 +438,6 @@
           <div class="section-label">Email Body</div>
           <div id="draftBody" class="draft-body-field"></div>
           <textarea id="editBodyInput" style="display:none;width:100%;background:var(--bg);border:1px solid var(--accent);border-radius:0;color:var(--text);padding:10px 12px;font-size:13px;line-height:1.8;resize:vertical;box-sizing:border-box;font-family:inherit;outline:none"></textarea>
-          <div id="ctaVariantWrap" style="margin-top:12px">
-            <label style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);display:block;margin-bottom:6px">CTA Variant</label>
-            <div style="display:flex;gap:6px">
-              <button class="secondary" id="btnCtaDemo" style="font-size:12px;padding:5px 14px;opacity:1">Demo</button>
-              <button class="secondary" id="btnCtaAudit" style="font-size:12px;padding:5px 14px;opacity:0.5">Audit</button>
-            </div>
-          </div>
           <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
             <button class="copy-btn" id="btnCopyEmail">Copy Email</button>
             <button class="btn-edit" id="btnEditDraft">Edit</button>
@@ -1831,7 +1824,6 @@ ${pageText}`;
       window._lastDraft        = null;
       window._customObservation = '';
       window._lettingsEmail    = '';
-      window._ctaVariant       = 'demo';
       window._createdLeadId    = null;
       window._toolDetected     = 'None';
       window._oohDetected      = false;
@@ -2566,33 +2558,6 @@ ${pageText}`;
                document.getElementById('btnCopyEmail'));
     });
 
-    // CTA Variant toggle
-    window._ctaVariant = 'demo';
-    const CTA_DEMO_TEXT  = agency => `Want me to show you what that looks like for ${agency}?`;
-    const CTA_AUDIT_TEXT = agency => `I put together a quick response audit for ${agency} - want me to send it over?`;
-
-    function setCtaVariant(variant) {
-      window._ctaVariant = variant;
-      document.getElementById('btnCtaDemo').style.opacity  = variant === 'demo'  ? '1' : '0.5';
-      document.getElementById('btnCtaAudit').style.opacity = variant === 'audit' ? '1' : '0.5';
-      if (!window._lastDraft) return;
-      const body = window._lastDraft.body || '';
-      const agency = window._lastResult ? (window._lastResult.agency_name || '[Agency Name]') : '[Agency Name]';
-      const demoRx  = /Want me to show you what that looks like for .+?\?/;
-      const auditRx = /I put together a quick response audit for .+? - want me to send it over\?/;
-      let newBody;
-      if (variant === 'audit') {
-        newBody = body.replace(demoRx, CTA_AUDIT_TEXT(agency));
-      } else {
-        newBody = body.replace(auditRx, CTA_DEMO_TEXT(agency));
-      }
-      window._lastDraft.body = newBody;
-      document.getElementById('draftBody').textContent = newBody;
-    }
-
-    document.getElementById('btnCtaDemo').addEventListener('click', () => setCtaVariant('demo'));
-    document.getElementById('btnCtaAudit').addEventListener('click', () => setCtaVariant('audit'));
-
     document.getElementById('btnConfirmTracker').addEventListener('click', confirmAddToTracker);
     document.getElementById('btnMarkSent').addEventListener('click', markAsSent);
     document.getElementById('btnAddAnother').addEventListener('click', resetAll);
@@ -2680,7 +2645,6 @@ ${pageText}`;
         responseStatus:  '',
         draftSubject:    _draftSubject,
         draftBody:       _draftBody,
-        ctaVariant:      window._ctaVariant || 'demo',
         subjectLine:     _draftSubject,
         customObservation: window._customObservation || ''
       };
@@ -2785,7 +2749,6 @@ ${pageText}`;
       window._manuallyQualified = false;
       window._oohDetected       = false;
       window._toolDetected      = 'None';
-      window._ctaVariant        = 'demo';
       selectedEmail = '';
 
       document.getElementById('clinicUrl').value = '';
@@ -2806,9 +2769,6 @@ ${pageText}`;
         document.getElementById('editBodyInput').style.display   = 'none';
         document.getElementById('btnEditDraft').textContent      = 'Edit';
       }
-
-      const _ctaD = document.getElementById('btnCtaDemo');  if (_ctaD) _ctaD.style.opacity = '1';
-      const _ctaA = document.getElementById('btnCtaAudit'); if (_ctaA) _ctaA.style.opacity = '0.5';
 
       hide('emailDraftSection');
       hide('draftOutput');
@@ -2882,7 +2842,7 @@ ${pageText}`;
 
 Structure:
 1. Opening: one specific question about their Rightmove lead response time
-2. Second paragraph: context - most independent agencies lose leads because of the response gap, not because of anything wrong. Reference their Rightmove spend (£1,500+/month) naturally
+2. Second paragraph: context - most independent agencies lose leads because of the response gap, not because of anything wrong. Reference their Rightmove spend (£1,000+/month) naturally. Do not include specific fractions or percentages of leads lost
 3. Third paragraph: one sentence - I build automated enquiry response systems for independent agencies, sits on top of existing setup, no migration, live in 7 days
 4. Closing: soft CTA - Worth a quick look?
 5. Sign-off: Lawrence / Daedalus Atelier
@@ -2896,28 +2856,28 @@ Hard rules - Email 1 only:
 - No product names or technical jargon
 - No negative framing about the agency
 - No filler phrases
-- Sentence case subject line, statement form only, max 6 words, must reference agency name or specific observation
+- Subject line: always use exactly "5 minutes"
 - Use the exact phrase provided as 'Portal reference to use' wherever the email references the enquiry source - do not substitute, do not generalise, do not add other portal names
 - If a Custom Observation is provided, it MUST be the basis of the opening line. Weave the observation into the first sentence as a specific, researched hook about this agency. This takes priority over the generic Rightmove response time question
 
 Example 1:
-Subject: Harrison and Co - quick question
+Subject: 5 minutes
 Body:
 Hi James,
 Quick question - how many of your Rightmove leads from last month got a response within 5 minutes?
-Most independent agencies I speak to are paying £1,500+ a month to Rightmove and quietly losing a third of those leads before anyone picks up the phone. Not because of anything wrong - just because the response gap is invisible until you measure it.
-I build automated enquiry response systems for independent agencies - sits on top of your existing setup, no migration, live in 7 days.
+Most independent agencies I speak to are paying £1,000+ a month to Rightmove and quietly losing leads before anyone picks up the phone. Not because of anything wrong - just because the response gap is invisible until you measure it.
+I build automated enquiry response systems for independent agencies - sits on top of your existing setup, no migration, live in 7 days. Your team picks up a clean, organised queue instead of a scattered inbox.
 Worth a quick look?
 Lawrence
 Daedalus Atelier
 
 Example 2:
-Subject: Maple Properties Leeds - a thought
+Subject: 5 minutes
 Body:
 Hi Sarah,
 Quick question - do you know how many of your Rightmove enquiries from last month got a reply within 5 minutes?
-With 340 Google reviews and a strong Leeds reputation, every lead that goes cold before someone responds is a real cost. Most agencies with your profile are paying £1,500+ a month to Rightmove and losing a third of that investment to slow response times.
-I build automated enquiry response systems that sit on top of your existing CRM - no migration, live in 7 days.
+With a strong Leeds presence, every lead that goes cold before someone responds is a real cost. Most agencies I speak to are paying £1,000+ a month to Rightmove and quietly losing leads to slow response times.
+I build automated enquiry response systems that sit on top of your existing CRM - no migration, live in 7 days. Your team picks up a clean, organised queue instead of a scattered inbox.
 Worth a quick look?
 Lawrence
 Daedalus Atelier
