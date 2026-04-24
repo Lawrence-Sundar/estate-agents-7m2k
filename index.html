@@ -457,6 +457,74 @@
     .btn-li-copy{padding:4px 9px;font-size:12px;border:1px solid rgba(16,185,129,0.3);background:transparent;color:var(--accent);cursor:pointer;white-space:nowrap;font-family:inherit}
     .btn-li-copy:hover{background:rgba(16,185,129,0.1);border-color:var(--accent)}
 
+    /* LinkedIn tab — Aurora */
+    body.on-linkedin #mainContent .content-topbar{display:none}
+    #tab-linkedin.tabPane.active{
+      display:flex !important;flex-direction:column;gap:16px;
+      padding:22px 32px 28px !important;overflow:hidden;
+      position:relative;height:100%;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(16,185,129,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 90%, rgba(59,130,246,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 40% at 50% 50%, rgba(6,214,160,0.04) 0%, transparent 50%),
+        #0a0b1a;
+      color:#e0dce8;
+    }
+    #tab-linkedin::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:1;opacity:0.03;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>")}
+    #tab-linkedin > *{position:relative;z-index:2}
+    /* Hero */
+    #tab-linkedin .li-hero{flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,0.06)}
+    #tab-linkedin .li-h1{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:42px;line-height:1;margin:0;letter-spacing:-0.02em;background:linear-gradient(120deg,#10B981 0%,#3B82F6 55%,#06D6A0 100%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    #tab-linkedin .li-sub{margin-top:8px;font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:#9a95a8}
+    /* Stats strip */
+    #tab-linkedin .li-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;flex:0 0 auto}
+    #tab-linkedin .li-stat{padding:1px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,rgba(16,185,129,0.55) 0%,rgba(59,130,246,0.45) 50%,rgba(6,214,160,0.55) 100%);box-shadow:0 4px 24px rgba(16,185,129,0.08),0 0 40px rgba(59,130,246,0.04);transition:box-shadow .25s}
+    #tab-linkedin .li-stat:hover{box-shadow:0 4px 32px rgba(16,185,129,0.16),0 0 60px rgba(59,130,246,0.08)}
+    #tab-linkedin .li-stat-inner{background:#0a0b1a;border-radius:13px;padding:14px 18px;display:flex;flex-direction:column;gap:4px}
+    #tab-linkedin .li-stat-label{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:#6b6580}
+    #tab-linkedin .li-stat-value{font-family:'Fraunces',serif;font-weight:400;font-style:italic;font-size:28px;line-height:1;color:#e8e4f0;font-variant-numeric:tabular-nums}
+    #tab-linkedin .li-stat-sub{font-family:'Inter',sans-serif;font-size:11px;color:#9a95a8;margin-top:2px}
+    /* Filters card */
+    #tab-linkedin .li-filters{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:0;padding:14px 22px;border-radius:14px;background:linear-gradient(#0a0b1a,#0a0b1a) padding-box,linear-gradient(135deg,rgba(16,185,129,0.55) 0%,rgba(59,130,246,0.45) 50%,rgba(6,214,160,0.55) 100%) border-box;border:1px solid transparent;box-shadow:0 4px 24px rgba(16,185,129,0.08),0 0 40px rgba(59,130,246,0.04)}
+    #tab-linkedin #liSearch{flex:0 1 280px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:#e0dce8;padding:9px 14px;font-size:14px;outline:none;border-radius:8px;width:auto;font-family:inherit}
+    #tab-linkedin #liSearch:focus{border-color:rgba(16,185,129,0.4)}
+    #tab-linkedin .li-filters > div{display:flex;align-items:center;gap:8px}
+    #tab-linkedin .li-filters > div > span{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.2em;text-transform:uppercase;color:#6b6580}
+    #tab-linkedin .li-filters select{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:#e0dce8;padding:7px 10px;font-size:13px;outline:none;border-radius:8px;min-width:130px;font-family:inherit}
+    #tab-linkedin .li-filters select:focus{border-color:rgba(16,185,129,0.4)}
+    /* Old summary line — hidden, replaced by stats strip */
+    #tab-linkedin .li-summary{display:none}
+    /* Table card */
+    #tab-linkedin .li-table-wrap{flex:1;min-height:0;display:flex;flex-direction:column;padding:1px;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,rgba(16,185,129,0.55) 0%,rgba(59,130,246,0.45) 50%,rgba(6,214,160,0.55) 100%);box-shadow:0 4px 24px rgba(16,185,129,0.08),0 0 40px rgba(59,130,246,0.04);transition:box-shadow .25s}
+    #tab-linkedin .li-table-inner{background:#0a0b1a;border-radius:13px;flex:1;display:flex;flex-direction:column;padding:18px 22px;min-height:0}
+    #tab-linkedin .li-table-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex:0 0 auto}
+    #tab-linkedin .li-table-title{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.22em;color:#10B981}
+    #tab-linkedin .li-table-meta{font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:#9a95a8}
+    #tab-linkedin .li-table-scroll{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:#1e1e1e transparent}
+    /* Table */
+    #tab-linkedin .li-table{font-size:13px}
+    #tab-linkedin .li-table th{text-align:left;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.18em;color:#6b6580;padding:12px 10px;border-bottom:1px solid rgba(16,185,129,0.14);white-space:nowrap;background:#0a0b1a;position:sticky;top:0;z-index:1}
+    #tab-linkedin .li-table td{padding:12px 10px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle;color:#e0dce8}
+    #tab-linkedin .li-table tr:hover td{background:rgba(16,185,129,0.04)}
+    #tab-linkedin .li-table td:first-child{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:#e8e4f0;font-weight:500}
+    #tab-linkedin .li-empty{color:#6b6580;font-size:14px;padding:24px 0;text-align:center;font-family:'Fraunces',serif;font-style:italic}
+    /* Buttons and badges */
+    #tab-linkedin .btn-li-view{padding:6px 12px;font-size:11px;background:linear-gradient(135deg,#10B981,#06D6A0);color:#001a12;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border:none;border-radius:6px;box-shadow:0 0 14px rgba(16,185,129,0.2);text-decoration:none;display:inline-block}
+    #tab-linkedin .btn-li-view:hover{opacity:0.9;background:linear-gradient(135deg,#10B981,#06D6A0)}
+    #tab-linkedin .btn-li-dm{padding:6px 12px;font-size:11px;background:rgba(16,185,129,0.1);color:#10B981;border:1px solid rgba(16,185,129,0.3);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border-radius:6px;font-family:inherit}
+    #tab-linkedin .btn-li-dm:hover{background:rgba(16,185,129,0.18);border-color:#10B981}
+    #tab-linkedin .btn-li-conn{padding:6px 12px;font-size:11px;background:rgba(16,185,129,0.1);color:#10B981;border:1px solid rgba(16,185,129,0.3);font-weight:600;letter-spacing:0.06em;text-transform:uppercase;border-radius:6px;font-family:inherit}
+    #tab-linkedin .btn-li-conn:hover{background:rgba(16,185,129,0.18);border-color:#10B981}
+    #tab-linkedin .btn-li-find{padding:6px 10px;font-size:11px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:#9a95a8;border-radius:6px;font-family:inherit}
+    #tab-linkedin .btn-li-find:hover{border-color:rgba(16,185,129,0.4);color:#10B981}
+    #tab-linkedin .btn-li-copy{padding:6px 10px;font-size:11px;border:1px solid rgba(16,185,129,0.25);background:transparent;color:#10B981;border-radius:6px;font-family:inherit}
+    #tab-linkedin .btn-li-copy:hover{background:rgba(16,185,129,0.08);border-color:#10B981}
+    #tab-linkedin .li-dm-badge{display:inline-block;padding:5px 10px;font-size:11px;background:rgba(59,130,246,0.1) !important;color:#3B82F6 !important;border:1px solid rgba(59,130,246,0.25) !important;font-weight:600;letter-spacing:0.06em;border-radius:6px;white-space:nowrap}
+    #tab-linkedin .li-save-btn{padding:4px 10px;font-size:11px;border:1px solid rgba(16,185,129,0.4);background:transparent;color:#10B981;border-radius:6px;font-family:inherit}
+    #tab-linkedin .li-save-btn:hover{background:rgba(16,185,129,0.08);border-color:#10B981}
+    #tab-linkedin .li-url-input{padding:6px 10px;font-size:12px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);color:#e0dce8;width:180px;outline:none;border-radius:6px;font-family:inherit}
+    #tab-linkedin .li-url-input:focus{border-color:rgba(16,185,129,0.4)}
+
     /* Bulk select */
     .sel-check{width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
     .lead-row-main.row-selected{background:var(--accent-dim)}
@@ -1178,34 +1246,43 @@
 
     <!-- LinkedIn -->
     <section id="tab-linkedin" class="tabPane">
-      <div class="page-header">
+      <div class="li-hero">
         <div>
-          <div class="page-title">LinkedIn Outreach</div>
-          <div class="page-sub">Track connection requests and messages per agency.</div>
+          <h1 class="li-h1">LinkedIn Outreach.</h1>
+          <div class="li-sub">Track connection requests and messages per agency.</div>
         </div>
       </div>
+      <div class="li-stats" id="liStats"></div>
       <div class="li-filters">
-        <input id="liSearch" type="text" placeholder="Search agencies..." style="font-size:12px;background:var(--elevated);border:1px solid var(--border);color:var(--text);padding:5px 10px;font-family:inherit;width:200px;outline:none">
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">City</span>
+        <input id="liSearch" type="text" placeholder="Search agencies...">
+        <div>
+          <span>City</span>
           <select id="liFilterCity"><option value="All">All</option><option>London</option><option>Manchester</option><option>Birmingham</option><option>Leeds</option><option>Bristol</option><option>Edinburgh</option><option>Glasgow</option><option value="Other">Other</option></select>
         </div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Connection</span>
+        <div>
+          <span>Connection</span>
           <select id="liFilterConn"><option value="All">All</option><option value="Connected">Connected</option><option value="Not Connected">Not Connected</option></select>
         </div>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Messages</span>
+        <div>
+          <span>Messages</span>
           <select id="liFilterMsg"><option value="All">All</option><option value="None Sent">None Sent</option><option value="Message 1">Message 1</option><option value="Message 2">Message 2</option><option value="Message 3">Message 3</option></select>
         </div>
       </div>
       <div class="li-summary" id="liSummary"></div>
-      <div style="overflow-x:auto">
-        <table class="li-table">
-          <thead><tr><th>Director</th><th>Agency</th><th>City</th><th>LinkedIn Profile</th><th>Connection</th><th>Messages</th></tr></thead>
-          <tbody id="liTableBody"></tbody>
-        </table>
-        <div id="liEmpty" class="li-empty" style="display:none">No agencies match the current filters.</div>
+      <div class="li-table-wrap">
+        <div class="li-table-inner">
+          <div class="li-table-head">
+            <div class="li-table-title">Agencies · LinkedIn</div>
+            <div class="li-table-meta" id="liTableMeta"></div>
+          </div>
+          <div class="li-table-scroll">
+            <table class="li-table">
+              <thead><tr><th>Director</th><th>Agency</th><th>City</th><th>LinkedIn Profile</th><th>Connection</th><th>Messages</th></tr></thead>
+              <tbody id="liTableBody"></tbody>
+            </table>
+            <div id="liEmpty" class="li-empty" style="display:none">No agencies match the current filters.</div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
@@ -2363,9 +2440,23 @@
         return true;
       });
 
+      const activeLeads=leads.filter(l=>l.status!=='Unqualified');
+      const totalActive=activeLeads.length;
       const connected=leads.filter(l=>l.linkedinConnected==='Yes').length;
       const messaged=leads.filter(l=>l.linkedinMessage1Date).length;
+      const noProfile=activeLeads.filter(l=>!l.directorLinkedinUrl).length;
       if(summaryEl) summaryEl.innerHTML='<span>'+connected+'</span> connected / <span>'+messaged+'</span> messaged / <span>'+filtered.length+'</span> shown';
+      const statsEl=document.getElementById('liStats');
+      if(statsEl){
+        const connRate=totalActive>0?Math.round((connected/totalActive)*100):0;
+        statsEl.innerHTML=
+          '<div class="li-stat"><div class="li-stat-inner"><div class="li-stat-label">Total leads</div><div class="li-stat-value">'+totalActive+'</div><div class="li-stat-sub">In pipeline</div></div></div>'+
+          '<div class="li-stat"><div class="li-stat-inner"><div class="li-stat-label">Connected</div><div class="li-stat-value">'+connected+'</div><div class="li-stat-sub">'+connRate+'% connection rate</div></div></div>'+
+          '<div class="li-stat"><div class="li-stat-inner"><div class="li-stat-label">Messages sent</div><div class="li-stat-value">'+messaged+'</div><div class="li-stat-sub">Across all stages</div></div></div>'+
+          '<div class="li-stat"><div class="li-stat-inner"><div class="li-stat-label">Profiles to find</div><div class="li-stat-value">'+noProfile+'</div><div class="li-stat-sub">Missing LinkedIn URL</div></div></div>';
+      }
+      const metaEl=document.getElementById('liTableMeta');
+      if(metaEl) metaEl.textContent='Showing '+filtered.length+' of '+totalActive;
 
       tbody.innerHTML='';
       if(!filtered.length){ if(emptyEl) emptyEl.style.display='block'; return; }
@@ -2816,6 +2907,9 @@
       // Toggle Aurora on-email body class (hides topbar, aurora bg)
       if(name==='email') document.body.classList.add('on-email');
       else document.body.classList.remove('on-email');
+      // Toggle Aurora on-linkedin body class (hides topbar, aurora bg)
+      if(name==='linkedin') document.body.classList.add('on-linkedin');
+      else document.body.classList.remove('on-linkedin');
       if(name==='email'){ populateEmailLeadDropdown(); refreshEmailPreview(); }
       if(name==='linkedin') renderLinkedIn();
       closeMobileSidebar();
