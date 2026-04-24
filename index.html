@@ -7,7 +7,7 @@
   <title>Daedalus Atelier — Estate Agent CRM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500&display=swap" rel="stylesheet">
   <script defer src="https://alcdn.msauth.net/browser/2.38.2/js/msal-browser.min.js"></script>
   <style>
     :root {
@@ -22,7 +22,7 @@
     }
     *{box-sizing:border-box;margin:0;padding:0}
     html{zoom:0.75}
-    body{font-family:'DM Sans',-apple-system,sans-serif;font-size:16px;background:var(--bg);color:var(--text);min-height:133.333vh;display:flex;overflow:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scrollbar-width:thin;scrollbar-color:#1e1e1e transparent}
+    body{font-family:'Inter',-apple-system,sans-serif;font-size:16px;background:var(--bg);color:var(--text);min-height:133.333vh;display:flex;overflow:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scrollbar-width:thin;scrollbar-color:#1e1e1e transparent}
 
     /* Sidebar */
     #sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);display:flex;flex-direction:column;height:133.333vh;position:sticky;top:0;z-index:20}
@@ -58,9 +58,9 @@
     /* Performance Tab */
     .perf-wrapper{padding:32px 40px;max-width:1400px;margin:0 auto}
     .perf-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:40px;padding-bottom:24px;border-bottom:1px solid var(--border);gap:24px}
-    .perf-header h1{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:56px;color:var(--text);margin:0 0 8px 0;letter-spacing:-0.02em;line-height:1}
+    .perf-header h1{font-family:'Fraunces',serif;font-weight:400;font-size:56px;color:var(--text);margin:0 0 8px 0;letter-spacing:-0.02em;line-height:1}
     .perf-header .perf-subtitle{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:0.02em}
-    .perf-thresholds-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:12px 20px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0}
+    .perf-thresholds-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:12px 20px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;flex-shrink:0}
     .perf-thresholds-btn:hover{color:var(--accent);border-color:var(--accent)}
     .perf-pillar{background:var(--surface);padding:28px 32px;margin-bottom:14px;display:flex;align-items:center;gap:32px}
     .perf-pillar.status-green{border-left:4px solid #2D7D46}
@@ -72,11 +72,11 @@
     .perf-pillar-icon.status-red{color:#8B0000}
     .perf-pillar-headline{flex:0 0 200px}
     .perf-pillar-label{font-size:11px;letter-spacing:0.18em;color:var(--muted);text-transform:uppercase;font-weight:600;margin-bottom:10px}
-    .perf-pillar-number{font-family:'Cormorant Garamond',serif;font-size:52px;font-weight:400;color:var(--text);font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-0.01em}
+    .perf-pillar-number{font-family:'Fraunces',serif;font-size:52px;font-weight:400;color:var(--text);font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-0.01em}
     .perf-pillar-meta{flex:1;min-width:0}
     .perf-pillar-submetrics{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:0.02em;line-height:1.5}
     .perf-pillar-submetrics .metric-value{color:var(--text);font-weight:500}
-    .perf-pillar-unit{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--muted);font-style:italic;margin-left:4px}
+    .perf-pillar-unit{font-family:'Fraunces',serif;font-size:22px;color:var(--muted);font-style:italic;margin-left:4px}
     .perf-status-word{font-weight:600;letter-spacing:0.1em;font-size:11px;padding:4px 9px;white-space:nowrap;text-transform:uppercase}
     .perf-status-word.status-green{color:#2D7D46;background:rgba(45,125,70,0.16)}
     .perf-status-word.status-amber{color:#C9A84C;background:rgba(201,168,76,0.16)}
@@ -98,7 +98,7 @@
     .perf-thresh-backdrop.open{display:flex}
     .perf-thresh-modal{display:none;background:var(--surface);border:1px solid var(--border);padding:28px;max-width:560px;width:90%;max-height:80vh;overflow-y:auto}
     .perf-thresh-modal.open{display:block}
-    .perf-thresh-modal h3{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:500;margin:0 0 16px 0}
+    .perf-thresh-modal h3{font-family:'Fraunces',serif;font-size:28px;font-weight:500;margin:0 0 16px 0}
     .perf-thresh-modal .thresh-row{padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.6}
     .perf-thresh-modal .thresh-row:last-child{border-bottom:none}
     .perf-thresh-modal .thresh-label{font-weight:600;color:var(--text);margin-bottom:4px}
@@ -434,7 +434,7 @@
       --aur-border-subtle:rgba(255,255,255,0.04);
       --aur-border-default:rgba(255,255,255,0.06);
     }
-    /* Hide topbar when dashboard tab active — Cormorant hero takes over */
+    /* Hide topbar when dashboard tab active — Fraunces hero takes over */
     body.on-dashboard #mainContent .content-topbar{display:none}
 
     #tab-dashboard.tabPane.active{
@@ -479,7 +479,7 @@
       border-bottom:1px solid var(--aur-border-default);
     }
     #tab-dashboard .dash-greeting{
-      font-family:'Cormorant Garamond',serif;
+      font-family:'Fraunces',serif;
       font-weight:300;font-style:italic;
       font-size:42px;line-height:1;
       letter-spacing:-0.02em;margin:0;
@@ -488,12 +488,12 @@
     }
     #tab-dashboard .dash-meta{
       display:flex;align-items:center;gap:18px;
-      font-family:'JetBrains Mono',monospace;
+      font-family:'Inter',sans-serif;
       font-size:14px;color:var(--aur-text-faint);
       letter-spacing:0.06em;
     }
     #tab-dashboard .dash-meta .dot{width:6px;height:6px;background:var(--p-primary);box-shadow:0 0 8px rgba(var(--p-primary-rgb),0.5)}
-    #tab-dashboard .dash-meta .date{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:var(--aur-text-muted);letter-spacing:0}
+    #tab-dashboard .dash-meta .date{font-family:'Fraunces',serif;font-style:italic;font-size:19px;color:var(--aur-text-muted);letter-spacing:0}
     #tab-dashboard .dash-meta .clock{
       background:linear-gradient(90deg,var(--p-primary),var(--p-glow));
       background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
@@ -502,7 +502,7 @@
 
     /* Section labels (static solid) */
     #tab-dashboard .sec-label{
-      font-family:'JetBrains Mono',monospace;
+      font-family:'Inter',sans-serif;
       font-size:13px;font-weight:600;
       text-transform:uppercase;letter-spacing:0.2em;
       margin-bottom:14px;
@@ -535,96 +535,66 @@
     #tab-dashboard .dash-stats{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
     #tab-dashboard .dash-stats .neon{--neon-opacity:0.3;--neon-hover-opacity:0.65}
     #tab-dashboard .dash-stats .neon-inner{min-height:118px;justify-content:space-between;padding:16px 20px}
-    #tab-dashboard .st-label{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:var(--aur-text-faint)}
-    #tab-dashboard .st-num{font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;font-size:54px;line-height:0.95;letter-spacing:-0.02em;color:var(--tile-accent,var(--p-primary));margin:4px 0 6px}
-    #tab-dashboard .st-delta{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--aur-text-muted);letter-spacing:0.04em;display:flex;align-items:center;gap:8px}
+    #tab-dashboard .st-label{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:var(--aur-text-faint)}
+    #tab-dashboard .st-num{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:54px;line-height:0.95;letter-spacing:-0.02em;color:var(--tile-accent,var(--p-primary));margin:4px 0 6px}
+    #tab-dashboard .st-delta{font-family:'Inter',sans-serif;font-size:12.5px;color:var(--aur-text-muted);letter-spacing:0.04em;display:flex;align-items:center;gap:8px}
     #tab-dashboard .st-delta .d{width:5px;height:5px;background:var(--tile-accent,var(--p-primary));opacity:0.75}
     #tab-dashboard .st-1{--tile-accent:color-mix(in srgb,var(--p-primary) 90%,#d4d0e0)}
     #tab-dashboard .st-2{--tile-accent:color-mix(in srgb,var(--p-secondary) 85%,#d4d0e0)}
     #tab-dashboard .st-3{--tile-accent:color-mix(in srgb,var(--p-glow) 85%,#d4d0e0)}
     #tab-dashboard .st-4{--tile-accent:color-mix(in srgb,var(--p-primary) 75%,var(--p-glow) 25%)}
 
-    /* Main 3×2 grid */
-    #tab-dashboard .dash-main{
-      flex:1;min-height:0;
-      display:grid;
-      grid-template-columns:1fr 1.35fr 1fr;
-      grid-template-rows:1fr 1fr;
-      gap:16px;
-    }
-    #tab-dashboard .cell-funnel{grid-column:1;grid-row:1 / span 2}
-    #tab-dashboard .cell-activity{grid-column:2;grid-row:1}
-    #tab-dashboard .cell-recent{grid-column:3;grid-row:1}
-    #tab-dashboard .cell-priority{grid-column:2;grid-row:2}
-    #tab-dashboard .cell-action{grid-column:3;grid-row:2}
+    /* Row layouts — flex column of stacked rows */
+    #tab-dashboard .dash-main{flex:1;min-height:0;display:flex;flex-direction:column;gap:16px}
+    #tab-dashboard .hero-row{display:grid;grid-template-columns:3fr 2fr;gap:16px;flex:0 0 auto}
+    #tab-dashboard .hero-row .dash-hero{border-bottom:none;padding-bottom:0;height:100%;display:flex;align-items:center;justify-content:space-between;gap:24px;margin:0}
+    #tab-dashboard .kpi-row{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+    #tab-dashboard .tasks-row{flex:0 0 auto}
+    #tab-dashboard .funnel-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0}
 
-    /* Funnel */
+    /* Section head — sec-label + optional sub */
+    #tab-dashboard .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+    #tab-dashboard .sec-head .sec-label{margin-bottom:0}
+    #tab-dashboard .sec-sub{font-family:'Inter',sans-serif;font-size:11px;color:var(--aur-text-faint);letter-spacing:0.04em;text-transform:none}
+
+    /* Rule of 100 */
+    #tab-dashboard .r100-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+    #tab-dashboard .r100-big{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:48px;line-height:0.95;color:var(--p-primary);letter-spacing:-0.02em}
+    #tab-dashboard .r100-big .of{color:var(--aur-text-faint);font-size:22px;margin-left:4px;font-style:normal;font-family:'Inter',sans-serif}
+    #tab-dashboard .r100-pct{font-family:'Inter',sans-serif;font-size:18px;color:var(--aur-text-muted);font-variant-numeric:tabular-nums}
+    #tab-dashboard .r100-bar{height:4px;background:rgba(255,255,255,0.05);overflow:hidden;margin-bottom:14px}
+    #tab-dashboard .r100-bar > span{display:block;height:100%;background:linear-gradient(90deg,var(--p-primary),var(--p-glow));box-shadow:0 0 10px rgba(16,185,129,0.35)}
+    #tab-dashboard .r100-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    #tab-dashboard .r100-cell{padding:10px 12px;background:rgba(255,255,255,0.02);border:1px solid var(--aur-border-default)}
+    #tab-dashboard .r100-cell .k{font-family:'Inter',sans-serif;font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:var(--aur-text-faint);margin-bottom:6px;font-weight:600}
+    #tab-dashboard .r100-cell .v{font-family:'Fraunces',serif;font-style:italic;font-size:22px;color:var(--aur-text-bright);line-height:1}
+    #tab-dashboard .r100-cell .v .of{color:var(--aur-text-faint);font-size:12px;font-style:normal;font-family:'Inter',sans-serif;margin-left:2px}
+    #tab-dashboard .r100-cell .minibar{height:2px;background:rgba(255,255,255,0.05);margin-top:6px}
+    #tab-dashboard .r100-cell .minibar > span{display:block;height:100%;background:var(--p-primary)}
+
+    /* Today's Tasks */
+    #tab-dashboard .task-list{display:flex;flex-direction:column;gap:10px}
+    #tab-dashboard .task{display:flex;align-items:center;gap:16px;padding:14px 18px;background:rgba(255,255,255,0.02);border:1px solid var(--aur-border-default);cursor:pointer;transition:all .15s ease}
+    #tab-dashboard .task:hover{background:rgba(16,185,129,0.04);border-color:rgba(var(--p-primary-rgb),0.3)}
+    #tab-dashboard .task.noop{cursor:default}
+    #tab-dashboard .task.noop:hover{background:rgba(255,255,255,0.02);border-color:var(--aur-border-default)}
+    #tab-dashboard .task .chip{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.14em;padding:4px 10px;min-width:80px;text-align:center}
+    #tab-dashboard .task .chip.overdue{background:rgba(239,68,68,0.15);color:#ff7c7c}
+    #tab-dashboard .task .chip.today{background:rgba(245,158,11,0.15);color:#fbbf24}
+    #tab-dashboard .task .chip.reply{background:rgba(var(--p-primary-rgb),0.15);color:var(--p-primary)}
+    #tab-dashboard .task .count{font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:30px;color:var(--aur-text-bright);min-width:46px;line-height:1}
+    #tab-dashboard .task .label{flex:1;font-family:'Fraunces',serif;font-style:italic;font-size:18px;color:var(--aur-text-std);line-height:1.3}
+    #tab-dashboard .task .arrow{color:var(--aur-text-faint);font-family:'Inter',sans-serif;font-size:16px;transition:transform .15s ease,color .15s ease}
+    #tab-dashboard .task:not(.noop):hover .arrow{color:var(--p-glow);transform:translateX(3px)}
+
+    /* Pipeline Funnel + Sequence Stages — shared bar-list style */
     #tab-dashboard .aur-funnel{flex:1;display:flex;flex-direction:column;justify-content:space-around;padding-top:4px}
     #tab-dashboard .aur-f-row{display:flex;align-items:center;gap:14px;padding:6px 0}
-    #tab-dashboard .aur-f-label{width:120px;flex-shrink:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:19px;color:var(--aur-text-std)}
+    #tab-dashboard .aur-f-label{width:120px;flex-shrink:0;font-family:'Fraunces',serif;font-style:italic;font-size:19px;color:var(--aur-text-std)}
     #tab-dashboard .aur-f-track{flex:1;height:6px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden}
     #tab-dashboard .aur-f-fill{height:100%;background:linear-gradient(90deg,var(--p-primary),var(--p-glow));opacity:0.85;box-shadow:0 0 12px rgba(var(--p-primary-rgb),0.22)}
-    #tab-dashboard .aur-f-val{width:38px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
-    #tab-dashboard .aur-f-pct{width:44px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--aur-text-faint);font-variant-numeric:tabular-nums}
-
-    /* Weekly activity */
-    #tab-dashboard .aur-wa-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-    #tab-dashboard .aur-wa-legend{display:flex;gap:14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--aur-text-faint);letter-spacing:0.08em;text-transform:uppercase}
-    #tab-dashboard .aur-wa-legend span{display:flex;align-items:center;gap:6px}
-    #tab-dashboard .aur-wa-legend .d{width:8px;height:8px}
-    #tab-dashboard .aur-wa-legend .d-sent{background:var(--p-primary)}
-    #tab-dashboard .aur-wa-legend .d-rep{background:var(--p-secondary)}
-    #tab-dashboard .aur-wa-chart{flex:1;display:flex;align-items:flex-end;gap:10px;padding-top:8px;min-height:0}
-    #tab-dashboard .aur-wa-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
-    #tab-dashboard .aur-wa-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--aur-text-muted);text-align:center}
-    #tab-dashboard .aur-wa-bars{display:flex;gap:3px;width:100%;align-items:flex-end;padding:0 6px;flex:1}
-    #tab-dashboard .aur-wa-bar{flex:1;min-height:2px}
-    #tab-dashboard .aur-wa-bar.sent{background:linear-gradient(180deg,var(--p-primary),color-mix(in srgb,var(--p-primary) 55%,transparent))}
-    #tab-dashboard .aur-wa-bar.rep{background:linear-gradient(180deg,var(--p-secondary),color-mix(in srgb,var(--p-secondary) 55%,transparent))}
-    #tab-dashboard .aur-wa-label{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--aur-text-faint);letter-spacing:0.04em}
-    #tab-dashboard .aur-wa-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--aur-text-faint);font-size:13px;font-family:'JetBrains Mono',monospace}
-
-    /* Priority */
-    #tab-dashboard .aur-pri{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-    #tab-dashboard .aur-pri-card{padding:16px 18px;background:rgba(255,255,255,0.02);border:1px solid var(--aur-border-default);display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
-    #tab-dashboard .aur-pri-card.green{--acc:var(--p-primary)}
-    #tab-dashboard .aur-pri-card.amber{--acc:#F59E0B}
-    #tab-dashboard .aur-pri-card.skip{--acc:var(--aur-text-faint)}
-    #tab-dashboard .aur-pri-card::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 10%,transparent) 0%,transparent 70%)}
-    #tab-dashboard .aur-pri-label{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--acc);margin-bottom:8px;position:relative;z-index:1}
-    #tab-dashboard .aur-pri-val{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:300;font-size:40px;line-height:1;color:var(--aur-text-bright);position:relative;z-index:1}
-    #tab-dashboard .aur-pri-sub{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--aur-text-faint);margin-top:6px;letter-spacing:0.04em;position:relative;z-index:1}
-
-    /* Recent activity feed */
-    #tab-dashboard .aur-feed{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding-top:2px;overflow:hidden}
-    #tab-dashboard .aur-feed-item{display:flex;align-items:center;gap:12px;padding:8px 2px;border-bottom:1px solid var(--aur-border-subtle)}
-    #tab-dashboard .aur-feed-item:last-child{border-bottom:none}
-    #tab-dashboard .aur-feed-dot{width:7px;height:7px;flex-shrink:0;background:var(--p-primary);opacity:0.85}
-    #tab-dashboard .aur-feed-dot.d-rep{background:var(--p-secondary)}
-    #tab-dashboard .aur-feed-dot.d-call{background:var(--p-glow)}
-    #tab-dashboard .aur-feed-text{flex:1;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:var(--aur-text-std);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    #tab-dashboard .aur-feed-text strong{font-weight:500;color:var(--aur-text-bright)}
-    #tab-dashboard .aur-feed-time{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--aur-text-faint);letter-spacing:0.04em;flex-shrink:0}
-    #tab-dashboard .aur-feed-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--aur-text-faint);font-size:13px;font-family:'JetBrains Mono',monospace}
-
-    /* Action required */
-    #tab-dashboard .aur-action{--neon-opacity:0.4;--neon-hover-opacity:0.75}
-    #tab-dashboard .aur-action-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-    #tab-dashboard .aur-action-count{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--aur-text-muted);letter-spacing:0.06em}
-    #tab-dashboard .aur-action-count strong{color:var(--p-glow);font-weight:600}
-    #tab-dashboard .aur-action-list{flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
-    #tab-dashboard .aur-action-row{display:flex;align-items:center;gap:12px;padding:7px 2px;border-bottom:1px solid var(--aur-border-subtle);cursor:pointer;transition:padding-left .2s}
-    #tab-dashboard .aur-action-row:last-child{border-bottom:none}
-    #tab-dashboard .aur-action-row:hover{padding-left:8px}
-    #tab-dashboard .aur-action-dot{width:7px;height:7px;background:var(--p-primary);flex-shrink:0;opacity:0.85}
-    #tab-dashboard .aur-action-name{flex:1;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:var(--aur-text-bright);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    #tab-dashboard .aur-action-chip{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;padding:3px 9px;border:1px solid;flex-shrink:0}
-    #tab-dashboard .aur-action-chip.overdue{color:#F87171;border-color:rgba(248,113,113,0.35);background:rgba(248,113,113,0.06)}
-    #tab-dashboard .aur-action-chip.today{color:var(--p-primary);border-color:rgba(var(--p-primary-rgb),0.35);background:rgba(var(--p-primary-rgb),0.06)}
-    #tab-dashboard .aur-action-chip.reply{color:var(--p-secondary);border-color:rgba(var(--p-secondary-rgb),0.35);background:rgba(var(--p-secondary-rgb),0.06)}
-    #tab-dashboard .aur-action-arrow{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--aur-text-faint);opacity:0.4;transition:opacity .2s,transform .2s}
-    #tab-dashboard .aur-action-row:hover .aur-action-arrow{opacity:1;transform:translateX(3px);color:var(--p-glow)}
-    #tab-dashboard .aur-action-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--aur-text-faint);font-size:15px;font-family:'Cormorant Garamond',serif;font-style:italic}
+    #tab-dashboard .aur-f-val{width:38px;text-align:right;font-family:'Inter',sans-serif;font-size:16px;font-weight:600;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
+    #tab-dashboard .aur-f-pct{width:44px;text-align:right;font-family:'Inter',sans-serif;font-size:13px;color:var(--aur-text-faint);font-variant-numeric:tabular-nums}
 
     /* ════════════════════════════════════════════════════════════════════
        AURORA PERFORMANCE — scoped to #tab-performance only
@@ -681,20 +651,20 @@
       padding-bottom:16px;border-bottom:1px solid var(--aur-border-default);
     }
     #tab-performance .perf-hero h1{
-      font-family:'Cormorant Garamond',serif;
+      font-family:'Fraunces',serif;
       font-weight:300;font-style:italic;font-size:48px;line-height:1;margin:0;
       letter-spacing:-0.02em;
       background:linear-gradient(120deg,var(--p-primary) 0%,var(--p-secondary) 55%,var(--p-glow) 100%);
       background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
     }
     #tab-performance .perf-sub{
-      margin-top:8px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:var(--aur-text-muted);
+      margin-top:8px;font-family:'Fraunces',serif;font-style:italic;font-size:18px;color:var(--aur-text-muted);
     }
     #tab-performance .perf-sub .mono{
-      font-family:'JetBrains Mono',monospace;font-style:normal;font-size:13px;color:var(--aur-text-faint);letter-spacing:0.08em;margin-left:8px;
+      font-family:'Inter',sans-serif;font-style:normal;font-size:13px;color:var(--aur-text-faint);letter-spacing:0.08em;margin-left:8px;
     }
     #tab-performance .btn-thresh{
-      font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;
+      font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;
       padding:12px 22px;background:transparent;border:1px solid rgba(var(--p-primary-rgb),0.3);color:var(--p-primary);
       cursor:pointer;transition:border-color .2s,background .2s;
     }
@@ -723,7 +693,7 @@
     }
 
     /* Section label */
-    #tab-performance .sec-label{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.2em;color:var(--p-primary);margin-bottom:12px}
+    #tab-performance .sec-label{font-family:'Inter',sans-serif;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.2em;color:var(--p-primary);margin-bottom:12px}
 
     /* Pillars */
     #tab-performance .pillars{flex:0 0 auto;display:flex;flex-direction:column;gap:14px}
@@ -734,7 +704,7 @@
     }
     #tab-performance .p-icon{
       width:48px;height:48px;display:flex;align-items:center;justify-content:center;
-      font-family:'JetBrains Mono',monospace;font-size:24px;
+      font-family:'Inter',sans-serif;font-size:24px;
       border:1.5px solid;border-color:var(--icon-col,var(--p-primary));
       color:var(--icon-col,var(--p-primary));
       background:color-mix(in srgb,var(--icon-col,var(--p-primary)) 8%,transparent);
@@ -744,15 +714,15 @@
     #tab-performance .pillar.status-amber{--icon-col:var(--st-amber)}
     #tab-performance .pillar.status-red{--icon-col:var(--st-red)}
     #tab-performance .p-head{display:flex;flex-direction:column;gap:8px}
-    #tab-performance .p-label{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.22em;color:var(--aur-text-faint)}
-    #tab-performance .p-num{font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;font-size:54px;line-height:0.95;letter-spacing:-0.02em;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
-    #tab-performance .p-num .perf-pillar-unit{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--aur-text-faint);font-style:italic;margin-left:4px;font-weight:400}
+    #tab-performance .p-label{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.22em;color:var(--aur-text-faint)}
+    #tab-performance .p-num{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:54px;line-height:0.95;letter-spacing:-0.02em;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
+    #tab-performance .p-num .perf-pillar-unit{font-family:'Fraunces',serif;font-size:22px;color:var(--aur-text-faint);font-style:italic;margin-left:4px;font-weight:400}
     #tab-performance .p-meta{display:flex;flex-direction:column;gap:12px;min-width:0}
-    #tab-performance .p-subs{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:var(--aur-text-std);line-height:1.5}
+    #tab-performance .p-subs{font-family:'Fraunces',serif;font-style:italic;font-size:17px;color:var(--aur-text-std);line-height:1.5}
     /* Support both .metric-value (legacy from compute fns) and .metric (Aurora-native) */
     #tab-performance .p-subs .metric-value,
     #tab-performance .p-subs .metric{
-      font-family:'JetBrains Mono',monospace;font-style:normal;font-size:14px;font-weight:600;
+      font-family:'Inter',sans-serif;font-style:normal;font-size:14px;font-weight:600;
       color:var(--aur-text-bright);font-variant-numeric:tabular-nums;margin-right:2px;
     }
     #tab-performance .p-bar{height:5px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden}
@@ -761,7 +731,7 @@
       background:linear-gradient(90deg,var(--icon-col,var(--p-primary)),color-mix(in srgb,var(--icon-col,var(--p-primary)) 70%,var(--p-glow)));
       box-shadow:0 0 12px color-mix(in srgb,var(--icon-col,var(--p-primary)) 40%,transparent);
     }
-    #tab-performance .p-status{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;padding:6px 14px;border:1px solid;white-space:nowrap}
+    #tab-performance .p-status{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;padding:6px 14px;border:1px solid;white-space:nowrap}
     #tab-performance .pillar.status-green .p-status{color:var(--st-green);border-color:rgba(var(--st-green-rgb),0.35);background:rgba(var(--st-green-rgb),0.08)}
     #tab-performance .pillar.status-amber .p-status{color:var(--st-amber);border-color:rgba(var(--st-amber-rgb),0.35);background:rgba(var(--st-amber-rgb),0.08)}
     #tab-performance .pillar.status-red .p-status{color:var(--st-red);border-color:rgba(var(--st-red-rgb),0.35);background:rgba(var(--st-red-rgb),0.08)}
@@ -776,19 +746,19 @@
     #tab-performance .n-marker.ok{--mk:var(--st-green)}
     #tab-performance .n-marker.warn{--mk:var(--st-amber)}
     #tab-performance .n-marker.info{--mk:var(--p-secondary)}
-    #tab-performance .n-text{flex:1;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:var(--aur-text-std);line-height:1.4}
+    #tab-performance .n-text{flex:1;font-family:'Fraunces',serif;font-style:italic;font-size:17px;color:var(--aur-text-std);line-height:1.4}
     #tab-performance .n-text strong{font-weight:500;color:var(--aur-text-bright)}
     #tab-performance .n-text .metric-value,
-    #tab-performance .n-text .metric{font-family:'JetBrains Mono',monospace;font-style:normal;font-size:13px;color:var(--p-glow);font-weight:600;letter-spacing:0.04em}
-    #tab-performance .n-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--aur-text-faint);font-size:15px;font-family:'Cormorant Garamond',serif;font-style:italic;text-align:center;padding:20px}
+    #tab-performance .n-text .metric{font-family:'Inter',sans-serif;font-style:normal;font-size:13px;color:var(--p-glow);font-weight:600;letter-spacing:0.04em}
+    #tab-performance .n-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--aur-text-faint);font-size:15px;font-family:'Fraunces',serif;font-style:italic;text-align:center;padding:20px}
 
     /* Summary card */
     #tab-performance .summary .neon-inner{padding:22px 26px;justify-content:space-between}
-    #tab-performance .s-head{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:var(--aur-text-faint);margin-bottom:12px}
+    #tab-performance .s-head{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:var(--aur-text-faint);margin-bottom:12px}
     #tab-performance .s-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--aur-border-subtle)}
     #tab-performance .s-row:last-child{border-bottom:none}
-    #tab-performance .s-key{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:var(--aur-text-muted)}
-    #tab-performance .s-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
+    #tab-performance .s-key{font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--aur-text-muted)}
+    #tab-performance .s-val{font-family:'Inter',sans-serif;font-size:14px;font-weight:600;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
     #tab-performance .s-val.good{color:var(--st-green)}
     #tab-performance .s-val.warn{color:var(--st-amber)}
     #tab-performance .s-val.bad{color:var(--st-red)}
@@ -796,10 +766,10 @@
     /* Thresholds modal gets Aurora treatment */
     body.on-performance .perf-thresh-backdrop.open{background:rgba(10,11,26,0.75);backdrop-filter:blur(6px)}
     body.on-performance .perf-thresh-modal{background:#0a0b1a;border:1px solid rgba(var(--p-primary-rgb),0.3);color:#e0dce8}
-    body.on-performance .perf-thresh-modal h3{font-family:'Cormorant Garamond',serif;font-style:italic;color:#e8e4f0}
+    body.on-performance .perf-thresh-modal h3{font-family:'Fraunces',serif;font-style:italic;color:#e8e4f0}
     body.on-performance .perf-thresh-modal .thresh-row{border-bottom:1px solid rgba(255,255,255,0.06);color:#e0dce8}
     body.on-performance .perf-thresh-modal .thresh-label{color:#e8e4f0}
-    body.on-performance .perf-thresh-modal .thresh-detail{color:#9a95a8;font-family:'JetBrains Mono',monospace;font-size:12px}
+    body.on-performance .perf-thresh-modal .thresh-detail{color:#9a95a8;font-family:'Inter',sans-serif;font-size:12px}
     body.on-performance .perf-thresh-modal .close-btn{background:#10B981;color:#002}
   </style>
 </head>
@@ -860,79 +830,88 @@
     <section id="tab-dashboard" class="tabPane">
       <div class="dash-page">
 
-        <!-- Hero -->
-        <div class="dash-hero">
-          <h1 class="dash-greeting" id="dashGreeting">Good morning, Lawrence.</h1>
-          <div class="dash-meta">
-            <span class="dot"></span>
-            <span class="date" id="dashDate"></span>
-            <span class="clock" id="dashClock">--:--:--</span>
-          </div>
-        </div>
-
-        <!-- Stats -->
-        <div class="dash-stats">
-          <div class="neon st-1"><div class="neon-inner">
-            <div class="st-label">Total Agencies</div>
-            <div class="st-num" id="dashTotal">0</div>
-            <div class="st-delta"><span class="d"></span><span id="dashTotalSub">--</span></div>
-          </div></div>
-          <div class="neon st-2"><div class="neon-inner">
-            <div class="st-label">Contacted Today</div>
-            <div class="st-num" id="dashContactedToday">0</div>
-            <div class="st-delta"><span class="d"></span><span id="dashContactedTodaySub">--</span></div>
-          </div></div>
-          <div class="neon st-3"><div class="neon-inner">
-            <div class="st-label">Replies</div>
-            <div class="st-num" id="dashReplies">0</div>
-            <div class="st-delta"><span class="d"></span><span id="dashRepliesSub">--</span></div>
-          </div></div>
-          <div class="neon st-4"><div class="neon-inner">
-            <div class="st-label">Calls Booked</div>
-            <div class="st-num" id="dashCallsBooked">0</div>
-            <div class="st-delta"><span class="d"></span><span id="dashCallsBookedSub">--</span></div>
-          </div></div>
-        </div>
-
-        <!-- Main 3×2 grid -->
         <div class="dash-main">
-          <div class="neon cell-funnel"><div class="neon-inner">
-            <div class="sec-label">Pipeline Funnel</div>
-            <div class="aur-funnel" id="dashFunnelRows"></div>
-          </div></div>
 
-          <div class="neon cell-activity"><div class="neon-inner">
-            <div class="aur-wa-head">
-              <div class="sec-label" style="margin-bottom:0">Weekly Activity</div>
-              <div class="aur-wa-legend">
-                <span><span class="d d-sent"></span>Sent</span>
-                <span><span class="d d-rep"></span>Replies</span>
+          <!-- Row 1: Hero + Rule of 100 -->
+          <div class="hero-row">
+            <div class="neon"><div class="neon-inner">
+              <div class="dash-hero">
+                <h1 class="dash-greeting" id="dashGreeting">Good morning, Lawrence.</h1>
+                <div class="dash-meta">
+                  <span class="dot"></span>
+                  <span class="date" id="dashDate"></span>
+                  <span class="clock" id="dashClock">--:--:--</span>
+                </div>
               </div>
-            </div>
-            <div class="aur-wa-chart" id="dashBarChart"></div>
-            <div id="dashBarLabels" style="display:none"></div>
-            <div id="dashBarEmpty" class="aur-wa-empty" style="display:none">Start sending emails to see weekly activity</div>
-          </div></div>
+            </div></div>
+            <div class="neon"><div class="neon-inner">
+              <div class="sec-head">
+                <div class="sec-label">Rule of 100 &mdash; Today</div>
+                <div class="sec-sub">target 30 &middot; 30 &middot; 20 &middot; 20</div>
+              </div>
+              <div class="r100-head">
+                <div class="r100-big"><span id="dashR100Total">0</span><span class="of">/100</span></div>
+                <div class="r100-pct" id="dashR100Pct">0%</div>
+              </div>
+              <div class="r100-bar"><span id="dashR100Bar" style="width:0%"></span></div>
+              <div class="r100-grid" id="dashR100Grid"></div>
+            </div></div>
+          </div>
 
-          <div class="neon cell-recent"><div class="neon-inner">
-            <div class="sec-label">Recent Activity</div>
-            <div class="aur-feed" id="dashActivityFeed"></div>
-          </div></div>
+          <!-- Row 2: 4 KPIs -->
+          <div class="kpi-row">
+            <div class="neon st-1"><div class="neon-inner">
+              <div class="st-label">Total Agencies</div>
+              <div class="st-num" id="dashTotal">0</div>
+              <div class="st-delta"><span class="d"></span><span id="dashTotalSub">--</span></div>
+            </div></div>
+            <div class="neon st-2"><div class="neon-inner">
+              <div class="st-label">Contacted Today</div>
+              <div class="st-num" id="dashContactedToday">0</div>
+              <div class="st-delta"><span class="d"></span><span id="dashContactedTodaySub">--</span></div>
+            </div></div>
+            <div class="neon st-3"><div class="neon-inner">
+              <div class="st-label">Replies</div>
+              <div class="st-num" id="dashReplies">0</div>
+              <div class="st-delta"><span class="d"></span><span id="dashRepliesSub">--</span></div>
+            </div></div>
+            <div class="neon st-4"><div class="neon-inner">
+              <div class="st-label">Calls Booked</div>
+              <div class="st-num" id="dashCallsBooked">0</div>
+              <div class="st-delta"><span class="d"></span><span id="dashCallsBookedSub">--</span></div>
+            </div></div>
+          </div>
 
-          <div class="neon cell-priority"><div class="neon-inner">
-            <div class="sec-label">Priority Breakdown</div>
-            <div class="aur-pri" id="dashPriority"></div>
-          </div></div>
+          <!-- Row 3: Today's Tasks (full width) -->
+          <div class="tasks-row">
+            <div class="neon"><div class="neon-inner">
+              <div class="sec-head">
+                <div class="sec-label">Today's Tasks</div>
+                <div class="sec-sub">click a row to jump to the filtered view</div>
+              </div>
+              <div class="task-list" id="dashTaskList"></div>
+            </div></div>
+          </div>
 
-          <div class="neon aur-action cell-action"><div class="neon-inner">
-            <div class="aur-action-head">
-              <div class="sec-label" style="margin-bottom:0">Action Required</div>
-              <div class="aur-action-count"><strong id="dashActionCount">0</strong> need attention</div>
-            </div>
-            <div class="aur-action-list" id="dashActionList"></div>
-          </div></div>
+          <!-- Row 4: Pipeline Funnel + Sequence Stages -->
+          <div class="funnel-row">
+            <div class="neon"><div class="neon-inner">
+              <div class="sec-head">
+                <div class="sec-label">Pipeline Funnel</div>
+                <div class="sec-sub">by status</div>
+              </div>
+              <div class="aur-funnel" id="dashFunnelRows"></div>
+            </div></div>
+            <div class="neon"><div class="neon-inner">
+              <div class="sec-head">
+                <div class="sec-label">Sequence Stages</div>
+                <div class="sec-sub">where each lead sits</div>
+              </div>
+              <div class="aur-funnel" id="dashSequenceRows"></div>
+            </div></div>
+          </div>
+
         </div>
-
       </div>
     </section>
 
@@ -1221,7 +1200,7 @@
         <div class="form-row"><div><label>Phone</label><input id="e_phone" type="text"></div><div class="w100"><label>Google Rating</label><input id="e_googleRating" type="text"></div><div class="w100"><label>Reviews</label><input id="e_reviewCount" type="text"></div></div>
         <div class="form-row"><div><label>Director Name</label><input id="e_directorName" type="text"></div><div><label>Director Email</label><input id="e_directorEmail" type="email"></div></div>
         <div class="form-row"><div><label>Lettings Email</label><input id="e_lettingsEmail" type="email" placeholder="lettings@agency.co.uk"></div><div><label>Director LinkedIn</label><input id="e_directorLinkedinUrl" type="url"></div></div>
-        <div class="form-row"><div class="w100"><label>Branches</label><input id="e_branchCount" type="text"></div></div>
+        <div class="form-row"><div class="w160"><label>LinkedIn Connection Date</label><input id="e_linkedinConnectedDate" type="date"></div><div class="w100"><label>Branches</label><input id="e_branchCount" type="text"></div></div>
         <div class="form-row">
           <div class="w120"><label>Rightmove</label><select id="e_rightmoveListed"><option value="">-</option><option>Yes</option><option>No</option></select></div>
           <div class="w160"><label>Existing Tool</label><select id="e_existingTool"><option value="">-</option><option>None</option><option>Klikkit</option><option>SalesRook</option><option>Yomdel</option><option>Other</option></select></div>
@@ -1319,6 +1298,7 @@
       lettingsSentDate:'lettings_sent_date',
       followUpDate:'follow_up_date',
       directorLinkedinUrl:'director_linkedin_url', linkedinConnected:'linkedin_connected',
+      linkedinConnectedDate:'linkedin_connected_date',
       linkedinMessage1Date:'linkedin_message1_date', linkedinMessage2Date:'linkedin_message2_date',
       linkedinMessage3Date:'linkedin_message3_date',
       notes:'notes', customObservation:'custom_observation',
@@ -1329,7 +1309,7 @@
       subjectLine:'subject_line', ctaVariant:'cta_variant'
     };
     const SB_REVERSE_MAP = Object.fromEntries(Object.entries(SB_FIELD_MAP).map(([k,v])=>[v,k]));
-    const SB_DATE_FIELDS = new Set(['email1_sent_date','email2_date','email2_sent_date','email3_date','email3_sent_date','email4_date','email4_sent_date','lettings_sent_date','follow_up_date','linkedin_message1_date','linkedin_message2_date','linkedin_message3_date']);
+    const SB_DATE_FIELDS = new Set(['email1_sent_date','email2_date','email2_sent_date','email3_date','email3_sent_date','email4_date','email4_sent_date','lettings_sent_date','follow_up_date','linkedin_connected_date','linkedin_message1_date','linkedin_message2_date','linkedin_message3_date']);
     function leadToSnake(lead){ const row={}; for(const [k,v] of Object.entries(lead)){ const sk=SB_FIELD_MAP[k]; if(!sk) continue; let val=v; if(SB_DATE_FIELDS.has(sk)){ if(!val||val==='') val=null; else if(typeof val==='string'&&val.includes('T')) val=val.slice(0,10); } if(val===undefined) continue; row[sk]=val; } return row; }
     function rowToLead(row){ const lead={}; for(const [k,v] of Object.entries(row)){ const ck=SB_REVERSE_MAP[k]||k; lead[ck]=v; } return lead; }
     let leads = [];
@@ -1858,9 +1838,11 @@
     function renderDashboard(){
       const td=todayISO();
       const _s=id=>document.getElementById(id);
+      const TERMINAL=['Won','Lost','Unqualified','No Response'];
+      const REPLIED_STATUSES=['Replied','Interested','Call Booked','Proposal Sent','Won'];
       const total=leads.length;
       const contactedToday=leads.filter(l=>(l.email1SentDate||'').slice(0,10)===td||(l.dateAdded||'').slice(0,10)===td&&l.status!=='New').length;
-      const replied=leads.filter(l=>l.status==='Replied'||l.status==='Interested'||l.status==='Call Booked'||l.status==='Proposal Sent'||l.status==='Won').length;
+      const replied=leads.filter(l=>REPLIED_STATUSES.includes(l.status)).length;
       const callsBooked=leads.filter(l=>l.status==='Call Booked').length;
       const contacted=leads.filter(l=>l.status!=='New'&&l.status!=='Unqualified').length;
 
@@ -1877,7 +1859,7 @@
         _s('dashDate').textContent=days[d.getDay()]+', '+day+suffix+' '+months[d.getMonth()]+' '+d.getFullYear();
       }
 
-      // Stats
+      // KPI stats (unchanged)
       if(_s('dashTotal')) _s('dashTotal').textContent=total;
       if(_s('dashTotalSub')) _s('dashTotalSub').textContent=contacted+' contacted';
       if(_s('dashContactedToday')) _s('dashContactedToday').textContent=contactedToday;
@@ -1887,7 +1869,58 @@
       if(_s('dashCallsBooked')) _s('dashCallsBooked').textContent=callsBooked;
       if(_s('dashCallsBookedSub')) _s('dashCallsBookedSub').textContent=leads.filter(l=>l.status==='Won').length+' won';
 
-      // Pipeline Funnel — Aurora structure
+      // Rule of 100 — today's pace against 30/30/20/20 target
+      const fresh=leads.filter(l=>(l.email1SentDate||'').slice(0,10)===td).length;
+      const followUps=leads.filter(l=>[l.email2SentDate,l.email3SentDate,l.email4SentDate].some(d=>(d||'').slice(0,10)===td)).length;
+      const dms=leads.filter(l=>[l.linkedinMessage1Date,l.linkedinMessage2Date,l.linkedinMessage3Date].some(d=>(d||'').slice(0,10)===td)).length;
+      const conns=leads.filter(l=>(l.linkedinConnectedDate||'').slice(0,10)===td).length;
+      const r100Total=fresh+followUps+dms+conns;
+      const r100Pct=Math.round((r100Total/100)*100);
+      if(_s('dashR100Total')) _s('dashR100Total').textContent=r100Total;
+      if(_s('dashR100Pct')) _s('dashR100Pct').textContent=r100Pct+'%';
+      if(_s('dashR100Bar')) _s('dashR100Bar').style.width=Math.min(r100Pct,100)+'%';
+      const r100Grid=_s('dashR100Grid');
+      if(r100Grid){
+        const cells=[
+          {k:'Fresh sends',v:fresh,target:30},
+          {k:'Follow-ups',v:followUps,target:30},
+          {k:'LinkedIn DMs',v:dms,target:20},
+          {k:'Connections',v:conns,target:20}
+        ];
+        r100Grid.innerHTML=cells.map(c=>{
+          const pct=Math.min(Math.round((c.v/c.target)*100),100);
+          return '<div class="r100-cell"><div class="k">'+c.k+'</div><div class="v">'+c.v+'<span class="of">/'+c.target+'</span></div><div class="minibar"><span style="width:'+pct+'%"></span></div></div>';
+        }).join('');
+      }
+
+      // Today's Tasks — packaged from Action Required logic
+      const taskList=_s('dashTaskList');
+      if(taskList){
+        const overdueCount=leads.filter(l=>!TERMINAL.includes(l.status)&&l.followUpDate&&normDateStr(l.followUpDate)<td).length;
+        const todayCount=leads.filter(l=>!TERMINAL.includes(l.status)&&l.followUpDate&&normDateStr(l.followUpDate)===td).length;
+        const replyCount=leads.filter(l=>l.status==='Replied').length;
+        const rows=[
+          {chip:'overdue',chipTxt:'Overdue',count:overdueCount,
+           label:overdueCount?(overdueCount===1?'1 follow-up past due — review and send':overdueCount+' follow-ups past due — review and send'):'No follow-ups past due — clean slate',
+           action:overdueCount?()=>{ showTab('followups'); }:null},
+          {chip:'today',chipTxt:'Today',count:todayCount,
+           label:todayCount?(todayCount===1?'1 follow-up due today':todayCount+' follow-ups due today'):'No follow-ups due today',
+           action:todayCount?()=>{ showTab('followups'); }:null},
+          {chip:'reply',chipTxt:'Reply',count:replyCount,
+           label:replyCount?(replyCount===1?'Lead replied — needs a response from you':replyCount+' leads replied — need a response from you'):'No replies waiting',
+           action:replyCount?()=>{ showTab('pipeline'); const btn=document.querySelector('.status-filter-btn[data-status="Replied"]'); if(btn) btn.click(); }:null}
+        ];
+        taskList.innerHTML='';
+        rows.forEach(r=>{
+          const row=document.createElement('div');
+          row.className='task'+(r.action?'':' noop');
+          row.innerHTML='<span class="chip '+r.chip+'">'+r.chipTxt+'</span><span class="count">'+r.count+'</span><span class="label">'+r.label+'</span><span class="arrow">'+(r.action?'→':'—')+'</span>';
+          if(r.action) row.addEventListener('click',r.action);
+          taskList.appendChild(row);
+        });
+      }
+
+      // Pipeline Funnel (unchanged)
       const funnelEl=_s('dashFunnelRows');
       if(funnelEl){
         const t=total||1;
@@ -1908,107 +1941,22 @@
         }).join('');
       }
 
-      // Priority breakdown — Aurora structure
-      const prioEl=_s('dashPriority');
-      if(prioEl){
-        const g=leads.filter(l=>l.priority==='Green').length;
-        const a=leads.filter(l=>l.priority==='Amber').length;
-        const sk=leads.filter(l=>l.priority==='Skip').length;
-        prioEl.innerHTML=
-          '<div class="aur-pri-card green"><div class="aur-pri-label">Green</div><div class="aur-pri-val">'+g+'</div><div class="aur-pri-sub">high intent</div></div>'+
-          '<div class="aur-pri-card amber"><div class="aur-pri-label">Amber</div><div class="aur-pri-val">'+a+'</div><div class="aur-pri-sub">mixed signals</div></div>'+
-          '<div class="aur-pri-card skip"><div class="aur-pri-label">Skip</div><div class="aur-pri-val">'+sk+'</div><div class="aur-pri-sub">deprioritised</div></div>';
-      }
-
-      // Weekly bar chart — Aurora structure, percentage-based bar heights (parent flex:1)
-      const barChart=_s('dashBarChart'); const barEmpty=_s('dashBarEmpty');
-      if(barChart){
-        const weekMap={};
-        const getWeekKey=dateStr=>{ if(!dateStr) return null; const d=new Date(normDateStr(dateStr)||dateStr); if(isNaN(d.getTime())) return null; const jan1=new Date(d.getFullYear(),0,1); const weekNum=Math.ceil(((d-jan1)/86400000+jan1.getDay()+1)/7); return d.getFullYear()+'-W'+String(weekNum).padStart(2,'0'); };
-        const getWeekStart=dateStr=>{ if(!dateStr) return null; const d=new Date(normDateStr(dateStr)||dateStr); if(isNaN(d.getTime())) return null; const day=d.getDay(); const diff=d.getDate()-day+(day===0?-6:1); return new Date(d.getFullYear(),d.getMonth(),diff); };
-        leads.forEach(l=>{
-          if(l.email1SentDate){ const wk=getWeekKey(l.email1SentDate); if(wk){ if(!weekMap[wk]) weekMap[wk]={sent:0,replies:0,start:getWeekStart(l.email1SentDate)}; weekMap[wk].sent++; } }
-          if(l.status==='Replied'||l.status==='Interested'||l.status==='Call Booked'){ const rwk=getWeekKey(l.email1SentDate||l.dateAdded); if(rwk){ if(!weekMap[rwk]) weekMap[rwk]={sent:0,replies:0,start:getWeekStart(l.email1SentDate||l.dateAdded)}; weekMap[rwk].replies++; } }
-        });
-        const rawKeys=Object.keys(weekMap).sort();
-        let allWeeks=rawKeys.length>=2?[]:[...rawKeys];
-        if(rawKeys.length>=2){
-          const first=weekMap[rawKeys[0]].start; const last=weekMap[rawKeys[rawKeys.length-1]].start;
-          if(first&&last){ const cursor=new Date(first); while(cursor<=last){ const jan1=new Date(cursor.getFullYear(),0,1); const wn=Math.ceil(((cursor-jan1)/86400000+jan1.getDay()+1)/7); const wk=cursor.getFullYear()+'-W'+String(wn).padStart(2,'0'); if(!weekMap[wk]) weekMap[wk]={sent:0,replies:0,start:new Date(cursor)}; allWeeks.push(wk); cursor.setDate(cursor.getDate()+7); } }
-        }
-        allWeeks=[...new Set(allWeeks)].sort();
-        const last5=allWeeks.slice(-5);
-        if(!last5.length){ barChart.style.display='none'; if(barEmpty) barEmpty.style.display='flex'; }
-        else {
-          barChart.style.display='flex'; if(barEmpty) barEmpty.style.display='none';
-          const maxVal=Math.max(...last5.map(k=>weekMap[k].sent),1);
-          const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-          let _pm='';
-          barChart.innerHTML=last5.map((k,idx)=>{
-            const w=weekMap[k];
-            const sPct=Math.round((w.sent/maxVal)*100);
-            const rPct=Math.round((w.replies/maxVal)*100);
-            let lbl;
-            const ws=w.start;
-            if(ws){ const m=months[ws.getMonth()]; const sm=(m!==_pm); _pm=m; lbl=(sm?m+' ':'')+ws.getDate(); }
-            else lbl=k;
-            if(idx===last5.length-1) lbl='This wk';
-            return '<div class="aur-wa-col"><div class="aur-wa-count">'+(w.sent||'')+'</div><div class="aur-wa-bars"><span class="aur-wa-bar sent" style="height:'+sPct+'%"></span><span class="aur-wa-bar rep" style="height:'+rPct+'%"></span></div><span class="aur-wa-label">'+lbl+'</span></div>';
-          }).join('');
-        }
-      }
-
-      // Recent Activity — Aurora structure
-      const actFeed=_s('dashActivityFeed');
-      if(actFeed){
-        const _ago=dateStr=>{ if(!dateStr) return ''; const d=new Date(normDateStr(dateStr)||dateStr); if(isNaN(d.getTime())) return ''; const days=Math.round((new Date(td)-d)/86400000); if(days<0) return ''; if(days===0) return 'Today'; if(days===1) return '1d ago'; if(days<7) return days+'d ago'; return Math.floor(days/7)+'w ago'; };
-        const acts=[];
-        leads.forEach(l=>{
-          const name=escapeHtml(l.agencyName||'');
-          if(l.email1SentDate) acts.push({action:'Email 1 sent to',name,date:l.email1SentDate,kind:'sent'});
-          if(l.email2SentDate) acts.push({action:'Email 2 sent to',name,date:l.email2SentDate,kind:'sent'});
-          if(l.email3SentDate) acts.push({action:'Email 3 sent to',name,date:l.email3SentDate,kind:'sent'});
-          if(l.linkedinMessage1Date) acts.push({action:'LinkedIn msg 1 to',name,date:l.linkedinMessage1Date,kind:'sent'});
-          if(l.status==='Replied') acts.push({action:'replied',name,date:l.email1SentDate||l.dateAdded||'',kind:'rep'});
-          if(l.status==='Call Booked') acts.push({action:'Call booked with',name,date:l.dateAdded||'',kind:'call'});
-        });
-        acts.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-        const top5=acts.slice(0,5);
-        if(top5.length){
-          actFeed.innerHTML=top5.map(g=>{
-            const ago=_ago(g.date);
-            const dotCls=g.kind==='rep'?'d-rep':g.kind==='call'?'d-call':'';
-            const text=g.kind==='rep'?'<strong>'+g.name+'</strong> replied':g.action+' <strong>'+g.name+'</strong>';
-            return '<div class="aur-feed-item"><span class="aur-feed-dot '+dotCls+'"></span><span class="aur-feed-text">'+text+'</span>'+(ago?'<span class="aur-feed-time">'+ago+'</span>':'')+'</div>';
-          }).join('');
-        } else { actFeed.innerHTML='<div class="aur-feed-empty">No recent activity</div>'; }
-      }
-
-      // Action Required — Aurora structure
-      const actionList=_s('dashActionList');
-      const actionCountEl=_s('dashActionCount');
-      if(actionList){
-        const overdueItems=[];
-        leads.forEach(l=>{
-          if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified') return;
-          if(l.status==='Replied') { overdueItems.push({lead:l,kind:'reply'}); return; }
-          if(l.followUpDate&&normDateStr(l.followUpDate)<=td){
-            const isOverdue=normDateStr(l.followUpDate)<td;
-            overdueItems.push({lead:l,kind:isOverdue?'overdue':'today'});
-          }
-        });
-        if(actionCountEl) actionCountEl.textContent=overdueItems.length;
-        if(!overdueItems.length){ actionList.innerHTML='<div class="aur-action-empty">All clear — no follow-ups due.</div>'; return; }
-        actionList.innerHTML='';
-        overdueItems.slice(0,6).forEach(item=>{
-          const l=item.lead;
-          const chipCls=item.kind==='overdue'?'overdue':item.kind==='reply'?'reply':'today';
-          const chipTxt=item.kind==='overdue'?'Overdue':item.kind==='reply'?'Reply':'Today';
-          const row=document.createElement('div'); row.className='aur-action-row';
-          row.innerHTML='<span class="aur-action-dot"></span><span class="aur-action-name">'+escapeHtml(l.agencyName||'(no name)')+'</span><span class="aur-action-chip '+chipCls+'">'+chipTxt+'</span><span class="aur-action-arrow">→</span>';
-          row.addEventListener('click',()=>openLeadDetail(l.id));
-          actionList.appendChild(row);
-        });
+      // Sequence Stages — where each lead sits in the email cadence
+      const seqEl=_s('dashSequenceRows');
+      if(seqEl){
+        const t=total||1;
+        const stages=[
+          {label:'Not sent',count:leads.filter(l=>!l.email1SentDate).length},
+          {label:'Initial (E1)',count:leads.filter(l=>l.email1SentDate&&!l.email2SentDate).length},
+          {label:'FU1 (E2)',count:leads.filter(l=>l.email2SentDate&&!l.email3SentDate).length},
+          {label:'FU2 (E3)',count:leads.filter(l=>l.email3SentDate&&!l.email4SentDate).length},
+          {label:'FU3 (E4)',count:leads.filter(l=>l.email4SentDate&&!l.lettingsSentDate).length},
+          {label:'Lettings 2nd',count:leads.filter(l=>l.lettingsSentDate).length}
+        ];
+        seqEl.innerHTML=stages.map(r=>{
+          const pct=Math.round((r.count/t)*100);
+          return '<div class="aur-f-row"><span class="aur-f-label">'+r.label+'</span><span class="aur-f-track"><span class="aur-f-fill" style="width:'+pct+'%"></span></span><span class="aur-f-val">'+r.count+'</span><span class="aur-f-pct">'+pct+'%</span></div>';
+        }).join('');
       }
     }
 
@@ -2158,7 +2106,7 @@
       const content=document.getElementById('leadDetailContent');
       if(title) title.textContent=lead.agencyName||'Agency Details';
       if(content){
-        content.innerHTML='<div class="expand-grid"><div class="expand-field"><span class="ef-label">Status</span><span class="ef-val" style="color:'+( STATUS_COLORS[lead.status]||'#6b7280')+'">'+escapeHtml(lead.status)+'</span></div><div class="expand-field"><span class="ef-label">Priority</span><span class="ef-val">'+escapeHtml(lead.priority||'-')+'</span></div><div class="expand-field"><span class="ef-label">Director</span><span class="ef-val">'+escapeHtml(lead.directorName||'-')+'</span></div><div class="expand-field"><span class="ef-label">Email</span><span class="ef-val">'+escapeHtml(lead.directorEmail||'-')+'</span></div>'+(lead.lettingsEmail?'<div class="expand-field"><span class="ef-label">Lettings Email</span><span class="ef-val">'+escapeHtml(lead.lettingsEmail)+'</span></div>':'')+'<div class="expand-field"><span class="ef-label">Phone</span><span class="ef-val">'+escapeHtml(lead.phone||'-')+'</span></div><div class="expand-field"><span class="ef-label">Website</span><span class="ef-val">'+(lead.websiteUrl?'<a href="'+escapeHtml(lead.websiteUrl)+'" target="_blank" style="color:var(--accent)">'+escapeHtml(lead.websiteUrl)+'</a>':'-')+'</span></div><div class="expand-field"><span class="ef-label">City</span><span class="ef-val">'+escapeHtml(lead.city||'-')+'</span></div><div class="expand-field"><span class="ef-label">Address</span><span class="ef-val">'+escapeHtml(lead.address||'-')+'</span></div><div class="expand-field"><span class="ef-label">Google Rating</span><span class="ef-val">'+escapeHtml(lead.googleRating||'-')+' ('+escapeHtml(lead.reviewCount||'0')+' reviews)</span></div><div class="expand-field"><span class="ef-label">Branches</span><span class="ef-val">'+escapeHtml(lead.branchCount||'-')+'</span></div><div class="expand-field"><span class="ef-label">Rightmove Listed</span><span class="ef-val">'+escapeHtml(lead.rightmoveListed||'-')+'</span></div><div class="expand-field"><span class="ef-label">Existing Tool</span><span class="ef-val">'+escapeHtml(lead.existingTool||'-')+'</span></div><div class="expand-field"><span class="ef-label">Follow-Up Date</span><span class="ef-val">'+escapeHtml(formatDateFull(lead.followUpDate)||'-')+'</span></div><div class="expand-field"><span class="ef-label">Email Sequence</span><span class="ef-val">E1: '+(lead.email1SentDate?formatDateShort(lead.email1SentDate):'-')+' / E2: '+(lead.email2SentDate?formatDateShort(lead.email2SentDate):'-')+' / E3: '+(lead.email3SentDate?formatDateShort(lead.email3SentDate):'-')+'</span></div><div class="expand-field"><span class="ef-label">LinkedIn</span><span class="ef-val">Connected: '+escapeHtml(lead.linkedinConnected||'-')+' / Msg 1: '+(lead.linkedinMessage1Date?formatDateShort(lead.linkedinMessage1Date):'-')+' / Msg 2: '+(lead.linkedinMessage2Date?formatDateShort(lead.linkedinMessage2Date):'-')+' / Msg 3: '+(lead.linkedinMessage3Date?formatDateShort(lead.linkedinMessage3Date):'-')+'</span></div>'+'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Sequence Schedule</span><span class="ef-val">Email 2 '+(lead.email2Date?formatDateFull(lead.email2Date):'-')+' &middot; Email 3 '+(lead.email3Date?formatDateFull(lead.email3Date):'-')+' &middot; Email 4 '+(lead.email4Date?formatDateFull(lead.email4Date):'-')+'</span></div>'+(lead.customObservation?'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Custom Observation</span><span class="ef-val" style="white-space:pre-wrap">'+escapeHtml(lead.customObservation)+'</span></div>':'')+''+(lead.notes?'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Notes</span><span class="ef-val" style="white-space:pre-wrap">'+escapeHtml(lead.notes)+'</span></div>':'')+'</div>'+'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Update Status</div><div style="display:flex;gap:6px;flex-wrap:wrap" id="statusBtnsWrap"></div></div><div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" id="ldEditBtn">Edit</button><button class="btn btn-ghost btn-sm" id="ldComposeBtn">Compose Email</button><button class="btn btn-ghost btn-sm btn-delete" id="ldDeleteBtn">Delete</button></div>';
+        content.innerHTML='<div class="expand-grid"><div class="expand-field"><span class="ef-label">Status</span><span class="ef-val" style="color:'+( STATUS_COLORS[lead.status]||'#6b7280')+'">'+escapeHtml(lead.status)+'</span></div><div class="expand-field"><span class="ef-label">Priority</span><span class="ef-val">'+escapeHtml(lead.priority||'-')+'</span></div><div class="expand-field"><span class="ef-label">Director</span><span class="ef-val">'+escapeHtml(lead.directorName||'-')+'</span></div><div class="expand-field"><span class="ef-label">Email</span><span class="ef-val">'+escapeHtml(lead.directorEmail||'-')+'</span></div>'+(lead.lettingsEmail?'<div class="expand-field"><span class="ef-label">Lettings Email</span><span class="ef-val">'+escapeHtml(lead.lettingsEmail)+'</span></div>':'')+'<div class="expand-field"><span class="ef-label">Phone</span><span class="ef-val">'+escapeHtml(lead.phone||'-')+'</span></div><div class="expand-field"><span class="ef-label">Website</span><span class="ef-val">'+(lead.websiteUrl?'<a href="'+escapeHtml(lead.websiteUrl)+'" target="_blank" style="color:var(--accent)">'+escapeHtml(lead.websiteUrl)+'</a>':'-')+'</span></div><div class="expand-field"><span class="ef-label">City</span><span class="ef-val">'+escapeHtml(lead.city||'-')+'</span></div><div class="expand-field"><span class="ef-label">Address</span><span class="ef-val">'+escapeHtml(lead.address||'-')+'</span></div><div class="expand-field"><span class="ef-label">Google Rating</span><span class="ef-val">'+escapeHtml(lead.googleRating||'-')+' ('+escapeHtml(lead.reviewCount||'0')+' reviews)</span></div><div class="expand-field"><span class="ef-label">Branches</span><span class="ef-val">'+escapeHtml(lead.branchCount||'-')+'</span></div><div class="expand-field"><span class="ef-label">Rightmove Listed</span><span class="ef-val">'+escapeHtml(lead.rightmoveListed||'-')+'</span></div><div class="expand-field"><span class="ef-label">Existing Tool</span><span class="ef-val">'+escapeHtml(lead.existingTool||'-')+'</span></div><div class="expand-field"><span class="ef-label">Follow-Up Date</span><span class="ef-val">'+escapeHtml(formatDateFull(lead.followUpDate)||'-')+'</span></div><div class="expand-field"><span class="ef-label">Email Sequence</span><span class="ef-val">E1: '+(lead.email1SentDate?formatDateShort(lead.email1SentDate):'-')+' / E2: '+(lead.email2SentDate?formatDateShort(lead.email2SentDate):'-')+' / E3: '+(lead.email3SentDate?formatDateShort(lead.email3SentDate):'-')+'</span></div><div class="expand-field"><span class="ef-label">LinkedIn</span><span class="ef-val">Connected: '+(lead.linkedinConnectedDate?formatDateShort(lead.linkedinConnectedDate):escapeHtml(lead.linkedinConnected||'-'))+' / Msg 1: '+(lead.linkedinMessage1Date?formatDateShort(lead.linkedinMessage1Date):'-')+' / Msg 2: '+(lead.linkedinMessage2Date?formatDateShort(lead.linkedinMessage2Date):'-')+' / Msg 3: '+(lead.linkedinMessage3Date?formatDateShort(lead.linkedinMessage3Date):'-')+'</span></div>'+'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Sequence Schedule</span><span class="ef-val">Email 2 '+(lead.email2Date?formatDateFull(lead.email2Date):'-')+' &middot; Email 3 '+(lead.email3Date?formatDateFull(lead.email3Date):'-')+' &middot; Email 4 '+(lead.email4Date?formatDateFull(lead.email4Date):'-')+'</span></div>'+(lead.customObservation?'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Custom Observation</span><span class="ef-val" style="white-space:pre-wrap">'+escapeHtml(lead.customObservation)+'</span></div>':'')+''+(lead.notes?'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Notes</span><span class="ef-val" style="white-space:pre-wrap">'+escapeHtml(lead.notes)+'</span></div>':'')+'</div>'+'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Update Status</div><div style="display:flex;gap:6px;flex-wrap:wrap" id="statusBtnsWrap"></div></div><div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" id="ldEditBtn">Edit</button><button class="btn btn-ghost btn-sm" id="ldComposeBtn">Compose Email</button><button class="btn btn-ghost btn-sm btn-delete" id="ldDeleteBtn">Delete</button></div>';
 
         // Status buttons
         const wrap=content.querySelector('#statusBtnsWrap');
@@ -2560,6 +2508,7 @@
       document.getElementById('e_directorEmail').value=lead.directorEmail||'';
       document.getElementById('e_lettingsEmail').value=lead.lettingsEmail||'';
       document.getElementById('e_directorLinkedinUrl').value=lead.directorLinkedinUrl||'';
+      document.getElementById('e_linkedinConnectedDate').value=(lead.linkedinConnectedDate||'').slice(0,10);
       document.getElementById('e_branchCount').value=lead.branchCount||'';
       document.getElementById('e_rightmoveListed').value=lead.rightmoveListed||'';
       document.getElementById('e_existingTool').value=lead.existingTool||'';
@@ -2585,6 +2534,7 @@
       lead.directorEmail=document.getElementById('e_directorEmail').value.trim();
       lead.lettingsEmail=document.getElementById('e_lettingsEmail').value.trim();
       lead.directorLinkedinUrl=document.getElementById('e_directorLinkedinUrl').value.trim();
+      lead.linkedinConnectedDate=document.getElementById('e_linkedinConnectedDate').value||'';
       lead.branchCount=document.getElementById('e_branchCount').value.trim();
       lead.rightmoveListed=document.getElementById('e_rightmoveListed').value;
       lead.existingTool=document.getElementById('e_existingTool').value;
