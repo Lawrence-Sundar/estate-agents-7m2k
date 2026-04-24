@@ -625,6 +625,182 @@
     #tab-dashboard .aur-action-arrow{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--aur-text-faint);opacity:0.4;transition:opacity .2s,transform .2s}
     #tab-dashboard .aur-action-row:hover .aur-action-arrow{opacity:1;transform:translateX(3px);color:var(--p-glow)}
     #tab-dashboard .aur-action-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--aur-text-faint);font-size:15px;font-family:'Cormorant Garamond',serif;font-style:italic}
+
+    /* ════════════════════════════════════════════════════════════════════
+       AURORA PERFORMANCE — scoped to #tab-performance only
+       Same palette as dashboard. Status colors (green/amber/red) map to
+       Aurora primary / warn / danger. Compute functions are unchanged —
+       only render markup / styling swaps.
+       ════════════════════════════════════════════════════════════════════ */
+    #tab-performance{
+      --p-primary:#10B981;--p-primary-rgb:16,185,129;
+      --p-secondary:#3B82F6;--p-secondary-rgb:59,130,246;
+      --p-glow:#06D6A0;--p-glow-rgb:6,214,160;
+      --st-green:#10B981;--st-green-rgb:16,185,129;
+      --st-amber:#F59E0B;--st-amber-rgb:245,158,11;
+      --st-red:#F87171;--st-red-rgb:248,113,113;
+      --aur-bg:#0a0b1a;
+      --aur-text-bright:#e8e4f0;
+      --aur-text-std:#e0dce8;
+      --aur-text-muted:#9a95a8;
+      --aur-text-faint:#6b6580;
+      --aur-border-subtle:rgba(255,255,255,0.04);
+      --aur-border-default:rgba(255,255,255,0.06);
+    }
+    body.on-performance #mainContent .content-topbar{display:none}
+
+    #tab-performance.tabPane.active{
+      display:flex !important;
+      flex-direction:column;
+      padding:0 !important;
+      overflow:hidden;
+      position:relative;
+      height:100%;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(16,185,129,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 90%, rgba(59,130,246,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 40% at 50% 50%, rgba(6,214,160,0.04) 0%, transparent 50%),
+        var(--aur-bg);
+      color:var(--aur-text-std);
+    }
+    #tab-performance .perf-page{
+      padding:22px 32px 24px;
+      display:flex;flex-direction:column;gap:16px;
+      flex:1;min-height:0;position:relative;z-index:2;
+    }
+    #tab-performance::after{
+      content:'';position:absolute;inset:0;
+      pointer-events:none;z-index:1;opacity:0.03;
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+    }
+
+    /* Hero */
+    #tab-performance .perf-hero{
+      flex:0 0 auto;
+      display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
+      padding-bottom:16px;border-bottom:1px solid var(--aur-border-default);
+    }
+    #tab-performance .perf-hero h1{
+      font-family:'Cormorant Garamond',serif;
+      font-weight:300;font-style:italic;font-size:48px;line-height:1;margin:0;
+      letter-spacing:-0.02em;
+      background:linear-gradient(120deg,var(--p-primary) 0%,var(--p-secondary) 55%,var(--p-glow) 100%);
+      background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+    #tab-performance .perf-sub{
+      margin-top:8px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:var(--aur-text-muted);
+    }
+    #tab-performance .perf-sub .mono{
+      font-family:'JetBrains Mono',monospace;font-style:normal;font-size:13px;color:var(--aur-text-faint);letter-spacing:0.08em;margin-left:8px;
+    }
+    #tab-performance .btn-thresh{
+      font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;
+      padding:12px 22px;background:transparent;border:1px solid rgba(var(--p-primary-rgb),0.3);color:var(--p-primary);
+      cursor:pointer;transition:border-color .2s,background .2s;
+    }
+    #tab-performance .btn-thresh:hover{border-color:var(--p-primary);background:rgba(var(--p-primary-rgb),0.08)}
+    #tab-performance .btn-thresh .arrow{margin-left:10px;opacity:0.6}
+
+    /* Neon card */
+    #tab-performance .neon{position:relative;padding:1px;border-radius:14px !important;overflow:hidden;background:transparent;isolation:isolate}
+    #tab-performance .neon::before{
+      content:'';position:absolute;top:50%;left:50%;
+      width:200%;height:200%;margin-top:-100%;margin-left:-100%;
+      background:conic-gradient(from 0deg,var(--p-primary),var(--p-secondary),var(--p-glow),var(--p-primary));
+      animation:aur-neon-spin 6s linear infinite;
+      opacity:var(--neon-opacity,0.28);
+      transition:opacity .3s;z-index:-1;
+    }
+    /* Status-tinted neon gradients per pillar */
+    #tab-performance .neon.status-green::before{background:conic-gradient(from 0deg,var(--st-green),var(--p-glow),var(--p-primary),var(--st-green))}
+    #tab-performance .neon.status-amber::before{background:conic-gradient(from 0deg,var(--st-amber),#FBBF24,var(--st-amber),#D97706)}
+    #tab-performance .neon.status-red::before{background:conic-gradient(from 0deg,var(--st-red),#DC2626,var(--st-red),#991B1B)}
+    #tab-performance .neon:hover::before{opacity:var(--neon-hover-opacity,0.6)}
+    #tab-performance .neon-inner{
+      background:var(--aur-bg);border-radius:13px !important;
+      padding:22px 26px;position:relative;z-index:1;height:100%;
+      display:flex;flex-direction:column;
+    }
+
+    /* Section label */
+    #tab-performance .sec-label{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.2em;color:var(--p-primary);margin-bottom:12px}
+
+    /* Pillars */
+    #tab-performance .pillars{flex:0 0 auto;display:flex;flex-direction:column;gap:14px}
+    #tab-performance .pillar{--neon-opacity:0.32;--neon-hover-opacity:0.65}
+    #tab-performance .pillar .neon-inner{
+      display:grid;grid-template-columns:60px 280px 1fr auto;
+      align-items:center;gap:28px;padding:22px 30px;
+    }
+    #tab-performance .p-icon{
+      width:48px;height:48px;display:flex;align-items:center;justify-content:center;
+      font-family:'JetBrains Mono',monospace;font-size:24px;
+      border:1.5px solid;border-color:var(--icon-col,var(--p-primary));
+      color:var(--icon-col,var(--p-primary));
+      background:color-mix(in srgb,var(--icon-col,var(--p-primary)) 8%,transparent);
+      border-radius:50% !important;
+    }
+    #tab-performance .pillar.status-green{--icon-col:var(--st-green)}
+    #tab-performance .pillar.status-amber{--icon-col:var(--st-amber)}
+    #tab-performance .pillar.status-red{--icon-col:var(--st-red)}
+    #tab-performance .p-head{display:flex;flex-direction:column;gap:8px}
+    #tab-performance .p-label{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.22em;color:var(--aur-text-faint)}
+    #tab-performance .p-num{font-family:'Cormorant Garamond',serif;font-weight:300;font-style:italic;font-size:54px;line-height:0.95;letter-spacing:-0.02em;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
+    #tab-performance .p-num .perf-pillar-unit{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--aur-text-faint);font-style:italic;margin-left:4px;font-weight:400}
+    #tab-performance .p-meta{display:flex;flex-direction:column;gap:12px;min-width:0}
+    #tab-performance .p-subs{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:var(--aur-text-std);line-height:1.5}
+    /* Support both .metric-value (legacy from compute fns) and .metric (Aurora-native) */
+    #tab-performance .p-subs .metric-value,
+    #tab-performance .p-subs .metric{
+      font-family:'JetBrains Mono',monospace;font-style:normal;font-size:14px;font-weight:600;
+      color:var(--aur-text-bright);font-variant-numeric:tabular-nums;margin-right:2px;
+    }
+    #tab-performance .p-bar{height:5px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden}
+    #tab-performance .p-bar-fill{
+      height:100%;
+      background:linear-gradient(90deg,var(--icon-col,var(--p-primary)),color-mix(in srgb,var(--icon-col,var(--p-primary)) 70%,var(--p-glow)));
+      box-shadow:0 0 12px color-mix(in srgb,var(--icon-col,var(--p-primary)) 40%,transparent);
+    }
+    #tab-performance .p-status{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;padding:6px 14px;border:1px solid;white-space:nowrap}
+    #tab-performance .pillar.status-green .p-status{color:var(--st-green);border-color:rgba(var(--st-green-rgb),0.35);background:rgba(var(--st-green-rgb),0.08)}
+    #tab-performance .pillar.status-amber .p-status{color:var(--st-amber);border-color:rgba(var(--st-amber-rgb),0.35);background:rgba(var(--st-amber-rgb),0.08)}
+    #tab-performance .pillar.status-red .p-status{color:var(--st-red);border-color:rgba(var(--st-red-rgb),0.35);background:rgba(var(--st-red-rgb),0.08)}
+
+    /* Bottom row: Notable (wide) + Summary (narrow) */
+    #tab-performance .bottom-grid{flex:1;min-height:0;display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+    #tab-performance .notable{--neon-opacity:0.3;--neon-hover-opacity:0.55}
+    #tab-performance .notable-list{flex:1;display:flex;flex-direction:column;gap:10px;padding-top:4px;overflow:hidden}
+    #tab-performance .n-item{display:flex;align-items:flex-start;gap:14px;padding:8px 2px;border-bottom:1px solid var(--aur-border-subtle)}
+    #tab-performance .n-item:last-child{border-bottom:none}
+    #tab-performance .n-marker{flex-shrink:0;margin-top:3px;width:7px;height:7px;background:var(--mk,var(--aur-text-faint));opacity:0.9}
+    #tab-performance .n-marker.ok{--mk:var(--st-green)}
+    #tab-performance .n-marker.warn{--mk:var(--st-amber)}
+    #tab-performance .n-marker.info{--mk:var(--p-secondary)}
+    #tab-performance .n-text{flex:1;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;color:var(--aur-text-std);line-height:1.4}
+    #tab-performance .n-text strong{font-weight:500;color:var(--aur-text-bright)}
+    #tab-performance .n-text .metric-value,
+    #tab-performance .n-text .metric{font-family:'JetBrains Mono',monospace;font-style:normal;font-size:13px;color:var(--p-glow);font-weight:600;letter-spacing:0.04em}
+    #tab-performance .n-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--aur-text-faint);font-size:15px;font-family:'Cormorant Garamond',serif;font-style:italic;text-align:center;padding:20px}
+
+    /* Summary card */
+    #tab-performance .summary .neon-inner{padding:22px 26px;justify-content:space-between}
+    #tab-performance .s-head{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.22em;text-transform:uppercase;color:var(--aur-text-faint);margin-bottom:12px}
+    #tab-performance .s-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--aur-border-subtle)}
+    #tab-performance .s-row:last-child{border-bottom:none}
+    #tab-performance .s-key{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;color:var(--aur-text-muted)}
+    #tab-performance .s-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
+    #tab-performance .s-val.good{color:var(--st-green)}
+    #tab-performance .s-val.warn{color:var(--st-amber)}
+    #tab-performance .s-val.bad{color:var(--st-red)}
+
+    /* Thresholds modal gets Aurora treatment */
+    body.on-performance .perf-thresh-backdrop.open{background:rgba(10,11,26,0.75);backdrop-filter:blur(6px)}
+    body.on-performance .perf-thresh-modal{background:#0a0b1a;border:1px solid rgba(var(--p-primary-rgb),0.3);color:#e0dce8}
+    body.on-performance .perf-thresh-modal h3{font-family:'Cormorant Garamond',serif;font-style:italic;color:#e8e4f0}
+    body.on-performance .perf-thresh-modal .thresh-row{border-bottom:1px solid rgba(255,255,255,0.06);color:#e0dce8}
+    body.on-performance .perf-thresh-modal .thresh-label{color:#e8e4f0}
+    body.on-performance .perf-thresh-modal .thresh-detail{color:#9a95a8;font-family:'JetBrains Mono',monospace;font-size:12px}
+    body.on-performance .perf-thresh-modal .close-btn{background:#10B981;color:#002}
   </style>
 </head>
 <body>
@@ -1358,40 +1534,54 @@
       const pipeline=computePipelineMetric(weekStart,weekEnd);
       const outcome=computeOutcomeMetric();
       const anomalies=computeAnomalies(weekStart);
+      const summary=computePerfSummary(td,weekStart,weekEnd,volume,pipeline,outcome);
       container.innerHTML=`
-        <div class="perf-header">
-          <div>
-            <h1>Performance</h1>
-            <div class="perf-subtitle">Are we on track? Week of ${fmtDateShort(weekStart)} to ${fmtDateShort(weekEnd)}</div>
+        <div class="perf-page">
+          <section class="perf-hero">
+            <div>
+              <h1>Performance</h1>
+              <div class="perf-sub">Are we on track? <span class="mono">WEEK OF ${fmtDateShort(weekStart).toUpperCase()} – ${fmtDateShort(weekEnd).toUpperCase()}</span></div>
+            </div>
+            <button type="button" class="btn-thresh" aria-label="View status thresholds" onclick="openPerfThresholdsModal()">View thresholds <span class="arrow">↗</span></button>
+          </section>
+          <div class="pillars">
+            ${renderPillarRow('Volume',volume)}
+            ${renderPillarRow('Pipeline',pipeline)}
+            ${renderPillarRow('Outcome',outcome)}
           </div>
-          <button type="button" class="perf-thresholds-btn" aria-label="View status thresholds" onclick="openPerfThresholdsModal()">View thresholds</button>
+          <div class="bottom-grid">
+            <div class="neon notable"><div class="neon-inner">
+              <div class="sec-label">Notable this week</div>
+              <div class="notable-list">${renderNotable(anomalies)}</div>
+            </div></div>
+            <div class="neon summary"><div class="neon-inner">
+              <div class="s-head">This Week Summary</div>
+              ${summary.map(r=>`<div class="s-row"><span class="s-key">${r.key}</span><span class="s-val ${r.tone||''}">${r.val}</span></div>`).join('')}
+            </div></div>
+          </div>
         </div>
-        ${renderPillarRow('Volume',volume)}
-        ${renderPillarRow('Pipeline',pipeline)}
-        ${renderPillarRow('Outcome',outcome)}
-        <div class="perf-notable">
-          <div class="perf-notable-heading">Notable this week</div>
-          <div class="perf-notable-list">${renderNotable(anomalies)}</div>
-        </div>
-        <div class="perf-footer">${renderPerfFooter()}</div>
       `;
     }
 
     function renderPillarRow(label,m){
       const icon=m.status==='green'?'\u25CF':m.status==='amber'?'\u25B2':'\u2715';
       const barWidth=Math.min(100,Math.max(0,m.barPercent||0));
+      const statusMatch=(m.submetrics||'').match(/<span class="perf-status-word status-\w+">([^<]+)<\/span>\s*$/);
+      const statusLabel=statusMatch?statusMatch[1]:(m.status==='green'?'ON TRACK':m.status==='amber'?'AT RISK':'OFF TRACK');
+      const subsCleaned=(m.submetrics||'').replace(/\s*&middot;\s*<span class="perf-status-word status-\w+">[^<]+<\/span>\s*$/,'');
       return `
-        <div class="perf-pillar status-${m.status}">
-          <div class="perf-pillar-icon status-${m.status}">${icon}</div>
-          <div class="perf-pillar-headline">
-            <div class="perf-pillar-label">${label}</div>
-            <div class="perf-pillar-number">${m.headline}</div>
+        <div class="neon pillar status-${m.status}"><div class="neon-inner">
+          <div class="p-icon">${icon}</div>
+          <div class="p-head">
+            <div class="p-label">${label}</div>
+            <div class="p-num">${m.headline}</div>
           </div>
-          <div class="perf-pillar-meta">
-            <div class="perf-pillar-submetrics">${m.submetrics}</div>
-            <div class="perf-pillar-bar"><div class="perf-pillar-bar-fill status-${m.status}" style="width:${barWidth}%"></div></div>
+          <div class="p-meta">
+            <div class="p-subs">${subsCleaned}</div>
+            <div class="p-bar"><div class="p-bar-fill" style="width:${barWidth}%"></div></div>
           </div>
-        </div>
+          <div class="p-status">${statusLabel}</div>
+        </div></div>
       `;
     }
 
@@ -1576,16 +1766,80 @@
       return anomalies.slice(0,5);
     }
 
+    function computePerfSummary(td,weekStart,weekEnd,volume,pipeline,outcome){
+      // Actions today — same formula as computeVolumeMetric (freshSends + followUps + linkedinDMs + leadsQualified)
+      let freshSends=0,followUps=0,linkedinDMs=0,leadsQualified=0;
+      leads.forEach(l=>{
+        if((l.email1SentDate||'').slice(0,10)===td) freshSends++;
+        if((l.email2SentDate||'').slice(0,10)===td||(l.email3SentDate||'').slice(0,10)===td) followUps++;
+        if((l.linkedinMessage1Date||'').slice(0,10)===td||(l.linkedinMessage2Date||'').slice(0,10)===td||(l.linkedinMessage3Date||'').slice(0,10)===td) linkedinDMs++;
+        if((l.dateAdded||'').slice(0,10)===td) leadsQualified++;
+      });
+      const actionsToday=freshSends+followUps+linkedinDMs+leadsQualified;
+      // Reply rate 14d — same formula as computeVolumeMetric
+      const fourteenDaysAgo=addDays(td,-14);
+      let sentLast14=0,repliedLast14=0;
+      leads.forEach(l=>{
+        const sent=firstSentDate(l);
+        if(sent && normDateStr(sent)>=fourteenDaysAgo && !isDoNotContact(l)){
+          sentLast14++;
+          if(isReplied(l)) repliedLast14++;
+        }
+      });
+      const replyRate=sentLast14>0?(repliedLast14/sentLast14*100):0;
+      // Calls booked this week — same activityLog-scan as computePipelineMetric
+      let callsBookedWk=0;
+      leads.forEach(l=>{
+        const log=Array.isArray(l.activityLog)?l.activityLog:[];
+        log.forEach(e=>{
+          if(!e||!e.date) return;
+          const ed=normDateStr(e.date);
+          if(ed<weekStart||ed>weekEnd) return;
+          if(e.action==='Status changed to Call Booked') callsBookedWk++;
+        });
+      });
+      // New leads added this week
+      let newThisWeek=0;
+      leads.forEach(l=>{
+        const da=normDateStr(l.dateAdded||'');
+        if(da && da>=weekStart && da<=weekEnd) newThisWeek++;
+      });
+      // Active pipeline — same as computePipelineMetric's inPipeline
+      let activePipeline=0;
+      leads.forEach(l=>{
+        if(l.status==='Call Booked'||l.status==='Proposal Sent') activePipeline++;
+      });
+      // Follow-ups due on/before today — not terminal/DNC
+      let fuDue=0;
+      leads.forEach(l=>{
+        if(isDoNotContact(l)) return;
+        if(isReplied(l)) return;
+        if(!l.followUpDate) return;
+        if(normDateStr(l.followUpDate)<=td) fuDue++;
+      });
+      // Clients won — direct status match (same as computeOutcomeMetric)
+      const clientsWon=leads.filter(l=>l.status==='Won').length;
+      return [
+        {key:'Actions today',val:String(actionsToday),tone:actionsToday>=80?'good':actionsToday>=50?'warn':'bad'},
+        {key:'Reply rate 14d',val:replyRate.toFixed(1)+'%',tone:replyRate>=1.5?'good':replyRate>=1.0?'warn':'bad'},
+        {key:'Calls booked wk',val:String(callsBookedWk),tone:callsBookedWk>=1?'good':''},
+        {key:'New this week',val:String(newThisWeek),tone:''},
+        {key:'Active pipeline',val:String(activePipeline),tone:''},
+        {key:'Follow-ups due',val:String(fuDue),tone:fuDue===0?'good':''},
+        {key:'Clients won',val:String(clientsWon),tone:clientsWon>=1?'good':''}
+      ];
+    }
+
     function renderNotable(anomalies){
       if(!anomalies.length){
-        return '<div class="perf-empty">No notable changes this week. Outreach steady.</div>';
+        return '<div class="n-empty">No notable changes this week. Outreach steady.</div>';
       }
       if(anomalies.length===1 && anomalies[0].type==='empty'){
-        return `<div class="perf-empty">${anomalies[0].text}</div>`;
+        return `<div class="n-empty">${anomalies[0].text}</div>`;
       }
       return anomalies.map(a=>{
-        const marker=a.type==='warn'?'<span class="marker-warn">&#9657;</span>':'<span class="marker-ok">\u2713</span>';
-        return `<div class="perf-notable-item">${marker}<span>${a.text}</span></div>`;
+        const cls=a.type==='warn'?'warn':a.type==='ok'?'ok':'info';
+        return `<div class="n-item"><span class="n-marker ${cls}"></span><div class="n-text">${a.text}</div></div>`;
       }).join('');
     }
 
@@ -2499,6 +2753,9 @@
       // Toggle Aurora on-dashboard body class (hides topbar, applies dashboard-scoped CSS)
       if(name==='dashboard'){ document.body.classList.add('on-dashboard'); _aurTickClock(); }
       else document.body.classList.remove('on-dashboard');
+      // Toggle Aurora on-performance body class (hides topbar, theming for thresholds modal)
+      if(name==='performance') document.body.classList.add('on-performance');
+      else document.body.classList.remove('on-performance');
       if(name==='email'){ populateEmailLeadDropdown(); refreshEmailPreview(); }
       if(name==='linkedin') renderLinkedIn();
       closeMobileSidebar();
