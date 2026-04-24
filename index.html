@@ -1606,7 +1606,8 @@
     }
 
     function renderPillarRow(label,m){
-      const icon=m.status==='green'?'\u25CF':m.status==='amber'?'\u25B2':'\u2715';
+      const labelIcons={Volume:'📈',Pipeline:'⚡',Outcome:'🎯'};
+      const icon=labelIcons[label]||'●';
       const barWidth=Math.min(100,Math.max(0,m.barPercent||0));
       const statusMatch=(m.submetrics||'').match(/<span class="perf-status-word status-\w+">([^<]+)<\/span>\s*$/);
       const statusLabel=statusMatch?statusMatch[1]:(m.status==='green'?'ON TRACK':m.status==='amber'?'AT RISK':'OFF TRACK');
