@@ -1192,9 +1192,6 @@
       <div id="pipelineFiltersPanel" style="display:none;margin-bottom:16px">
         <div class="card" style="padding:16px 20px">
           <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
-            <div class="filter-group"><span class="filter-inline-label">Priority</span>
-              <select id="pFilterPriority"><option value="All">All</option><option value="Green">Green</option><option value="Amber">Amber</option><option value="Skip">Skip</option></select>
-            </div>
             <div class="filter-group"><span class="filter-inline-label">City</span>
               <select id="pFilterCity"><option value="All">All</option><option value="London">London</option><option value="Manchester">Manchester</option><option value="Birmingham">Birmingham</option><option value="Leeds">Leeds</option><option value="Bristol">Bristol</option><option value="Edinburgh">Edinburgh</option><option value="Glasgow">Glasgow</option><option value="Other">Other</option></select>
             </div>
@@ -2208,7 +2205,7 @@
 
     // ---- Pipeline ----
     let expandedLeadId=null;
-    let pipelineFilter={status:'All',priority:'All',city:'All',tool:'All',sort:'newest'};
+    let pipelineFilter={status:'All',city:'All',tool:'All',sort:'newest'};
     let selectedPipelineIds=new Set();
     let _lastPipelineFiltered=[];
 
@@ -2233,7 +2230,6 @@
           if(sf==='Lost'&&l.status!=='Lost') return false;
         }
         // Secondary filters
-        if(pipelineFilter.priority!=='All'&&l.priority!==pipelineFilter.priority) return false;
         if(pipelineFilter.tool!=='All'){
           if(pipelineFilter.tool==='None'&&l.existingTool&&l.existingTool!=='None') return false;
           if(pipelineFilter.tool!=='None'&&l.existingTool!==pipelineFilter.tool) return false;
@@ -2270,7 +2266,7 @@
 
       // Update filter badge
       const fb=document.getElementById('pipelineFilterBadge');
-      const activeFilters=[pipelineFilter.priority,pipelineFilter.city,pipelineFilter.tool].filter(v=>v!=='All').length;
+      const activeFilters=[pipelineFilter.city,pipelineFilter.tool].filter(v=>v!=='All').length;
       if(fb) fb.style.display=activeFilters>0?'inline-block':'none';
 
       if(!filtered.length){ container.innerHTML='<div class="empty-state">No agencies match the current filters.</div>'; return; }
@@ -2279,11 +2275,10 @@
         const row=document.createElement('div'); row.className='lead-row';
         const main=document.createElement('div'); main.className='lead-row-main'+(selectedPipelineIds.has(l.id)?' row-selected':'');
 
-        const priorityHtml=l.priority?'<span class="priority-chip priority-'+l.priority.toLowerCase()+'">'+escapeHtml(l.priority)+'</span>':'';
         const cityHtml=l.city?'<span class="city-tag">'+escapeHtml(l.city)+'</span>':'';
         const statusColor=STATUS_COLORS[l.status]||'#6b7280';
 
-        main.innerHTML='<input type="checkbox" class="sel-check sel-pipeline" data-id="'+l.id+'" '+(selectedPipelineIds.has(l.id)?'checked':'')+'><span class="sdot '+statusDotClassFor(l)+'"></span><div class="lead-row-info"><span class="lead-name">'+(l.agencyName?escapeHtml(l.agencyName):'<em style="color:var(--muted)">(no name)</em>')+'</span><span class="lead-sub">'+escapeHtml(l.directorName||'')+(l.city?' &middot; '+escapeHtml(l.city):'')+'</span></div>'+priorityHtml+cityHtml+'<span style="font-size:12px;padding:2px 8px;border:1px solid '+statusColor+';color:'+statusColor+'">'+escapeHtml(l.status)+'</span><button class="btn-view-lead" data-id="'+l.id+'">View</button>';
+        main.innerHTML='<input type="checkbox" class="sel-check sel-pipeline" data-id="'+l.id+'" '+(selectedPipelineIds.has(l.id)?'checked':'')+'><span class="sdot '+statusDotClassFor(l)+'"></span><div class="lead-row-info"><span class="lead-name">'+(l.agencyName?escapeHtml(l.agencyName):'<em style="color:var(--muted)">(no name)</em>')+'</span><span class="lead-sub">'+escapeHtml(l.directorName||'')+(l.city?' &middot; '+escapeHtml(l.city):'')+'</span></div>'+cityHtml+'<span style="font-size:12px;padding:2px 8px;border:1px solid '+statusColor+';color:'+statusColor+'">'+escapeHtml(l.status)+'</span><button class="btn-view-lead" data-id="'+l.id+'">View</button>';
 
         const viewBtn=main.querySelector('.btn-view-lead');
         if(viewBtn) viewBtn.addEventListener('click',e=>{ e.stopPropagation(); openLeadDetail(l.id); });
@@ -3308,15 +3303,13 @@
       });
       // Secondary filters
       const pf=id=>document.getElementById(id);
-      if(pf('pFilterPriority')) pf('pFilterPriority').addEventListener('change',()=>{ pipelineFilter.priority=pf('pFilterPriority').value; renderPipeline(); });
       if(pf('pFilterCity')) pf('pFilterCity').addEventListener('change',()=>{ pipelineFilter.city=pf('pFilterCity').value; renderPipeline(); });
       if(pf('pFilterTool')) pf('pFilterTool').addEventListener('change',()=>{ pipelineFilter.tool=pf('pFilterTool').value; renderPipeline(); });
       if(pf('pFilterSort')) pf('pFilterSort').addEventListener('change',()=>{ pipelineFilter.sort=pf('pFilterSort').value; renderPipeline(); });
       if(pf('pipelineSearch')) pf('pipelineSearch').addEventListener('input',()=>renderPipeline());
       if(pf('btnResetFilters')) pf('btnResetFilters').addEventListener('click',()=>{
-        pipelineFilter={status:'All',priority:'All',city:'All',tool:'All',sort:'newest'};
+        pipelineFilter={status:'All',city:'All',tool:'All',sort:'newest'};
         document.querySelectorAll('.status-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.status==='All'));
-        if(pf('pFilterPriority')) pf('pFilterPriority').value='All';
         if(pf('pFilterCity')) pf('pFilterCity').value='All';
         if(pf('pFilterTool')) pf('pFilterTool').value='All';
         if(pf('pFilterSort')) pf('pFilterSort').value='newest';
