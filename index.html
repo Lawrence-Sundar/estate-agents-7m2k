@@ -908,14 +908,19 @@
     #tab-dashboard .task .arrow{color:var(--aur-text-faint);font-family:'Inter',sans-serif;font-size:16px;transition:transform .15s ease,color .15s ease}
     #tab-dashboard .task:not(.noop):hover .arrow{color:var(--p-glow);transform:translateX(3px)}
 
-    /* Pipeline Funnel + Sequence Stages — shared bar-list style */
-    #tab-dashboard .aur-funnel{flex:1;display:flex;flex-direction:column;justify-content:space-around;padding-top:4px}
-    #tab-dashboard .aur-f-row{display:flex;align-items:center;gap:14px;padding:6px 0}
-    #tab-dashboard .aur-f-label{width:120px;flex-shrink:0;font-family:'Fraunces',serif;font-style:italic;font-size:19px;color:var(--aur-text-std)}
-    #tab-dashboard .aur-f-track{flex:1;height:6px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden}
-    #tab-dashboard .aur-f-fill{height:100%;background:linear-gradient(90deg,var(--p-primary),var(--p-glow));opacity:0.85;box-shadow:0 0 12px rgba(var(--p-primary-rgb),0.22)}
-    #tab-dashboard .aur-f-val{width:38px;text-align:right;font-family:'Inter',sans-serif;font-size:16px;font-weight:600;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
-    #tab-dashboard .aur-f-pct{width:44px;text-align:right;font-family:'Inter',sans-serif;font-size:13px;color:var(--aur-text-faint);font-variant-numeric:tabular-nums}
+    /* Pipeline Funnel + Sequence Stages — shared bar-list style (used in Performance tab) */
+    #tab-dashboard .aur-funnel,#tab-performance .aur-funnel{flex:1;display:flex;flex-direction:column;justify-content:space-around;padding-top:4px}
+    #tab-dashboard .aur-f-row,#tab-performance .aur-f-row{display:flex;align-items:center;gap:14px;padding:6px 0}
+    #tab-dashboard .aur-f-label,#tab-performance .aur-f-label{width:120px;flex-shrink:0;font-family:'Fraunces',serif;font-style:italic;font-size:17px;color:var(--aur-text-std)}
+    #tab-dashboard .aur-f-track,#tab-performance .aur-f-track{flex:1;height:6px;background:rgba(255,255,255,0.04);position:relative;overflow:hidden}
+    #tab-dashboard .aur-f-fill,#tab-performance .aur-f-fill{height:100%;background:linear-gradient(90deg,var(--p-primary),var(--p-glow));opacity:0.85;box-shadow:0 0 12px rgba(var(--p-primary-rgb),0.22)}
+    #tab-dashboard .aur-f-val,#tab-performance .aur-f-val{width:38px;text-align:right;font-family:'Inter',sans-serif;font-size:16px;font-weight:600;color:var(--aur-text-bright);font-variant-numeric:tabular-nums}
+    #tab-dashboard .aur-f-pct,#tab-performance .aur-f-pct{width:44px;text-align:right;font-family:'Inter',sans-serif;font-size:13px;color:var(--aur-text-faint);font-variant-numeric:tabular-nums}
+    /* Performance charts row layout */
+    #tab-performance .perf-charts{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    #tab-performance .perf-charts .neon-inner{padding:16px 22px}
+    #tab-performance .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+    #tab-performance .sec-sub{font-family:'Fraunces',serif;font-style:italic;font-size:13px;color:var(--aur-text-faint)}
 
     /* ════════════════════════════════════════════════════════════════════
        AURORA PERFORMANCE — scoped to #tab-performance only
@@ -1209,24 +1214,6 @@
                 <div class="sec-sub">click a row to jump to the filtered view</div>
               </div>
               <div class="task-list" id="dashTaskList"></div>
-            </div></div>
-          </div>
-
-          <!-- Row 4: Pipeline Funnel + Sequence Stages -->
-          <div class="funnel-row">
-            <div class="neon"><div class="neon-inner">
-              <div class="sec-head">
-                <div class="sec-label">Pipeline Funnel</div>
-                <div class="sec-sub">by status</div>
-              </div>
-              <div class="aur-funnel" id="dashFunnelRows"></div>
-            </div></div>
-            <div class="neon"><div class="neon-inner">
-              <div class="sec-head">
-                <div class="sec-label">Sequence Stages</div>
-                <div class="sec-sub">where each lead sits</div>
-              </div>
-              <div class="aur-funnel" id="dashSequenceRows"></div>
             </div></div>
           </div>
 
@@ -1868,6 +1855,22 @@
             </div>
             <button type="button" class="btn-thresh" aria-label="View status thresholds" onclick="openPerfThresholdsModal()">View thresholds <span class="arrow">↗</span></button>
           </section>
+          <div class="perf-charts">
+            <div class="neon"><div class="neon-inner">
+              <div class="sec-head">
+                <div class="sec-label">Pipeline Funnel</div>
+                <div class="sec-sub">by status</div>
+              </div>
+              <div class="aur-funnel">${_renderFunnelRows()}</div>
+            </div></div>
+            <div class="neon"><div class="neon-inner">
+              <div class="sec-head">
+                <div class="sec-label">Sequence Stages</div>
+                <div class="sec-sub">where each lead sits</div>
+              </div>
+              <div class="aur-funnel">${_renderSequenceRows()}</div>
+            </div></div>
+          </div>
           <div class="bottom-grid">
             <div class="neon notable"><div class="neon-inner">
               <div class="sec-label">Notable this week</div>
@@ -2260,44 +2263,41 @@
         });
       }
 
-      // Pipeline Funnel (unchanged)
-      const funnelEl=_s('dashFunnelRows');
-      if(funnelEl){
-        const t=total||1;
-        const counts={};
-        leads.forEach(l=>{ counts[l.status]=(counts[l.status]||0)+1; });
-        const rows=[
-          {label:'New',count:counts['New']||0},
-          {label:'Contacted',count:counts['Contacted']||0},
-          {label:'Replied',count:counts['Replied']||0},
-          {label:'Interested',count:counts['Interested']||0},
-          {label:'Call Booked',count:counts['Call Booked']||0},
-          {label:'Proposal',count:counts['Proposal Sent']||0},
-          {label:'Won',count:counts['Won']||0}
-        ];
-        funnelEl.innerHTML=rows.map(r=>{
-          const pct=Math.round((r.count/t)*100);
-          return '<div class="aur-f-row"><span class="aur-f-label">'+r.label+'</span><span class="aur-f-track"><span class="aur-f-fill" style="width:'+pct+'%"></span></span><span class="aur-f-val">'+r.count+'</span><span class="aur-f-pct">'+pct+'%</span></div>';
-        }).join('');
-      }
+    }
 
-      // Sequence Stages — where each lead sits in the email cadence
-      const seqEl=_s('dashSequenceRows');
-      if(seqEl){
-        const t=total||1;
-        const stages=[
-          {label:'Not sent',count:leads.filter(l=>!l.email1SentDate).length},
-          {label:'Initial (E1)',count:leads.filter(l=>l.email1SentDate&&!l.email2SentDate).length},
-          {label:'FU1 (E2)',count:leads.filter(l=>l.email2SentDate&&!l.email3SentDate).length},
-          {label:'FU2 (E3)',count:leads.filter(l=>l.email3SentDate&&!l.email4SentDate).length},
-          {label:'FU3 (E4)',count:leads.filter(l=>l.email4SentDate&&!l.lettingsSentDate).length},
-          {label:'Lettings 2nd',count:leads.filter(l=>l.lettingsSentDate).length}
-        ];
-        seqEl.innerHTML=stages.map(r=>{
-          const pct=Math.round((r.count/t)*100);
-          return '<div class="aur-f-row"><span class="aur-f-label">'+r.label+'</span><span class="aur-f-track"><span class="aur-f-fill" style="width:'+pct+'%"></span></span><span class="aur-f-val">'+r.count+'</span><span class="aur-f-pct">'+pct+'%</span></div>';
-        }).join('');
-      }
+    // Pipeline Funnel + Sequence Stages — shared bar-list HTML used by Performance tab
+    function _renderFunnelRows(){
+      const t=leads.length||1;
+      const counts={};
+      leads.forEach(l=>{ counts[l.status]=(counts[l.status]||0)+1; });
+      const rows=[
+        {label:'New',count:counts['New']||0},
+        {label:'Contacted',count:counts['Contacted']||0},
+        {label:'Replied',count:counts['Replied']||0},
+        {label:'Interested',count:counts['Interested']||0},
+        {label:'Call Booked',count:counts['Call Booked']||0},
+        {label:'Proposal',count:counts['Proposal Sent']||0},
+        {label:'Won',count:counts['Won']||0}
+      ];
+      return rows.map(r=>{
+        const pct=Math.round((r.count/t)*100);
+        return '<div class="aur-f-row"><span class="aur-f-label">'+r.label+'</span><span class="aur-f-track"><span class="aur-f-fill" style="width:'+pct+'%"></span></span><span class="aur-f-val">'+r.count+'</span><span class="aur-f-pct">'+pct+'%</span></div>';
+      }).join('');
+    }
+    function _renderSequenceRows(){
+      const t=leads.length||1;
+      const stages=[
+        {label:'Not sent',count:leads.filter(l=>!l.email1SentDate).length},
+        {label:'Initial (E1)',count:leads.filter(l=>l.email1SentDate&&!l.email2SentDate).length},
+        {label:'FU1 (E2)',count:leads.filter(l=>l.email2SentDate&&!l.email3SentDate).length},
+        {label:'FU2 (E3)',count:leads.filter(l=>l.email3SentDate&&!l.email4SentDate).length},
+        {label:'FU3 (E4)',count:leads.filter(l=>l.email4SentDate&&!l.lettingsSentDate).length},
+        {label:'Lettings 2nd',count:leads.filter(l=>l.lettingsSentDate).length}
+      ];
+      return stages.map(r=>{
+        const pct=Math.round((r.count/t)*100);
+        return '<div class="aur-f-row"><span class="aur-f-label">'+r.label+'</span><span class="aur-f-track"><span class="aur-f-fill" style="width:'+pct+'%"></span></span><span class="aur-f-val">'+r.count+'</span><span class="aur-f-pct">'+pct+'%</span></div>';
+      }).join('');
     }
 
     // Aurora dashboard live clock
