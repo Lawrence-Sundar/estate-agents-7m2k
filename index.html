@@ -341,11 +341,67 @@
     .modal.open{transform:translateX(0)}
     .modal h3{font-size:20px;font-weight:600;margin-bottom:20px}
 
-    /* Lead Detail modal */
-    #leadDetailBackdrop{justify-content:center;align-items:center}
-    #leadDetailModal{width:1060px;max-width:calc(100vw - 48px);height:auto;max-height:90vh;border-left:none;border:1px solid var(--border);box-shadow:0 24px 64px rgba(0,0,0,.75);transform:translateY(-12px);overflow:hidden;padding:28px 32px}
-    #leadDetailModal.open{transform:translateY(0)}
-    @media(max-width:960px){#leadDetailModal{width:100%;max-width:calc(100vw - 24px)}}
+    /* Lead Detail modal — Aurora */
+    #leadDetailBackdrop{justify-content:center;align-items:center;background:rgba(0,0,0,0.65) !important;backdrop-filter:blur(6px)}
+    #leadDetailModal{width:100%;max-width:720px;max-height:90vh;height:auto;padding:1px !important;border-radius:16px !important;background:linear-gradient(135deg,rgba(16,185,129,0.55) 0%,rgba(59,130,246,0.45) 50%,rgba(6,214,160,0.55) 100%) !important;border:none !important;box-shadow:0 24px 80px rgba(0,0,0,0.6),0 0 80px rgba(59,130,246,0.08) !important;overflow:hidden;display:flex !important;flex-direction:column;transform:scale(0.96);transition:transform .22s ease}
+    #leadDetailModal.open{transform:scale(1)}
+    @media(max-width:760px){#leadDetailModal{max-width:calc(100vw - 24px)}}
+    #leadDetailModal .md-inner{background:#0a0b1a;border-radius:15px;flex:1;display:flex;flex-direction:column;overflow:hidden;color:#e0dce8;font-family:'Inter',sans-serif}
+    #leadDetailModal .md-head{padding:20px 26px 16px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0}
+    #leadDetailModal .md-title-block{display:flex;flex-direction:column;gap:4px;min-width:0}
+    #leadDetailModal .md-title{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:30px;line-height:1.1;letter-spacing:-0.01em;background:linear-gradient(120deg,#10B981 0%,#3B82F6 55%,#06D6A0 100%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #leadDetailModal .md-subtitle{font-family:'Inter',sans-serif;font-size:12px;color:#9a95a8;letter-spacing:0.04em}
+    #leadDetailModal .md-close{background:transparent !important;border:1px solid rgba(255,255,255,0.06) !important;color:#9a95a8 !important;width:34px;height:34px;border-radius:8px !important;font-size:18px !important;line-height:1;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;padding:0 !important;margin:0 !important}
+    #leadDetailModal .md-close:hover{border-color:rgba(16,185,129,0.35) !important;color:#e0dce8 !important}
+    #leadDetailModal .md-meta-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 26px 14px;border-bottom:1px solid rgba(255,255,255,0.04);flex-shrink:0}
+    #leadDetailModal .md-status-pill{font-family:'Inter',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:6px;border:1px solid;color:#10B981;border-color:rgba(16,185,129,0.35);background:rgba(16,185,129,0.08)}
+    #leadDetailModal .md-status-pill.s-new{color:#9a95a8;border-color:rgba(107,114,128,0.35);background:rgba(107,114,128,0.1)}
+    #leadDetailModal .md-status-pill.s-contacted{color:#10B981;border-color:rgba(16,185,129,0.35);background:rgba(16,185,129,0.08)}
+    #leadDetailModal .md-status-pill.s-replied{color:#3B82F6;border-color:rgba(59,130,246,0.35);background:rgba(59,130,246,0.08)}
+    #leadDetailModal .md-status-pill.s-interested{color:#a855f7;border-color:rgba(168,85,247,0.35);background:rgba(168,85,247,0.08)}
+    #leadDetailModal .md-status-pill.s-call-booked{color:#f59e0b;border-color:rgba(245,158,11,0.35);background:rgba(245,158,11,0.08)}
+    #leadDetailModal .md-status-pill.s-proposal-sent{color:#fb923c;border-color:rgba(251,146,60,0.35);background:rgba(251,146,60,0.08)}
+    #leadDetailModal .md-status-pill.s-won{color:#10B981;border-color:rgba(16,185,129,0.5);background:rgba(16,185,129,0.15);box-shadow:0 0 10px rgba(16,185,129,0.15)}
+    #leadDetailModal .md-status-pill.s-lost{color:#ef4444;border-color:rgba(239,68,68,0.35);background:rgba(239,68,68,0.08)}
+    #leadDetailModal .md-status-pill.s-no-response{color:#9a95a8;border-color:rgba(107,114,128,0.35);background:rgba(107,114,128,0.1)}
+    #leadDetailModal .md-status-pill.s-unqualified{color:#6b6580;border-color:rgba(107,101,128,0.35);background:rgba(107,101,128,0.08)}
+    #leadDetailModal .md-city-pill{font-size:11px;color:#9a95a8;padding:4px 10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.04);border-radius:6px}
+    #leadDetailModal .md-auto-flag{margin-left:auto;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:#f59e0b;padding:4px 10px;border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.08);border-radius:6px}
+    #leadDetailModal .md-body{flex:1;padding:18px 26px 22px;display:flex;flex-direction:column;gap:18px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#1e1e1e transparent;max-height:none}
+    #leadDetailModal .md-section{display:flex;flex-direction:column;gap:10px}
+    #leadDetailModal .md-section-label{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.22em;color:#10B981}
+    #leadDetailModal .md-status-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    #leadDetailModal .md-select-label{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#6b6580;margin-bottom:6px;display:block}
+    #leadDetailModal .md-select{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:#e0dce8;padding:10px 12px;font-size:13px;font-family:inherit;outline:none;border-radius:8px;cursor:pointer;transition:border-color .18s;width:100%}
+    #leadDetailModal .md-select:focus{border-color:rgba(16,185,129,0.4)}
+    #leadDetailModal .md-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
+    #leadDetailModal .md-field{display:flex;flex-direction:column;gap:3px;min-width:0}
+    #leadDetailModal .md-field-full{grid-column:1/-1}
+    #leadDetailModal .md-field-label{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#6b6580}
+    #leadDetailModal .md-field-val{font-size:14px;color:#e8e4f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #leadDetailModal .md-field-val.muted{color:#9a95a8;font-style:italic}
+    #leadDetailModal .md-field-val a{color:#10B981;text-decoration:none}
+    #leadDetailModal .md-field-val a:hover{text-decoration:underline}
+    #leadDetailModal .md-field-multiline .md-field-val{white-space:pre-wrap;font-style:italic;font-family:'Fraunces',serif;font-size:15px;line-height:1.5}
+    #leadDetailModal .md-seq-chips{display:flex;gap:8px;flex-wrap:wrap}
+    #leadDetailModal .md-seq-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font-size:12px;font-weight:600;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:#e0dce8;border-radius:8px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+    #leadDetailModal .md-seq-chip:hover{border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.06)}
+    #leadDetailModal .md-seq-chip.sent{background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.4);color:#10B981;box-shadow:0 0 12px rgba(16,185,129,0.12);cursor:default}
+    #leadDetailModal .md-seq-chip.sent:hover{background:rgba(16,185,129,0.12)}
+    #leadDetailModal .md-seq-chip .chk{width:11px;height:11px;display:flex;align-items:center;justify-content:center;color:#10B981}
+    #leadDetailModal .md-seq-chip .chip-label{letter-spacing:0.05em}
+    #leadDetailModal .md-seq-chip .chip-date{font-family:'Fraunces',serif;font-style:italic;font-weight:400;color:#6b6580;font-size:12px}
+    #leadDetailModal .md-seq-chip.sent .chip-date{color:#10B981;opacity:0.85}
+    #leadDetailModal .md-seq-chip.disabled{opacity:0.45;cursor:not-allowed}
+    #leadDetailModal .md-seq-chip.disabled:hover{background:rgba(255,255,255,0.03);border-color:rgba(255,255,255,0.06)}
+    #leadDetailModal .md-actions{display:flex;gap:8px;padding:14px 26px 18px;border-top:1px solid rgba(255,255,255,0.06);flex-shrink:0}
+    #leadDetailModal .md-btn{padding:9px 18px;font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;border-radius:8px;font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s;border:1px solid;white-space:nowrap}
+    #leadDetailModal .md-btn-primary{background:linear-gradient(135deg,#10B981,#06D6A0);color:#001a12;border-color:transparent;font-weight:700;box-shadow:0 0 14px rgba(16,185,129,0.2)}
+    #leadDetailModal .md-btn-primary:hover{opacity:0.9}
+    #leadDetailModal .md-btn-ghost{background:transparent;border-color:rgba(255,255,255,0.06);color:#9a95a8}
+    #leadDetailModal .md-btn-ghost:hover{border-color:rgba(16,185,129,0.4);color:#e0dce8}
+    #leadDetailModal .md-btn-danger{background:transparent;border-color:rgba(239,68,68,0.3);color:#ef4444;margin-left:auto}
+    #leadDetailModal .md-btn-danger:hover{background:rgba(239,68,68,0.08);border-color:#ef4444}
 
     /* Edit modal */
     #editBackdrop{justify-content:center;align-items:center}
@@ -1482,11 +1538,7 @@
   <!-- Lead Detail modal -->
   <div id="leadDetailBackdrop" class="modal-backdrop" aria-hidden="true">
     <div id="leadDetailModal" class="modal" role="dialog">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)">
-        <h3 id="leadDetailTitle" style="font-size:16px;font-weight:600;margin:0"></h3>
-        <button onclick="closeLeadDetail()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;line-height:1">&times;</button>
-      </div>
-      <div id="leadDetailContent" style="overflow-y:auto;max-height:calc(90vh - 80px)"></div>
+      <div class="md-inner" id="leadDetailContent"></div>
     </div>
   </div>
 
@@ -1632,7 +1684,7 @@
       linkedinConnectedDate:'linkedin_connected_date',
       linkedinMessage1Date:'linkedin_message1_date', linkedinMessage2Date:'linkedin_message2_date',
       linkedinMessage3Date:'linkedin_message3_date',
-      notes:'notes', customObservation:'custom_observation',
+      notes:'notes', customObservation:'custom_observation', replyType:'reply_type',
       threadMessageId:'thread_message_id', activityLog:'activity_log',
       dateAdded:'date_added',
       channel:'channel', score:'score',
@@ -1759,8 +1811,29 @@
         if(!l.email2Date) l.email2Date='';
         if(!l.email3Date) l.email3Date='';
         if(!l.email4Date) l.email4Date='';
+        if(l.replyType===undefined) l.replyType='';
       });
+      autoMarkNoResponse();
       renderAll();
+    }
+
+    // Auto-flag leads as 'No Response' when E4 was sent ≥2 days ago and no reply/manual action since.
+    // Skips leads already in a terminal/replied state. Adds activityLog entry with '(auto:' marker so UI can display the auto-flag chip.
+    function autoMarkNoResponse(){
+      const td=todayISO();
+      const TERMINAL_OR_REPLIED=['Replied','Interested','Call Booked','Proposal Sent','Won','Lost','Unqualified','No Response'];
+      let changed=false;
+      leads.forEach(l=>{
+        if(!l.email4SentDate) return;
+        const e4=normDateStr(l.email4SentDate);
+        if(!e4||daysBetween(e4,td)<2) return;
+        if(TERMINAL_OR_REPLIED.includes(l.status)) return;
+        l.status='No Response';
+        if(!l.activityLog) l.activityLog=[];
+        l.activityLog.push({action:'Status changed to No Response (auto: 2d after E4 no reply)',date:td});
+        changed=true;
+      });
+      if(changed) save();
     }
 
     async function addLead(data){
@@ -2393,24 +2466,9 @@
         const chk=main.querySelector('.sel-pipeline');
         if(chk) chk.addEventListener('change',e=>{ e.stopPropagation(); if(chk.checked) selectedPipelineIds.add(l.id); else selectedPipelineIds.delete(l.id); updateBulkUI(); });
 
-        main.addEventListener('click',e=>{ if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON') return; toggleExpand(l.id); });
-
-        const expand=document.createElement('div'); expand.className='lead-row-expand'; expand.id='expand-'+l.id; expand.style.display='none';
-        expand.innerHTML='<div class="expand-grid"><div class="expand-field"><span class="ef-label">Email</span><span class="ef-val">'+escapeHtml(l.directorEmail||'-')+'</span></div><div class="expand-field"><span class="ef-label">Website</span><span class="ef-val">'+(l.websiteUrl?'<a href="'+escapeHtml(l.websiteUrl)+'" target="_blank" style="color:var(--accent)">'+escapeHtml(l.websiteUrl)+'</a>':'-')+'</span></div><div class="expand-field"><span class="ef-label">Phone</span><span class="ef-val">'+escapeHtml(l.phone||'-')+'</span></div><div class="expand-field"><span class="ef-label">Address</span><span class="ef-val">'+escapeHtml(l.address||'-')+'</span></div><div class="expand-field"><span class="ef-label">Google Rating</span><span class="ef-val">'+escapeHtml(l.googleRating||'-')+' ('+escapeHtml(l.reviewCount||'0')+' reviews)</span></div><div class="expand-field"><span class="ef-label">Branches</span><span class="ef-val">'+escapeHtml(l.branchCount||'-')+'</span></div><div class="expand-field"><span class="ef-label">Rightmove</span><span class="ef-val">'+escapeHtml(l.rightmoveListed||'-')+'</span></div><div class="expand-field"><span class="ef-label">Existing Tool</span><span class="ef-val">'+escapeHtml(l.existingTool||'-')+'</span></div><div class="expand-field"><span class="ef-label">Follow-Up Date</span><span class="ef-val">'+escapeHtml(formatDateFull(l.followUpDate)||'-')+'</span></div><div class="expand-field"><span class="ef-label">Email Sequence</span><span class="ef-val">'+(l.email1SentDate?'E1: '+formatDateShort(l.email1SentDate):'E1: -')+' / '+(l.email2SentDate?'E2: '+formatDateShort(l.email2SentDate):'E2: -')+' / '+(l.email3SentDate?'E3: '+formatDateShort(l.email3SentDate):'E3: -')+'</span></div><div class="expand-field"><span class="ef-label">Sequence Schedule</span><span class="ef-val">E2 '+(l.email2Date?formatDateShort(l.email2Date):'-')+' / E3 '+(l.email3Date?formatDateShort(l.email3Date):'-')+' / E4 '+(l.email4Date?formatDateShort(l.email4Date):'-')+'</span></div>'+(l.notes?'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Notes</span><span class="ef-val">'+escapeHtml(l.notes)+'</span></div>':'')+'</div><div class="expand-actions"><button class="btn btn-primary btn-sm" data-action="edit" data-id="'+l.id+'">Edit</button><button class="btn btn-ghost btn-sm" data-action="compose" data-id="'+l.id+'">Compose Email</button><button class="btn btn-ghost btn-sm btn-delete" data-action="delete" data-id="'+l.id+'">Delete</button></div>';
-
-        // Bind expand actions
-        expand.querySelectorAll('[data-action]').forEach(btn=>{
-          btn.addEventListener('click',()=>{
-            if(btn.dataset.action==='edit') openEdit(btn.dataset.id);
-            if(btn.dataset.action==='delete') deleteLead(Number(btn.dataset.id));
-            if(btn.dataset.action==='compose') goToEmail(btn.dataset.id);
-          });
-        });
-
-        row.appendChild(main); row.appendChild(expand); container.appendChild(row);
+        // No row-click expand — View button is the only way to open lead detail
+        row.appendChild(main); container.appendChild(row);
       });
-
-      if(expandedLeadId){ const el=document.getElementById('expand-'+expandedLeadId); if(el) el.style.display='block'; }
     }
 
     function toggleExpand(id){
@@ -2438,34 +2496,196 @@
     }
 
     // ---- Lead Detail Modal ----
+    // ---- Reply types (used in detail modal when status='Replied') ----
+    const REPLY_TYPES=['Interested','Not interested','Need more info','Wrong contact','Out of office','Other'];
+    // Statuses available in the modal dropdown (Unqualified excluded by user request)
+    const MODAL_STATUSES=['New','Contacted','Replied','Interested','Call Booked','Proposal Sent','Won','Lost','No Response'];
+
+    // ---- Lead Detail Modal (Aurora redesign) ----
+    function isAutoFlaggedNoResponse(lead){
+      if(lead.status!=='No Response'||!lead.activityLog||!lead.activityLog.length) return false;
+      for(let i=lead.activityLog.length-1;i>=0;i--){
+        const e=lead.activityLog[i];
+        if(e&&e.action&&e.action.indexOf('Status changed to No Response')===0){
+          return e.action.indexOf('(auto')>=0;
+        }
+      }
+      return false;
+    }
+
+    function _seqChipHtml(label, key, sentDate, scheduledDate, disabled){
+      const sent=!!sentDate;
+      const display=sent?formatDateShort(sentDate):(scheduledDate?formatDateShort(scheduledDate):'—');
+      const cls='md-seq-chip'+(sent?' sent':'')+(disabled?' disabled':'');
+      const chk=sent?'<span class="chk"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'';
+      return '<button class="'+cls+'" data-chip="'+key+'"'+(sent||disabled?' disabled':'')+'>'+chk+'<span class="chip-label">'+label+(sent?' sent':'')+'</span><span class="chip-date">'+display+'</span></button>';
+    }
+
     function openLeadDetail(id){
       const lead=leads.find(l=>String(l.id)===String(id));
       if(!lead) return;
-      const title=document.getElementById('leadDetailTitle');
       const content=document.getElementById('leadDetailContent');
-      if(title) title.textContent=lead.agencyName||'Agency Details';
-      if(content){
-        content.innerHTML='<div class="expand-grid"><div class="expand-field"><span class="ef-label">Status</span><span class="ef-val" style="color:'+( STATUS_COLORS[lead.status]||'#6b7280')+'">'+escapeHtml(lead.status)+'</span></div><div class="expand-field"><span class="ef-label">Priority</span><span class="ef-val">'+escapeHtml(lead.priority||'-')+'</span></div><div class="expand-field"><span class="ef-label">Director</span><span class="ef-val">'+escapeHtml(lead.directorName||'-')+'</span></div><div class="expand-field"><span class="ef-label">Email</span><span class="ef-val">'+escapeHtml(lead.directorEmail||'-')+'</span></div>'+(lead.lettingsEmail?'<div class="expand-field"><span class="ef-label">Lettings Email</span><span class="ef-val">'+escapeHtml(lead.lettingsEmail)+'</span></div>':'')+'<div class="expand-field"><span class="ef-label">Phone</span><span class="ef-val">'+escapeHtml(lead.phone||'-')+'</span></div><div class="expand-field"><span class="ef-label">Website</span><span class="ef-val">'+(lead.websiteUrl?'<a href="'+escapeHtml(lead.websiteUrl)+'" target="_blank" style="color:var(--accent)">'+escapeHtml(lead.websiteUrl)+'</a>':'-')+'</span></div><div class="expand-field"><span class="ef-label">City</span><span class="ef-val">'+escapeHtml(lead.city||'-')+'</span></div><div class="expand-field"><span class="ef-label">Address</span><span class="ef-val">'+escapeHtml(lead.address||'-')+'</span></div><div class="expand-field"><span class="ef-label">Google Rating</span><span class="ef-val">'+escapeHtml(lead.googleRating||'-')+' ('+escapeHtml(lead.reviewCount||'0')+' reviews)</span></div><div class="expand-field"><span class="ef-label">Branches</span><span class="ef-val">'+escapeHtml(lead.branchCount||'-')+'</span></div><div class="expand-field"><span class="ef-label">Rightmove Listed</span><span class="ef-val">'+escapeHtml(lead.rightmoveListed||'-')+'</span></div><div class="expand-field"><span class="ef-label">Existing Tool</span><span class="ef-val">'+escapeHtml(lead.existingTool||'-')+'</span></div><div class="expand-field"><span class="ef-label">Follow-Up Date</span><span class="ef-val">'+escapeHtml(formatDateFull(lead.followUpDate)||'-')+'</span></div><div class="expand-field"><span class="ef-label">Email Sequence</span><span class="ef-val">E1: '+(lead.email1SentDate?formatDateShort(lead.email1SentDate):'-')+' / E2: '+(lead.email2SentDate?formatDateShort(lead.email2SentDate):'-')+' / E3: '+(lead.email3SentDate?formatDateShort(lead.email3SentDate):'-')+'</span></div><div class="expand-field"><span class="ef-label">LinkedIn</span><span class="ef-val">Connected: '+(lead.linkedinConnectedDate?formatDateShort(lead.linkedinConnectedDate):escapeHtml(lead.linkedinConnected||'-'))+' / Msg 1: '+(lead.linkedinMessage1Date?formatDateShort(lead.linkedinMessage1Date):'-')+' / Msg 2: '+(lead.linkedinMessage2Date?formatDateShort(lead.linkedinMessage2Date):'-')+' / Msg 3: '+(lead.linkedinMessage3Date?formatDateShort(lead.linkedinMessage3Date):'-')+'</span></div>'+'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Sequence Schedule</span><span class="ef-val">Email 2 '+(lead.email2Date?formatDateFull(lead.email2Date):'-')+' &middot; Email 3 '+(lead.email3Date?formatDateFull(lead.email3Date):'-')+' &middot; Email 4 '+(lead.email4Date?formatDateFull(lead.email4Date):'-')+'</span></div>'+(lead.customObservation?'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Custom Observation</span><span class="ef-val" style="white-space:pre-wrap">'+escapeHtml(lead.customObservation)+'</span></div>':'')+''+(lead.notes?'<div class="expand-field" style="grid-column:1/-1"><span class="ef-label">Notes</span><span class="ef-val" style="white-space:pre-wrap">'+escapeHtml(lead.notes)+'</span></div>':'')+'</div>'+'<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)"><div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Update Status</div><div style="display:flex;gap:6px;flex-wrap:wrap" id="statusBtnsWrap"></div></div><div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-primary btn-sm" id="ldEditBtn">Edit</button><button class="btn btn-ghost btn-sm" id="ldComposeBtn">Compose Email</button><button class="btn btn-ghost btn-sm btn-delete" id="ldDeleteBtn">Delete</button></div>';
+      if(!content) return;
+      const statusSlug='s-'+(lead.status||'').toLowerCase().replace(/\s+/g,'-');
+      const autoFlagged=isAutoFlaggedNoResponse(lead);
+      const ratingTxt=(lead.googleRating||lead.reviewCount)?escapeHtml(lead.googleRating||'-')+(lead.reviewCount?' ★ ('+escapeHtml(lead.reviewCount)+' reviews)':''):'';
+      const websiteHtml=lead.websiteUrl?'<a href="'+escapeHtml(lead.websiteUrl)+'" target="_blank">'+escapeHtml(lead.websiteUrl)+'</a>':'<span class="muted">—</span>';
+      const linkedinHtml=lead.directorLinkedinUrl?'<a href="'+escapeHtml(lead.directorLinkedinUrl)+'" target="_blank">View profile</a>':(lead.linkedinConnectedDate?formatDateShort(lead.linkedinConnectedDate):'<span class="muted">Not connected</span>');
+      const lettingsHtml=lead.lettingsEmail?escapeHtml(lead.lettingsEmail):'<span class="muted">Not on file</span>';
+      const followUpHtml=lead.followUpDate?formatDateFull(lead.followUpDate):'<span class="muted">Not scheduled</span>';
+      const customObs=lead.customObservation?'<div class="md-field md-field-full md-field-multiline"><span class="md-field-label">Custom observation</span><span class="md-field-val">'+escapeHtml(lead.customObservation)+'</span></div>':'';
+      const notesHtml=lead.notes?'<div class="md-field md-field-full md-field-multiline"><span class="md-field-label">Notes</span><span class="md-field-val">'+escapeHtml(lead.notes)+'</span></div>':'';
 
-        // Status buttons
-        const wrap=content.querySelector('#statusBtnsWrap');
-        if(wrap){
-          Object.keys(STATUS_COLORS).forEach(s=>{
-            const btn=document.createElement('button');
-            btn.className='btn btn-sm'+(lead.status===s?' btn-primary':' btn-ghost');
-            btn.textContent=s;
-            btn.style.fontSize='12px';
-            btn.addEventListener('click',()=>{ updateStatus(lead,s); save(); openLeadDetail(id); });
-            wrap.appendChild(btn);
-          });
-        }
-        const editBtn=content.querySelector('#ldEditBtn'); if(editBtn) editBtn.addEventListener('click',()=>{ closeLeadDetail(); openEdit(id); });
-        const composeBtn=content.querySelector('#ldComposeBtn'); if(composeBtn) composeBtn.addEventListener('click',()=>{ closeLeadDetail(); goToEmail(id); });
-        const deleteBtn=content.querySelector('#ldDeleteBtn'); if(deleteBtn) deleteBtn.addEventListener('click',()=>{ closeLeadDetail(); deleteLead(Number(id)); });
+      // Sequence chips — show sent date if sent, else scheduled date
+      const e1Chip=_seqChipHtml('E1','1',lead.email1SentDate,lead.dateAdded,false);
+      const e2Chip=_seqChipHtml('E2','2',lead.email2SentDate,lead.email2Date,false);
+      const e3Chip=_seqChipHtml('E3','3',lead.email3SentDate,lead.email3Date,false);
+      const e4Chip=_seqChipHtml('E4','4',lead.email4SentDate,lead.email4Date,false);
+      const lettingsDisabled=!lead.email4SentDate||!lead.lettingsEmail;
+      const lettingsChip=_seqChipHtml('Lettings','lettings',lead.lettingsSentDate,null,lettingsDisabled);
+
+      // Status dropdown options
+      const statusOpts=MODAL_STATUSES.map(s=>'<option value="'+s+'"'+(lead.status===s?' selected':'')+'>'+s+'</option>').join('');
+      const replyOpts='<option value="">—</option>'+REPLY_TYPES.map(r=>'<option value="'+r+'"'+(lead.replyType===r?' selected':'')+'>'+r+'</option>').join('');
+      const replyTypeDisplay=(lead.status==='Replied')?'block':'none';
+
+      // Meta pills
+      const metaPills=[];
+      if(lead.city) metaPills.push('<span class="md-city-pill">'+escapeHtml(lead.city)+'</span>');
+      if(lead.rightmoveListed) metaPills.push('<span class="md-city-pill">Rightmove · '+escapeHtml(lead.rightmoveListed)+'</span>');
+      if(lead.branchCount) metaPills.push('<span class="md-city-pill">'+escapeHtml(lead.branchCount)+' '+(lead.branchCount=='1'?'branch':'branches')+'</span>');
+      if(lead.existingTool&&lead.existingTool!=='None') metaPills.push('<span class="md-city-pill">Tool · '+escapeHtml(lead.existingTool)+'</span>');
+      const autoFlagHtml=autoFlagged?'<span class="md-auto-flag">Auto-flagged · No reply 2d after E4</span>':'';
+
+      const subtitleParts=[];
+      if(lead.dateAdded) subtitleParts.push('Added '+formatDateShort(lead.dateAdded));
+      if(lead.directorName) subtitleParts.push(escapeHtml(lead.directorName));
+
+      content.innerHTML=
+        '<div class="md-head">'+
+          '<div class="md-title-block">'+
+            '<div class="md-title">'+escapeHtml(lead.agencyName||'Agency')+'</div>'+
+            '<div class="md-subtitle">'+subtitleParts.join(' · ')+'</div>'+
+          '</div>'+
+          '<button class="md-close" onclick="closeLeadDetail()" aria-label="Close">×</button>'+
+        '</div>'+
+        '<div class="md-meta-row">'+
+          '<span class="md-status-pill '+statusSlug+'" id="ldStatusPill">'+escapeHtml(lead.status||'New')+'</span>'+
+          metaPills.join('')+
+          autoFlagHtml+
+        '</div>'+
+        '<div class="md-body">'+
+          '<div class="md-section">'+
+            '<div class="md-section-label">Update Status</div>'+
+            '<div class="md-status-row">'+
+              '<div>'+
+                '<label class="md-select-label">Status</label>'+
+                '<select class="md-select" id="ldStatusSelect">'+statusOpts+'</select>'+
+              '</div>'+
+              '<div id="ldReplyTypeWrap" style="display:'+replyTypeDisplay+'">'+
+                '<label class="md-select-label">Reply Type</label>'+
+                '<select class="md-select" id="ldReplyType">'+replyOpts+'</select>'+
+              '</div>'+
+            '</div>'+
+          '</div>'+
+          '<div class="md-section">'+
+            '<div class="md-section-label">Email Sequence</div>'+
+            '<div class="md-seq-chips" id="ldSeqChips">'+e1Chip+e2Chip+e3Chip+e4Chip+lettingsChip+'</div>'+
+          '</div>'+
+          '<div class="md-section">'+
+            '<div class="md-section-label">Details</div>'+
+            '<div class="md-grid">'+
+              '<div class="md-field"><span class="md-field-label">Director</span><span class="md-field-val">'+escapeHtml(lead.directorName||'—')+'</span></div>'+
+              '<div class="md-field"><span class="md-field-label">Email</span><span class="md-field-val">'+escapeHtml(lead.directorEmail||'—')+'</span></div>'+
+              '<div class="md-field"><span class="md-field-label">Phone</span><span class="md-field-val">'+escapeHtml(lead.phone||'—')+'</span></div>'+
+              '<div class="md-field"><span class="md-field-label">Website</span><span class="md-field-val">'+websiteHtml+'</span></div>'+
+              '<div class="md-field"><span class="md-field-label">Address</span><span class="md-field-val" style="white-space:normal">'+escapeHtml(lead.address||'—')+'</span></div>'+
+              '<div class="md-field"><span class="md-field-label">Google rating</span><span class="md-field-val">'+(ratingTxt||'<span class="muted">—</span>')+'</span></div>'+
+              '<div class="md-field"><span class="md-field-label">Lettings email</span><span class="md-field-val">'+lettingsHtml+'</span></div>'+
+              '<div class="md-field"><span class="md-field-label">LinkedIn</span><span class="md-field-val">'+linkedinHtml+'</span></div>'+
+              '<div class="md-field"><span class="md-field-label">Follow-up date</span><span class="md-field-val">'+followUpHtml+'</span></div>'+
+              '<div class="md-field"><span class="md-field-label">City</span><span class="md-field-val">'+escapeHtml(lead.city||'—')+'</span></div>'+
+              customObs+
+              notesHtml+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="md-actions">'+
+          '<button class="md-btn md-btn-primary" id="ldEditBtn">Edit</button>'+
+          '<button class="md-btn md-btn-ghost" id="ldComposeBtn">Compose Email</button>'+
+          '<button class="md-btn md-btn-danger" id="ldDeleteBtn">Delete</button>'+
+        '</div>';
+
+      // Wire status dropdown
+      const statusSel=content.querySelector('#ldStatusSelect');
+      const replyWrap=content.querySelector('#ldReplyTypeWrap');
+      const replySel=content.querySelector('#ldReplyType');
+      if(statusSel){
+        statusSel.addEventListener('change',()=>{
+          const newStatus=statusSel.value;
+          updateStatus(lead,newStatus);
+          // If moving away from Replied, clear replyType
+          if(newStatus!=='Replied') lead.replyType='';
+          save();
+          openLeadDetail(id); // refresh
+        });
       }
+      if(replySel){
+        replySel.addEventListener('change',()=>{
+          lead.replyType=replySel.value||'';
+          if(!lead.activityLog) lead.activityLog=[];
+          lead.activityLog.push({action:'Reply type set: '+(lead.replyType||'cleared'),date:todayISO()});
+          save();
+        });
+      }
+
+      // Wire sequence chips
+      content.querySelectorAll('[data-chip]').forEach(btn=>{
+        btn.addEventListener('click',e=>{
+          e.preventDefault();
+          if(btn.classList.contains('sent')||btn.classList.contains('disabled')) return;
+          const key=btn.dataset.chip;
+          const td=todayISO();
+          if(key==='1'){
+            lead.email1SentDate=td;
+            // Cascade scheduled dates if not already set
+            if(!lead.email2Date) lead.email2Date=addDays(td,3);
+            if(!lead.email3Date) lead.email3Date=addDays(td,7);
+            if(!lead.email4Date) lead.email4Date=addDays(td,14);
+            if(lead.status==='New') updateStatus(lead,'Contacted');
+          } else if(key==='2'){
+            lead.email2SentDate=td;
+            if(!lead.followUpDate) lead.followUpDate=addDays(td,3);
+          } else if(key==='3'){
+            lead.email3SentDate=td;
+            if(!lead.followUpDate) lead.followUpDate=addDays(td,3);
+          } else if(key==='4'){
+            lead.email4SentDate=td;
+            lead.followUpDate=''; // E4 clears followUpDate (sequence terminal)
+          } else if(key==='lettings'){
+            if(!lead.email4SentDate||!lead.lettingsEmail) return;
+            lead.lettingsSentDate=td;
+          }
+          if(!lead.activityLog) lead.activityLog=[];
+          lead.activityLog.push({action:'Marked '+(key==='lettings'?'Lettings':'E'+key)+' sent',date:td});
+          save();
+          openLeadDetail(id); // refresh
+        });
+      });
+
+      // Action buttons
+      const editBtn=content.querySelector('#ldEditBtn');
+      if(editBtn) editBtn.addEventListener('click',()=>{ closeLeadDetail(); openEdit(id); });
+      const composeBtn=content.querySelector('#ldComposeBtn');
+      if(composeBtn) composeBtn.addEventListener('click',()=>{ closeLeadDetail(); goToEmail(id); });
+      const deleteBtn=content.querySelector('#ldDeleteBtn');
+      if(deleteBtn) deleteBtn.addEventListener('click',()=>{ closeLeadDetail(); deleteLead(Number(id)); });
+
       document.getElementById('leadDetailBackdrop').classList.add('open');
       document.getElementById('leadDetailModal').classList.add('open');
     }
+
+
     function closeLeadDetail(){ document.getElementById('leadDetailBackdrop').classList.remove('open'); document.getElementById('leadDetailModal').classList.remove('open'); }
 
     // ---- Inbox ----
