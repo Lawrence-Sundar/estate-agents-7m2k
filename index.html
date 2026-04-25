@@ -386,8 +386,10 @@
     #leadDetailModal .md-seq-chips{display:flex;gap:8px;flex-wrap:wrap}
     #leadDetailModal .md-seq-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;font-size:12px;font-weight:600;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);color:#e0dce8;border-radius:8px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
     #leadDetailModal .md-seq-chip:hover{border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.06)}
-    #leadDetailModal .md-seq-chip.sent{background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.4);color:#10B981;box-shadow:0 0 12px rgba(16,185,129,0.12);cursor:default}
-    #leadDetailModal .md-seq-chip.sent:hover{background:rgba(16,185,129,0.12)}
+    #leadDetailModal .md-seq-chip.sent{background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.4);color:#10B981;box-shadow:0 0 12px rgba(16,185,129,0.12);cursor:pointer}
+    #leadDetailModal .md-seq-chip.sent:hover{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.4);color:#ef4444;box-shadow:0 0 12px rgba(239,68,68,0.12)}
+    #leadDetailModal .md-seq-chip.sent:hover .chk,#leadDetailModal .md-seq-chip.sent:hover .chip-date{color:#ef4444}
+    #leadDetailModal .md-seq-chip.sent:hover .chip-label::after{content:' (untick?)';font-style:italic;font-weight:400;opacity:0.85}
     #leadDetailModal .md-seq-chip .chk{width:11px;height:11px;display:flex;align-items:center;justify-content:center;color:#10B981}
     #leadDetailModal .md-seq-chip .chip-label{letter-spacing:0.05em}
     #leadDetailModal .md-seq-chip .chip-date{font-family:'Fraunces',serif;font-style:italic;font-weight:400;color:#6b6580;font-size:12px}
@@ -2518,7 +2520,7 @@
       const display=sent?formatDateShort(sentDate):(scheduledDate?formatDateShort(scheduledDate):'—');
       const cls='md-seq-chip'+(sent?' sent':'')+(disabled?' disabled':'');
       const chk=sent?'<span class="chk"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'';
-      return '<button class="'+cls+'" data-chip="'+key+'"'+(sent||disabled?' disabled':'')+'>'+chk+'<span class="chip-label">'+label+(sent?' sent':'')+'</span><span class="chip-date">'+display+'</span></button>';
+      return '<button class="'+cls+'" data-chip="'+key+'"'+(disabled?' disabled':'')+'>'+chk+'<span class="chip-label">'+label+(sent?' sent':'')+'</span><span class="chip-date">'+display+'</span></button>';
     }
 
     function openLeadDetail(id){
@@ -2639,12 +2641,24 @@
         });
       }
 
-      // Wire sequence chips
+      // Wire sequence chips — click toggles sent state (mark or untick)
       content.querySelectorAll('[data-chip]').forEach(btn=>{
         btn.addEventListener('click',e=>{
           e.preventDefault();
-          if(btn.classList.contains('sent')||btn.classList.contains('disabled')) return;
+          if(btn.classList.contains('disabled')) return;
           const key=btn.dataset.chip;
+          // If already sent, untick (clear sent date)
+          if(btn.classList.contains('sent')){
+            const fieldMap={'1':'email1SentDate','2':'email2SentDate','3':'email3SentDate','4':'email4SentDate','lettings':'lettingsSentDate'};
+            const field=fieldMap[key];
+            if(!field) return;
+            lead[field]='';
+            if(!lead.activityLog) lead.activityLog=[];
+            lead.activityLog.push({action:'Unticked '+(key==='lettings'?'Lettings':'E'+key),date:todayISO()});
+            save();
+            openLeadDetail(id);
+            return;
+          }
           const td=todayISO();
           if(key==='1'){
             lead.email1SentDate=td;
