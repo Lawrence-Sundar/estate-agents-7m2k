@@ -3674,14 +3674,7 @@
       document.getElementById('btnBulkApplyStatus').addEventListener('click',()=>{
         const sel=document.getElementById('bulkStatusSelect');
         const newStatus=sel.value;
-        if(!newStatus){ alert('Pick a status from the dropdown first.'); return; }
-        if(selectedPipelineIds.size===0){ alert('Select at least one agency from the list first (use the row checkboxes).'); return; }
-        const n=selectedPipelineIds.size;
-        if(!confirm('Change status of '+n+' agenc'+(n===1?'y':'ies')+' to '+newStatus+'?')) return;
-        let count=0;
-        leads.forEach(l=>{ if(selectedPipelineIds.has(l.id)){ updateStatus(l,newStatus); count++; } });
-        selectedPipelineIds.clear(); sel.value='';
-        // Auto-switch the status filter pill so the changed leads are visible in their new bucket
+        if(!newStatus){ showToast('Pick a status from the dropdown first.'); return; }
         const FILTER_MAP={
           'New':'All',
           'Contacted':'Awaiting Reply',
@@ -3690,10 +3683,21 @@
           'No Response':'All','Unqualified':'All'
         };
         const targetFilter=FILTER_MAP[newStatus]||'All';
+        // If rows are selected, bulk-update them first; otherwise just filter
+        let count=0;
+        if(selectedPipelineIds.size>0){
+          leads.forEach(l=>{ if(selectedPipelineIds.has(l.id)){ updateStatus(l,newStatus); count++; } });
+          selectedPipelineIds.clear();
+          save();
+          updateBulkUI();
+        }
+        // Always switch the filter pill to show leads matching the chosen status
         pipelineFilter.status=targetFilter;
         document.querySelectorAll('.status-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.status===targetFilter));
-        save(); updateBulkUI();
-        showToast(count+' agenc'+(count===1?'y':'ies')+' updated to '+newStatus);
+        sel.value='';
+        renderPipeline();
+        if(count>0) showToast(count+' agenc'+(count===1?'y':'ies')+' updated to '+newStatus);
+        else showToast('Pipeline filtered to show: '+targetFilter);
       });
       document.getElementById('btnBulkSendOutlook').addEventListener('click',handleBulkSendOutlook);
     }
