@@ -1882,7 +1882,7 @@
       lead.activityLog.push({action:'Status changed to '+newStatus,date:todayISO()});
     }
 
-    function deleteLead(id){ if(!confirm('Permanently delete this agency? This cannot be undone.')) return; leads=leads.filter(l=>l.id!=id); if(expandedLeadId==id) expandedLeadId=null; if(emailState.leadId==id){ emailState.leadId=null; emailState.type=null; } const sb=getSB(); if(sb) _sbTracked(sb.from(SB_TABLE).delete().eq('id',id), 'deleteLead'); save(); }
+    function deleteLead(id){ if(!confirm('Permanently delete this agency? This cannot be undone.')) return; leads=leads.filter(l=>l.id!=id); if(emailState.leadId==id){ emailState.leadId=null; emailState.type=null; } const sb=getSB(); if(sb) _sbTracked(sb.from(SB_TABLE).delete().eq('id',id), 'deleteLead'); save(); }
 
     function getNextFollowUpDate(lead){ return lead.followUpDate||''; }
 
@@ -2385,7 +2385,6 @@
     setInterval(_aurTickClock, 1000);
 
     // ---- Pipeline ----
-    let expandedLeadId=null;
     let pipelineFilter={status:'All',city:'All',tool:'All',sort:'newest'};
     let selectedPipelineIds=new Set();
     let _lastPipelineFiltered=[];
@@ -2473,14 +2472,7 @@
       });
     }
 
-    function toggleExpand(id){
-      const expand=document.getElementById('expand-'+id); if(!expand) return;
-      const isOpen=expand.style.display!=='none';
-      document.querySelectorAll('.lead-row-expand').forEach(e=>e.style.display='none');
-      if(!isOpen){ expand.style.display='block'; expandedLeadId=id; } else { expandedLeadId=null; }
-    }
-
-    function updateBulkUI(){
+function updateBulkUI(){
       const count=selectedPipelineIds.size;
       const countEl=document.getElementById('pSelCount'); if(countEl) countEl.textContent=count+' selected';
       const area=document.getElementById('bulkActionArea');
