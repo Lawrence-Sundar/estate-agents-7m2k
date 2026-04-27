@@ -2538,11 +2538,14 @@
       const customObs=lead.customObservation?'<div class="md-field md-field-full md-field-multiline"><span class="md-field-label">Custom observation</span><span class="md-field-val">'+escapeHtml(lead.customObservation)+'</span></div>':'';
       const notesHtml=lead.notes?'<div class="md-field md-field-full md-field-multiline"><span class="md-field-label">Notes</span><span class="md-field-val">'+escapeHtml(lead.notes)+'</span></div>':'';
 
-      // Sequence chips — show sent date if sent, else scheduled date
+      // Sequence chips — disable downstream chips when prerequisite step unsent; hide stale scheduled dates
+      const e2Disabled=!lead.email1SentDate;
+      const e3Disabled=!lead.email2SentDate;
+      const e4Disabled=!lead.email3SentDate;
       const e1Chip=_seqChipHtml('E1','1',lead.email1SentDate,lead.dateAdded,false);
-      const e2Chip=_seqChipHtml('E2','2',lead.email2SentDate,lead.email2Date,false);
-      const e3Chip=_seqChipHtml('E3','3',lead.email3SentDate,lead.email3Date,false);
-      const e4Chip=_seqChipHtml('E4','4',lead.email4SentDate,lead.email4Date,false);
+      const e2Chip=_seqChipHtml('E2','2',lead.email2SentDate,lead.email1SentDate?lead.email2Date:null,e2Disabled);
+      const e3Chip=_seqChipHtml('E3','3',lead.email3SentDate,lead.email2SentDate?lead.email3Date:null,e3Disabled);
+      const e4Chip=_seqChipHtml('E4','4',lead.email4SentDate,lead.email3SentDate?lead.email4Date:null,e4Disabled);
       const lettingsDisabled=!lead.email4SentDate||!lead.lettingsEmail;
       const lettingsChip=_seqChipHtml('Lettings','lettings',lead.lettingsSentDate,null,lettingsDisabled);
 
@@ -2647,12 +2650,16 @@
           e.preventDefault();
           if(btn.classList.contains('disabled')) return;
           const key=btn.dataset.chip;
-          // If already sent, untick (clear sent date)
+          // If already sent, untick (clear sent date) — and cascade-clear all downstream sentDates + scheduled dates
           if(btn.classList.contains('sent')){
             const fieldMap={'1':'email1SentDate','2':'email2SentDate','3':'email3SentDate','4':'email4SentDate','lettings':'lettingsSentDate'};
             const field=fieldMap[key];
             if(!field) return;
             lead[field]='';
+            if(key==='1'){ lead.email2SentDate=''; lead.email3SentDate=''; lead.email4SentDate=''; lead.lettingsSentDate=''; lead.email2Date=''; lead.email3Date=''; lead.email4Date=''; }
+            else if(key==='2'){ lead.email3SentDate=''; lead.email4SentDate=''; lead.lettingsSentDate=''; lead.email3Date=''; lead.email4Date=''; }
+            else if(key==='3'){ lead.email4SentDate=''; lead.lettingsSentDate=''; lead.email4Date=''; }
+            else if(key==='4'){ lead.lettingsSentDate=''; }
             if(!lead.activityLog) lead.activityLog=[];
             lead.activityLog.push({action:'Unticked '+(key==='lettings'?'Lettings':'E'+key),date:todayISO()});
             save();
@@ -2717,7 +2724,7 @@
       });
     }
 
-    function markAsContacted(id){ const lead=leads.find(l=>l.id==id); if(!lead) return; updateStatus(lead,'Contacted'); lead.email1SentDate=todayISO(); lead.email2Date=addDays(todayISO(),3); lead.email3Date=addDays(todayISO(),7); lead.email4Date=addDays(todayISO(),14); save(); }
+    function markAsContacted(id){ const lead=leads.find(l=>l.id==id); if(!lead) return; updateStatus(lead,'Contacted'); lead.email1SentDate=todayISO(); if(!lead.email2Date) lead.email2Date=addDays(todayISO(),3); if(!lead.email3Date) lead.email3Date=addDays(todayISO(),7); if(!lead.email4Date) lead.email4Date=addDays(todayISO(),14); save(); }
 
     // ---- Follow Ups ----
     function renderFollowUps(){
@@ -2728,7 +2735,7 @@
       const dueTodayItems=[];
       leads.forEach(l=>{
         if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified'||l.status==='New') return;
-        if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate&&!l.followUpDate) return;
+        if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate&&l.email4SentDate&&!l.followUpDate) return;
         if(!l.followUpDate) return;
         const nd=normDateStr(l.followUpDate);
         if(!nd) return;
@@ -3215,7 +3222,7 @@
       } else {
         leads.forEach(l=>{
           if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified'||l.status==='New') return;
-          if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate&&!l.followUpDate) return;
+          if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate&&l.email4SentDate&&!l.followUpDate) return;
           if(!l.followUpDate||!l.directorEmail) return;
           const nd=normDateStr(l.followUpDate);
           if(nd&&nd<=td) dueItems.push(l);
