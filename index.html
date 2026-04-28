@@ -623,15 +623,20 @@
     #tab-followups .fu-stat-value.amber{color:#f59e0b}
     #tab-followups .fu-stat-value.emerald{color:#10B981}
     #tab-followups .fu-stat-sub{font-family:'Inter',sans-serif;font-size:11px;color:#9a95a8;margin-top:2px}
-    /* Bulk action bar (aurora restyle — overrides inline style) */
-    #tab-followups #followUpsBulkBar{display:none;align-items:center !important;gap:10px !important;flex-wrap:wrap !important;padding:10px 18px !important;margin-bottom:0 !important;border-radius:10px !important;background:rgba(255,255,255,0.02) !important;border:1px solid rgba(255,255,255,0.06) !important;flex:0 0 auto}
-    #tab-followups #followUpsBulkBar #fuSelCount{font-size:11px !important;color:#9a95a8 !important;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;font-family:'Inter',sans-serif}
-    #tab-followups #followUpsBulkBar > span{color:rgba(255,255,255,0.06) !important;font-size:12px !important}
-    #tab-followups #followUpsBulkBar #btnFuSelClear{background:transparent !important;border:1px solid rgba(255,255,255,0.06) !important;color:#9a95a8 !important;font-size:11px !important;font-weight:600 !important;letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px !important;border-radius:6px;transition:all .15s;font-family:'Inter',sans-serif}
-    #tab-followups #followUpsBulkBar #btnFuSelClear:hover{border-color:rgba(16,185,129,0.35) !important;color:#e0dce8 !important}
-    #tab-followups #followUpsBulkBar #btnFuBulkSendOutlook{background:transparent !important;border:1px solid rgba(59,130,246,0.35) !important;color:#3B82F6 !important;font-size:11px !important;font-weight:600 !important;letter-spacing:0.08em;text-transform:uppercase;padding:7px 16px !important;border-radius:6px;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:8px}
-    #tab-followups #followUpsBulkBar #btnFuBulkSendOutlook:hover{background:rgba(59,130,246,0.08) !important;border-color:#3B82F6 !important}
-    #tab-followups #followUpsBulkBar #fuSelectAll{width:14px;height:14px;accent-color:#10B981;cursor:pointer}
+    /* Per-section bulk bar (one inside each fu-section card, above the head) */
+    #tab-followups .fu-bulk-section{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;margin-bottom:12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);font-family:'Inter',sans-serif}
+    #tab-followups .fu-bulk-section input[type="checkbox"]{width:14px;height:14px;accent-color:#10B981;cursor:pointer}
+    #tab-followups .fu-bulk-section .sel-count{font-size:11px;color:#9a95a8;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;white-space:nowrap}
+    #tab-followups .fu-bulk-section .sep{color:rgba(255,255,255,0.1);font-size:12px}
+    #tab-followups .fu-bulk-section .btn-q{font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;background:transparent;border:1px solid rgba(255,255,255,0.06);color:#9a95a8;padding:5px 12px;border-radius:6px;cursor:pointer;transition:all .15s}
+    #tab-followups .fu-bulk-section .btn-q:hover:not(:disabled){border-color:rgba(16,185,129,0.4);color:#e0dce8}
+    #tab-followups .fu-bulk-section .btn-q:disabled{opacity:0.4;cursor:not-allowed}
+    #tab-followups .fu-bulk-section .bulk-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+    #tab-followups .fu-bulk-section .btn-bulk-send{background:rgba(16,185,129,0.12);color:#10B981;border:1px solid rgba(16,185,129,0.35);font-weight:700}
+    #tab-followups .fu-bulk-section .btn-bulk-send:hover:not(:disabled){background:rgba(16,185,129,0.22);border-color:#10B981}
+    /* Lettings section uses warn (amber) accent */
+    #tab-followups .fu-section.warn .fu-bulk-section .btn-bulk-send{background:rgba(245,158,11,0.12);color:#f59e0b;border-color:rgba(245,158,11,0.35)}
+    #tab-followups .fu-section.warn .fu-bulk-section .btn-bulk-send:hover:not(:disabled){background:rgba(245,158,11,0.22);border-color:#f59e0b}
     /* Sections container — fills remaining space, scrolls internally */
     #tab-followups #followUpsList{flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#1e1e1e transparent;padding-right:4px}
     /* Section (neon card) */
@@ -1416,19 +1421,7 @@
 
       <div class="fu-stats" id="fuStats"></div>
 
-      <div id="followUpsBulkBar" style="display:none">
-        <input type="checkbox" class="sel-check" id="fuSelectAll" title="Select / deselect all follow-ups">
-        <span id="fuSelCount">0 selected</span>
-        <span>|</span>
-        <button class="btn-ghost btn-sm" id="btnFuSelClear">Clear</button>
-        <div style="margin-left:auto;display:flex;align-items:center;gap:8px" id="fuBulkActionArea" class="hidden">
-          <button class="btn-send-outlook btn-sm" id="btnFuBulkSendOutlook">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            Send via Outlook
-          </button>
-        </div>
-      </div>
-
+      <!-- Per-section bulk bars are rendered inside each fu-section card by renderSection -->
       <div id="followUpsList"></div>
     </section>
 
@@ -2480,13 +2473,26 @@ function updateBulkUI(){
     }
 
     // ---- Follow Ups bulk-select state ----
-    let selectedFollowUpIds=new Set();
+    // Per-section follow-up selection state — keyed by section CSS class (emerald/red/amber/warn)
+    let selFuInitial=new Set(), selFuOverdue=new Set(), selFuToday=new Set(), selFuLettings=new Set();
+    const selFuByCls={emerald:selFuInitial,red:selFuOverdue,amber:selFuToday,warn:selFuLettings};
     let _lastFollowUpsItems=[];
     function updateFuBulkUI(){
-      const count=selectedFollowUpIds.size;
-      const countEl=document.getElementById('fuSelCount'); if(countEl) countEl.textContent=count+' selected';
-      const area=document.getElementById('fuBulkActionArea');
-      if(area) area.style.display=count>0?'flex':'none';
+      // Per-section count + send-button enable state
+      ['emerald','red','amber','warn'].forEach(cls=>{
+        const set=selFuByCls[cls];
+        const bar=document.querySelector('.fu-section.'+cls+' .fu-bulk-section');
+        if(!bar) return;
+        const cnt=bar.querySelector('.sel-count'); if(cnt) cnt.textContent=set.size+' selected';
+        const sendBtn=bar.querySelector('.btn-bulk-send'); if(sendBtn) sendBtn.disabled=set.size===0;
+        const sa=bar.querySelector('.fu-bulk-selall'); if(sa){
+          // Determine total visible items in this section from the rendered rows (excluding header)
+          const rows=bar.parentElement?bar.parentElement.querySelectorAll(':scope > .fu-row'):[];
+          const total=rows.length;
+          sa.checked=total>0&&set.size===total;
+          sa.indeterminate=set.size>0&&set.size<total;
+        }
+      });
     }
 
     // ---- Lead Detail Modal ----
@@ -2751,8 +2757,12 @@ function updateBulkUI(){
       const total=overdueItems.length+dueTodayItems.length+unsent.length+lettingsReady.length;
       if(badge){ if(total>0){ badge.textContent=total; badge.style.display='inline-flex'; } else { badge.style.display='none'; } }
       _lastFollowUpsItems=[...unsent,...overdueItems,...dueTodayItems,...lettingsReady];
-      const visibleIds=new Set(_lastFollowUpsItems.map(l=>l.id));
-      selectedFollowUpIds.forEach(id=>{ if(!visibleIds.has(id)) selectedFollowUpIds.delete(id); });
+      // Per-section visible-IDs cleanup: drop selections that are no longer in their section's items
+      const visBy={emerald:new Set(unsent.map(l=>l.id)),red:new Set(overdueItems.map(l=>l.id)),amber:new Set(dueTodayItems.map(l=>l.id)),warn:new Set(lettingsReady.map(l=>l.id))};
+      Object.keys(visBy).forEach(cls=>{
+        const set=selFuByCls[cls]; const visIds=visBy[cls];
+        Array.from(set).forEach(id=>{ if(!visIds.has(id)) set.delete(id); });
+      });
       const statsEl=document.getElementById('fuStats');
       if(statsEl){
         statsEl.innerHTML=
@@ -2761,9 +2771,7 @@ function updateBulkUI(){
           '<div class="fu-stat emerald"><div class="fu-stat-inner"><div class="fu-stat-label">Initial not sent</div><div class="fu-stat-value emerald">'+unsent.length+'</div><div class="fu-stat-sub">Qualifier drafts ready</div></div></div>'+
           '<div class="fu-stat"><div class="fu-stat-inner"><div class="fu-stat-label">Try lettings</div><div class="fu-stat-value">'+lettingsReady.length+'</div><div class="fu-stat-sub">Sales sequence complete</div></div></div>';
       }
-      const bulkBar=document.getElementById('followUpsBulkBar');
-      if(bulkBar) bulkBar.style.display=total>0?'flex':'none';
-      if(!total){ container.innerHTML='<div class="fu-empty">All clear — no follow-ups due.</div>'; updateFuBulkUI(); syncSelectAllState(); return; }
+      if(!total){ container.innerHTML='<div class="fu-empty">All clear — no follow-ups due.</div>'; updateFuBulkUI(); return; }
       const nextEmailFor=(l)=>{
         if(!l.email1SentDate) return 'Email 1';
         if(!l.email2SentDate) return 'Email 2';
@@ -2775,14 +2783,59 @@ function updateBulkUI(){
         if(!items.length) return;
         const sec=document.createElement('div'); sec.className='fu-section '+cls;
         const secInner=document.createElement('div'); secInner.className='fu-section-inner';
-        secInner.innerHTML='<div class="fu-section-head"><div class="fu-section-title"><span class="dot"></span>'+escapeHtml(titleText)+'</div><div class="fu-section-count">'+escapeHtml(countText)+'</div></div>';
+        const sectionSet=selFuByCls[cls];
+        const sendLabel=cls==='warn'?'Send to Lettings':'Send via Outlook';
+        // Per-section bulk bar at the top of the card
+        secInner.innerHTML='<div class="fu-bulk-section" data-section="'+cls+'">'+
+          '<input type="checkbox" class="fu-bulk-selall" title="Select / deselect all in this section">'+
+          '<span class="sel-count">'+sectionSet.size+' selected</span>'+
+          '<span class="sep">|</span>'+
+          '<button type="button" class="btn-q" data-bact="qsel" data-n="10">10</button>'+
+          '<button type="button" class="btn-q" data-bact="qsel" data-n="25">25</button>'+
+          '<button type="button" class="btn-q" data-bact="qsel" data-n="50">50</button>'+
+          '<span class="sep">|</span>'+
+          '<button type="button" class="btn-q" data-bact="clear">Clear</button>'+
+          '<div class="bulk-right"><button type="button" class="btn-q btn-bulk-send" data-bact="bulk-send"'+(sectionSet.size===0?' disabled':'')+'>'+escapeHtml(sendLabel)+'</button></div>'+
+          '</div>'+
+          '<div class="fu-section-head"><div class="fu-section-title"><span class="dot"></span>'+escapeHtml(titleText)+'</div><div class="fu-section-count">'+escapeHtml(countText)+'</div></div>';
+        // Bind per-section bulk bar handlers
+        const bulkBar=secInner.querySelector('.fu-bulk-section');
+        const sa=bulkBar.querySelector('.fu-bulk-selall');
+        sa.addEventListener('change',()=>{
+          if(sa.checked) items.forEach(l=>sectionSet.add(l.id));
+          else sectionSet.clear();
+          renderFollowUps();
+        });
+        bulkBar.querySelectorAll('[data-bact="qsel"]').forEach(btn=>btn.addEventListener('click',()=>{
+          sectionSet.clear();
+          const n=parseInt(btn.dataset.n,10);
+          items.slice(0,n).forEach(l=>sectionSet.add(l.id));
+          renderFollowUps();
+        }));
+        bulkBar.querySelector('[data-bact="clear"]').addEventListener('click',()=>{
+          sectionSet.clear();
+          renderFollowUps();
+        });
+        bulkBar.querySelector('[data-bact="bulk-send"]').addEventListener('click',()=>{
+          handleSectionBulkSend(cls,items);
+        });
+        // Initial select-all visual state
+        sa.checked=items.length>0&&items.every(it=>sectionSet.has(it.id));
+        sa.indeterminate=!sa.checked&&sectionSet.size>0;
+        // Rows
         items.forEach(l=>{
           const row=document.createElement('div'); row.className='fu-row';
           row.innerHTML=rowBuilder(l);
           const chk=row.querySelector('input[type="checkbox"]');
           if(chk){
+            chk.checked=sectionSet.has(l.id);
             chk.addEventListener('click',e=>e.stopPropagation());
-            chk.addEventListener('change',e=>{ e.stopPropagation(); if(chk.checked) selectedFollowUpIds.add(l.id); else selectedFollowUpIds.delete(l.id); syncSelectAllState(); updateFuBulkUI(); });
+            chk.addEventListener('change',e=>{
+              e.stopPropagation();
+              if(chk.checked) sectionSet.add(l.id);
+              else sectionSet.delete(l.id);
+              updateFuBulkUI();
+            });
           }
           const compBtn=row.querySelector('[data-action="compose"]');
           if(compBtn) compBtn.addEventListener('click',e=>{ e.stopPropagation(); goToEmail(l.id); });
@@ -2795,7 +2848,7 @@ function updateBulkUI(){
         sec.appendChild(secInner); container.appendChild(sec);
       };
       renderSection(unsent,'emerald','Initial not sent',unsent.length+' '+(unsent.length===1?'agency':'agencies')+' · qualifier draft ready',(l)=>
-        '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'>'+
+        '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'">'+
         '<span class="fu-badge initial">Initial</span>'+
         '<span class="fu-next">Email 1</span>'+
         '<div class="fu-info"><div class="fu-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="fu-director">'+escapeHtml(l.directorName||'')+(l.city?' · '+escapeHtml(l.city):'')+'</div></div>'+
@@ -2803,35 +2856,27 @@ function updateBulkUI(){
       );
       renderSection(overdueItems,'red','Overdue',overdueItems.length+' '+(overdueItems.length===1?'agency':'agencies')+' · past due date',(l)=>{
         const daysLate=daysBetween(normDateStr(l.followUpDate),td);
-        return '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'>'+
+        return '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'">'+
           '<span class="fu-badge overdue">Overdue · '+daysLate+'d</span>'+
           '<span class="fu-next">'+nextEmailFor(l)+'</span>'+
           '<div class="fu-info"><div class="fu-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="fu-director">'+escapeHtml(l.directorName||'')+(l.city?' · '+escapeHtml(l.city):'')+'</div></div>'+
           '<div class="fu-actions"><button class="btn-fu btn-fu-compose" data-action="compose">Compose</button><button class="btn-fu" data-action="snooze">Snooze 3d</button></div>';
       });
       renderSection(dueTodayItems,'amber','Due today',dueTodayItems.length+' '+(dueTodayItems.length===1?'agency':'agencies')+' · action today',(l)=>
-        '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'>'+
+        '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'">'+
         '<span class="fu-badge today">Today</span>'+
         '<span class="fu-next">'+nextEmailFor(l)+'</span>'+
         '<div class="fu-info"><div class="fu-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="fu-director">'+escapeHtml(l.directorName||'')+(l.city?' · '+escapeHtml(l.city):'')+'</div></div>'+
         '<div class="fu-actions"><button class="btn-fu btn-fu-compose" data-action="compose">Compose</button><button class="btn-fu" data-action="snooze">Snooze 3d</button></div>'
       );
       renderSection(lettingsReady,'warn','Sales sequence complete — try lettings',lettingsReady.length+' '+(lettingsReady.length===1?'agency':'agencies')+' · second attempt via lettings inbox',(l)=>
-        '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'" '+(selectedFollowUpIds.has(l.id)?'checked':'')+'>'+
+        '<input type="checkbox" class="sel-check sel-followups" data-id="'+l.id+'">'+
         '<span class="fu-badge lettings">Lettings</span>'+
         '<span class="fu-next">New thread</span>'+
         '<div class="fu-info"><div class="fu-name">'+escapeHtml(l.agencyName||'(no name)')+'</div><div class="fu-director">'+escapeHtml(l.lettingsEmail||'')+'</div></div>'+
         '<div class="fu-actions"><button class="btn-fu btn-fu-lettings" data-action="send-lettings">Send to Lettings</button></div>'
       );
-      syncSelectAllState();
       updateFuBulkUI();
-    }
-    function syncSelectAllState(){
-      const sel=document.getElementById('fuSelectAll'); if(!sel) return;
-      const total=_lastFollowUpsItems.length;
-      const count=selectedFollowUpIds.size;
-      sel.checked=(total>0 && count===total);
-      sel.indeterminate=(count>0 && count<total);
     }
 
     // Open the Sequence Manager in lettings mode for the given lead — preview + edit flow.
@@ -3738,42 +3783,49 @@ function updateBulkUI(){
     }
 
     function bindFollowUps(){
-      const selAll=document.getElementById('fuSelectAll');
-      if(selAll) selAll.addEventListener('change',()=>{
-        if(selAll.checked) _lastFollowUpsItems.forEach(l=>selectedFollowUpIds.add(l.id));
-        else selectedFollowUpIds.clear();
-        renderFollowUps(); updateFuBulkUI();
-      });
-      const clearBtn=document.getElementById('btnFuSelClear');
-      if(clearBtn) clearBtn.addEventListener('click',()=>{ selectedFollowUpIds.clear(); renderFollowUps(); updateFuBulkUI(); });
-      const sendBtn=document.getElementById('btnFuBulkSendOutlook');
-      if(sendBtn) sendBtn.addEventListener('click',handleFuBulkSendOutlook);
+      // Per-section bulk handlers are now bound inside renderSection() — this is a no-op.
+      // Kept as a hook in case future global Follow Ups bindings need a place to live.
     }
 
-    // ---- Bulk send via Outlook (follow-ups selection) ----
-    function handleFuBulkSendOutlook(){
+    // ---- Bulk send via Outlook — per-section entry point ----
+    // cls: 'emerald' (Initial Not Sent) | 'red' (Overdue) | 'amber' (Due Today) | 'warn' (Lettings)
+    // items: visible items for that section (used for any "select all" fallback context)
+    function handleSectionBulkSend(cls,items){
       if(!outlookAccount){ alert('Connect Outlook first (Inbox tab).'); return; }
-      if(!selectedFollowUpIds.size){ alert('Select at least one follow-up.'); return; }
+      const sectionSet=selFuByCls[cls];
+      if(!sectionSet || !sectionSet.size){ alert('Select at least one row in this section.'); return; }
 
+      // Lettings section uses the per-lead preview flow (Sequence Manager). Bulk routes through
+      // the first selected lead and informs the operator the rest must be sent one-by-one.
+      if(cls==='warn'){
+        const ids=Array.from(sectionSet);
+        const firstLead=leads.find(x=>x.id==ids[0]);
+        const remaining=ids.length-1;
+        if(remaining>0){
+          const ok=confirm('Lettings sends use a per-lead preview. Opening preview for '+(firstLead?firstLead.agencyName:'(unnamed)')+'. The remaining '+remaining+' will need to be sent one-by-one. Continue?');
+          if(!ok) return;
+        }
+        sendToLettings(ids[0]);
+        return;
+      }
+
+      // Standard flow (Initial / Overdue / Due Today): build eligible list, surface skips, openSendAllModal
       const TERMINAL=['Won','Lost','Unqualified'];
       const eligible=[];
       const skipped=[];
-      selectedFollowUpIds.forEach(id=>{
+      sectionSet.forEach(id=>{
         const l=leads.find(x=>x.id==id);
         if(!l) return;
         if(TERMINAL.includes(l.status)){ skipped.push({lead:l,reason:'Terminal status ('+l.status+')'}); return; }
         if(!l.directorEmail){ skipped.push({lead:l,reason:'No email address'}); return; }
         if(l.email4SentDate){ skipped.push({lead:l,reason:'All emails already sent'}); return; }
-        // Determine template stage
         let tplKey='1';
         if(l.email1SentDate&&!l.email2SentDate) tplKey='2';
         else if(l.email1SentDate&&l.email2SentDate&&!l.email3SentDate) tplKey='3';
         else if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate&&!l.email4SentDate) tplKey='4';
-        // Email 1 requires the qualifier's personalised draft; follow-ups use generic templates
         if(tplKey==='1'&&(!l.draftSubject||!l.draftBody)){ skipped.push({lead:l,reason:'No draft Email 1 — qualify this lead first'}); return; }
         eligible.push(l);
       });
-
       if(!eligible.length){
         alert('0 eligible to send.\n\nSkipped:\n'+skipped.map(s=>'• '+(s.lead.agencyName||'(unnamed)')+' — '+s.reason).join('\n'));
         return;
