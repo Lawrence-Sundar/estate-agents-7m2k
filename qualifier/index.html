@@ -474,6 +474,10 @@
     const SB_KEY = 'sb_publishable_EKF8XjMQO-ILwFbEtbU-mw_2DFfDECH';
     const SB_TABLE = 'daedalus_leads';
     let _sb = null;
+    // Returns fallback on null OR parse error. Wraps JSON.parse for safe
+    // localStorage / LLM-output reads. Mirror of Versa qualifier helper.
+    function safeJsonParse(text, fallback){ try { return text == null ? fallback : JSON.parse(text); } catch { return fallback; } }
+
     function getSB(){ if(!_sb && window.supabase) _sb = window.supabase.createClient(SB_URL, SB_KEY); return _sb; }
 
     // ── Supabase write tracking + visible sync error banner ──

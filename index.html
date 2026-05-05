@@ -1632,6 +1632,11 @@
     const SB_KEY = 'sb_publishable_EKF8XjMQO-ILwFbEtbU-mw_2DFfDECH';
     const SB_TABLE = 'daedalus_leads';
     let _sb = null;
+    // Returns fallback on null OR parse error. Replaces the unsafe pattern
+    // raw?JSON.parse(raw):[] which throws on corrupted localStorage. Mirrors
+    // Versa tracker-app helper (cross-cutting safeJsonParse pattern).
+    function safeJsonParse(text, fallback){ try { return text == null ? fallback : JSON.parse(text); } catch { return fallback; } }
+
     function getSB(){ if(!_sb && window.supabase) _sb = window.supabase.createClient(SB_URL, SB_KEY); return _sb; }
 
     // ── Supabase write tracking + visible sync error banner ──
@@ -1791,9 +1796,9 @@
           else throw new Error(error?.message||'No data');
         }catch(e){
           console.warn('[load] Supabase failed, falling back to localStorage:',e.message);
-          const raw=localStorage.getItem(STORAGE_KEY); leads=raw?JSON.parse(raw):[];
+          leads=safeJsonParse(localStorage.getItem(STORAGE_KEY), []);
         }
-      } else { const raw=localStorage.getItem(STORAGE_KEY); leads=raw?JSON.parse(raw):[]; }
+      } else { leads=safeJsonParse(localStorage.getItem(STORAGE_KEY), []); }
       if(!leads.length){ try{ const bRaw=localStorage.getItem(BACKUP_KEY); if(bRaw){ const backups=JSON.parse(bRaw); if(backups.length&&(backups[0].data||[]).length){ const b=backups[0]; if(confirm('No data found but a backup exists from '+formatBackupTimestamp(b.timestamp)+' with '+b.data.length+' agencies. Restore it?')){ leads=b.data; localStorage.setItem(STORAGE_KEY,JSON.stringify(leads)); } } } }catch(e){ console.warn('[load] Backup restore prompt failed:', e && e.message); } }
       leads.forEach(l=>{
         if(!l.status) l.status='New';
@@ -3241,12 +3246,12 @@ function updateBulkUI(){
     function openBackupModal(){ renderBackupList(); document.getElementById('backupBackdrop').classList.add('open'); document.getElementById('backupModal').classList.add('open'); }
     function closeBackupModal(){ document.getElementById('backupBackdrop').classList.remove('open'); document.getElementById('backupModal').classList.remove('open'); }
     function renderBackupList(){
-      const container=document.getElementById('backupList'); const bRaw=localStorage.getItem(BACKUP_KEY); const backups=bRaw?JSON.parse(bRaw):[];
+      const container=document.getElementById('backupList'); const backups=safeJsonParse(localStorage.getItem(BACKUP_KEY), []);
       if(!backups.length){ container.innerHTML='<div style="color:var(--muted);font-size:12px;padding:12px 0">No backups found.</div>'; return; }
       container.innerHTML='';
       backups.forEach((b,i)=>{ const ts=formatBackupTimestamp(b.timestamp); const count=(b.data||[]).length; const row=document.createElement('div'); row.className='backup-row'; row.innerHTML='<div><div class="backup-ts">'+escapeHtml(ts)+'</div><div class="backup-count">'+count+' agenc'+(count===1?'y':'ies')+'</div></div><button class="btn btn-ghost" style="flex-shrink:0" data-idx="'+i+'">Restore</button>'; row.querySelector('button').addEventListener('click',()=>restoreFromBackup(i)); container.appendChild(row); });
     }
-    function restoreFromBackup(idx){ const bRaw=localStorage.getItem(BACKUP_KEY); if(!bRaw) return; const backups=JSON.parse(bRaw); const b=backups[idx]; if(!b) return; if(!confirm('Restore '+(b.data||[]).length+' agencies from '+formatBackupTimestamp(b.timestamp)+'? This will overwrite your current data.')) return; localStorage.setItem(STORAGE_KEY,JSON.stringify(b.data||[])); closeBackupModal(); location.reload(); }
+    function restoreFromBackup(idx){ const backups=safeJsonParse(localStorage.getItem(BACKUP_KEY), []); if(!backups.length) return; const b=backups[idx]; if(!b) return; if(!confirm('Restore '+(b.data||[]).length+' agencies from '+formatBackupTimestamp(b.timestamp)+'? This will overwrite your current data.')) return; localStorage.setItem(STORAGE_KEY,JSON.stringify(b.data||[])); closeBackupModal(); location.reload(); }
 
     // ---- Send All Modal ----
     function openSendAllModal(customLeads){
