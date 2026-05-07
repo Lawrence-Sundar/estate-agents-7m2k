@@ -1685,7 +1685,7 @@
       linkedinMessage1Date:'linkedin_message1_date', linkedinMessage2Date:'linkedin_message2_date',
       linkedinMessage3Date:'linkedin_message3_date',
       notes:'notes', customObservation:'custom_observation', replyType:'reply_type',
-      threadMessageId:'thread_message_id', activityLog:'activity_log',
+      threadMessageId:'thread_message_id', outboundConversationId:'outbound_conversation_id', activityLog:'activity_log',
       dateAdded:'date_added',
       channel:'channel', score:'score',
       draftSubject:'draft_subject', draftBody:'draft_body',
@@ -3368,7 +3368,7 @@ function updateBulkUI(){
         const htmlBody='<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.65">'+escapeHtml(cleanBody).replace(/\n/g,'<br>').replace(/&lt;a href=&quot;(.+?)&quot;&gt;(.+?)&lt;\/a&gt;/g,'<a href="$1">$2</a>')+'</div>';
         try{
           if(lead.threadMessageId){ await sendGraphReply(lead.threadMessageId, htmlBody, lead.directorEmail); }
-          else { const msgId=await sendGraphEmail(lead.directorEmail, subject, htmlBody); if(msgId) lead.threadMessageId=msgId; }
+          else { const r=await sendGraphEmail(lead.directorEmail, subject, htmlBody); if(r&&r.internetMessageId) lead.threadMessageId=r.internetMessageId; if(r&&r.conversationId) lead.outboundConversationId=r.conversationId; }
           // Mark email sent
           if(!lead.email1SentDate){ lead.email1SentDate=todayISO(); lead.email2Date=addDays(todayISO(),3); lead.email3Date=addDays(todayISO(),7); lead.email4Date=addDays(todayISO(),14); updateStatus(lead,'Contacted'); lead.followUpDate=addDays(todayISO(),3); }
           else if(!lead.email2SentDate){ lead.email2SentDate=todayISO(); lead.followUpDate=addDays(todayISO(),3); }
@@ -3542,9 +3542,12 @@ function updateBulkUI(){
       const draftData=await draftResp.json();
       const messageId=draftData.id;
       const internetMessageId=draftData.internetMessageId;
+      // Phase 1A: capture conversationId for inbound reply matching.
+      // Draft response includes conversationId as a standard message property — no Sent Items query needed.
+      const conversationId=draftData.conversationId||null;
       const sendResp=await fetch('https://graph.microsoft.com/v1.0/me/messages/'+messageId+'/send',{method:'POST',headers});
       if(!sendResp.ok){ const err=await sendResp.json().catch(()=>({})); throw new Error(err.error?.message||'Send failed: '+sendResp.status); }
-      return internetMessageId;
+      return {internetMessageId,conversationId};
     }
 
     async function sendGraphReply(internetMessageId,htmlBody,toEmail){
@@ -3610,7 +3613,8 @@ function updateBulkUI(){
       btn.textContent='Sending...'; btn.disabled=true;
       try{
         if(isLettings){
-          // Lettings send — new conversation (NOT a reply on the sales thread); record separately
+          // Lettings send — new conversation (NOT a reply on the sales thread); record separately.
+          // Note: lettings conversation is a separate thread; outboundConversationId tracks the SALES thread for reply-detection.
           await sendGraphEmail(targetAddr,subject,htmlBody);
           lead.lettingsSentDate=todayISO();
           if(!Array.isArray(lead.activityLog)) lead.activityLog=[];
@@ -3619,7 +3623,7 @@ function updateBulkUI(){
           updateLettingsBanner();
         } else {
           if(lead.threadMessageId){ await sendGraphReply(lead.threadMessageId,htmlBody,targetAddr); }
-          else { const msgId=await sendGraphEmail(targetAddr,subject,htmlBody); if(msgId) lead.threadMessageId=msgId; }
+          else { const r=await sendGraphEmail(targetAddr,subject,htmlBody); if(r&&r.internetMessageId) lead.threadMessageId=r.internetMessageId; if(r&&r.conversationId) lead.outboundConversationId=r.conversationId; }
           if(!lead.email1SentDate){ lead.email1SentDate=todayISO(); lead.email2Date=addDays(todayISO(),3); lead.email3Date=addDays(todayISO(),7); lead.email4Date=addDays(todayISO(),14); updateStatus(lead,'Contacted'); lead.followUpDate=addDays(todayISO(),3); }
           else if(!lead.email2SentDate){ lead.email2SentDate=todayISO(); lead.followUpDate=addDays(todayISO(),3); }
           else if(!lead.email3SentDate){ lead.email3SentDate=todayISO(); lead.followUpDate=addDays(todayISO(),3); }
