@@ -1904,6 +1904,11 @@
     function daysBetween(a,b){ if(!a||!b) return 0; const d1=new Date(a), d2=new Date(b); return Math.round((d2-d1)/86400000); }
     const REPLIED_STATUSES=['Replied','Interested','Call Booked','Proposal Sent','Won'];
     const DO_NOT_CONTACT_STATUSES=['Unqualified','Lost','No Response'];
+    // FU eligibility allowlists — strict: only these statuses may surface in time-driven Follow Ups sections or auto-fire bulk sends.
+    // 'Contacted' = mid-sequence, awaiting reply. In-conversation states (Replied/Interested/Call Booked/Proposal Sent) are excluded; handle manually via Sequence Manager.
+    const FU_ACTIVE_STATUSES=['Contacted'];
+    const FU_LETTINGS_STATUSES=['Contacted','No Response'];
+    const IN_CONVERSATION=['Replied','Interested','Call Booked','Proposal Sent'];
     function isReplied(l){ return REPLIED_STATUSES.includes(l.status); }
     function isDoNotContact(l){ return DO_NOT_CONTACT_STATUSES.includes(l.status); }
     function firstSentDate(l){ return l.email1SentDate || l.email2SentDate || l.email3SentDate || ''; }
@@ -2312,8 +2317,8 @@
       // Today's Tasks — packaged from Action Required logic
       const taskList=_s('dashTaskList');
       if(taskList){
-        const overdueCount=leads.filter(l=>!TERMINAL.includes(l.status)&&l.followUpDate&&normDateStr(l.followUpDate)<td).length;
-        const todayCount=leads.filter(l=>!TERMINAL.includes(l.status)&&l.followUpDate&&normDateStr(l.followUpDate)===td).length;
+        const overdueCount=leads.filter(l=>FU_ACTIVE_STATUSES.includes(l.status)&&l.followUpDate&&normDateStr(l.followUpDate)<td).length;
+        const todayCount=leads.filter(l=>FU_ACTIVE_STATUSES.includes(l.status)&&l.followUpDate&&normDateStr(l.followUpDate)===td).length;
         const replyCount=leads.filter(l=>l.status==='Replied').length;
         const rows=[
           {chip:'overdue',chipTxt:'Overdue',count:overdueCount,
@@ -2737,7 +2742,7 @@ function updateBulkUI(){
       const overdueItems=[];
       const dueTodayItems=[];
       leads.forEach(l=>{
-        if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified'||l.status==='New') return;
+        if(!FU_ACTIVE_STATUSES.includes(l.status)) return;
         if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate&&l.email4SentDate&&!l.followUpDate) return;
         if(!l.followUpDate) return;
         const nd=normDateStr(l.followUpDate);
@@ -2746,13 +2751,13 @@ function updateBulkUI(){
         else if(nd===td) dueTodayItems.push(l);
       });
       const unsent=leads.filter(l=>{
-        if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified') return false;
+        if(l.status!=='New') return false;
         if(l.email1SentDate) return false;
         if(!l.draftSubject||!l.draftBody) return false;
         return true;
       });
       const lettingsReady=leads.filter(l=>{
-        if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified') return false;
+        if(!FU_LETTINGS_STATUSES.includes(l.status)) return false;
         if(!l.lettingsEmail) return false;
         if(!l.email4SentDate) return false;
         if(l.lettingsSentDate) return false;
@@ -3263,7 +3268,7 @@ function updateBulkUI(){
         dueItems=customLeads;
       } else {
         leads.forEach(l=>{
-          if(l.status==='Won'||l.status==='Lost'||l.status==='Unqualified'||l.status==='New') return;
+          if(!FU_ACTIVE_STATUSES.includes(l.status)) return;
           if(l.email1SentDate&&l.email2SentDate&&l.email3SentDate&&l.email4SentDate&&!l.followUpDate) return;
           if(!l.followUpDate||!l.directorEmail) return;
           const nd=normDateStr(l.followUpDate);
@@ -3763,6 +3768,7 @@ function updateBulkUI(){
         const l=leads.find(x=>x.id==id);
         if(!l) return;
         if(TERMINAL.includes(l.status)){ skipped.push({lead:l,reason:'Terminal status ('+l.status+')'}); return; }
+        if(IN_CONVERSATION.includes(l.status)){ skipped.push({lead:l,reason:'In active conversation ('+l.status+') — send manually via Sequence Manager'}); return; }
         if(!l.directorEmail){ skipped.push({lead:l,reason:'No email address'}); return; }
         if(l.email4SentDate){ skipped.push({lead:l,reason:'All emails already sent'}); return; }
         // Determine template stage
@@ -3822,6 +3828,7 @@ function updateBulkUI(){
         const l=leads.find(x=>x.id==id);
         if(!l) return;
         if(TERMINAL.includes(l.status)){ skipped.push({lead:l,reason:'Terminal status ('+l.status+')'}); return; }
+        if(IN_CONVERSATION.includes(l.status)){ skipped.push({lead:l,reason:'In active conversation ('+l.status+') — send manually via Sequence Manager'}); return; }
         if(!l.directorEmail){ skipped.push({lead:l,reason:'No email address'}); return; }
         if(l.email4SentDate){ skipped.push({lead:l,reason:'All emails already sent'}); return; }
         let tplKey='1';
