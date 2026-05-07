@@ -3320,15 +3320,21 @@ function updateBulkUI(){
       confirmBtn.onclick=()=>{ _bulkSendCancelled=true; confirmBtn.textContent='Stopping...'; confirmBtn.disabled=true; };
       if(progressEl){ progressEl.textContent='0 / '+rows.length; progressEl.style.display='block'; }
       let sent=0, failed=0;
+      const updateProgress=()=>{ if(progressEl) progressEl.textContent=(sent+failed)+' / '+rows.length; };
       for(const row of rows){
         if(_bulkSendCancelled) break;
         const id=row.dataset.id; const tplKey=row.dataset.tpl;
         const statusEl=document.getElementById('sas-'+id);
         const lead=leads.find(l=>l.id==id);
-        if(!lead||!lead.directorEmail) continue;
+        // A3.3 — surface skip reasons instead of silent continue
+        if(!lead){ if(statusEl) statusEl.innerHTML='<span style="color:var(--danger);font-size:12px">Lead not found (deleted?)</span>'; failed++; updateProgress(); console.warn('[runSendAll] Lead not found for id',id); continue; }
+        if(!lead.directorEmail){ if(statusEl) statusEl.innerHTML='<span style="color:var(--danger);font-size:12px">No email address</span>'; failed++; updateProgress(); continue; }
+        // A3.1 — Fresh status re-check at iteration (defends against marked-Replied-since-modal-opened race). E1 must be 'New'; E2/E3/E4 must be 'Contacted'.
+        const allowedStatuses=(tplKey==='1')?['New']:FU_ACTIVE_STATUSES;
+        if(!allowedStatuses.includes(lead.status)){ if(statusEl) statusEl.innerHTML='<span style="color:var(--danger);font-size:12px" title="Status changed to '+lead.status+' since modal opened">Skipped: '+lead.status+'</span>'; failed++; updateProgress(); continue; }
         if(statusEl) statusEl.innerHTML='<span style="color:#888;font-size:12px">Sending...</span>';
         const tpl=SEQ_TEMPLATES[tplKey];
-        if(!tpl){ if(statusEl) statusEl.innerHTML='<span style="color:var(--danger);font-size:12px">No template</span>'; failed++; continue; }
+        if(!tpl){ if(statusEl) statusEl.innerHTML='<span style="color:var(--danger);font-size:12px">No template</span>'; failed++; updateProgress(); continue; }
         // Prefer qualifier's personalised draft for Email 1; generic template for follow-ups (and for E1 without a draft).
         let subject, body;
         if(tplKey==='1' && lead.draftSubject && lead.draftBody){
@@ -3352,10 +3358,14 @@ function updateBulkUI(){
           else if(!lead.email2SentDate){ lead.email2SentDate=todayISO(); lead.followUpDate=addDays(todayISO(),3); }
           else if(!lead.email3SentDate){ lead.email3SentDate=todayISO(); lead.followUpDate=addDays(todayISO(),3); }
           else if(!lead.email4SentDate){ lead.email4SentDate=todayISO(); lead.followUpDate=''; }
+          // A3.2 — persist this single lead immediately after successful send (mid-batch crash recovery: SMTP fired but DB never updated = duplicate-send risk on next run).
+          const sb=getSB();
+          if(sb) _sbTracked(sb.from(SB_TABLE).upsert(leadToSnake(lead),{onConflict:'id'}), 'runSendAll persist '+lead.id);
+          try { localStorage.setItem(STORAGE_KEY,JSON.stringify(leads)); } catch(e) { console.warn('[runSendAll] localStorage write skipped:', e && e.message); }
           sent++;
           if(statusEl) statusEl.innerHTML='<span style="color:var(--accent);font-size:12px">&#10003; Sent</span>';
         }catch(e){ failed++; if(statusEl) statusEl.innerHTML='<span style="color:var(--danger);font-size:12px" title="'+escapeHtml(e.message)+'">Failed</span>'; }
-        if(progressEl) progressEl.textContent=(sent+failed)+' / '+rows.length;
+        updateProgress();
       }
       save();
       if(progressEl) progressEl.textContent='Done - '+sent+' sent'+(failed?', '+failed+' failed':'');
