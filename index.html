@@ -3256,7 +3256,23 @@ function updateBulkUI(){
       container.innerHTML='';
       backups.forEach((b,i)=>{ const ts=formatBackupTimestamp(b.timestamp); const count=(b.data||[]).length; const row=document.createElement('div'); row.className='backup-row'; row.innerHTML='<div><div class="backup-ts">'+escapeHtml(ts)+'</div><div class="backup-count">'+count+' agenc'+(count===1?'y':'ies')+'</div></div><button class="btn btn-ghost" style="flex-shrink:0" data-idx="'+i+'">Restore</button>'; row.querySelector('button').addEventListener('click',()=>restoreFromBackup(i)); container.appendChild(row); });
     }
-    function restoreFromBackup(idx){ const backups=safeJsonParse(localStorage.getItem(BACKUP_KEY), []); if(!backups.length) return; const b=backups[idx]; if(!b) return; if(!confirm('Restore '+(b.data||[]).length+' agencies from '+formatBackupTimestamp(b.timestamp)+'? This will overwrite your current data.')) return; localStorage.setItem(STORAGE_KEY,JSON.stringify(b.data||[])); closeBackupModal(); location.reload(); }
+    // B2.5 — Restore-from-backup must use save() (dual-write Supabase + localStorage) instead of localStorage-only + reload.
+    // Old behaviour wrote to localStorage then reloaded. The reload triggered load() which is Supabase-first, so the localStorage
+    // restore was silently overwritten by Supabase's current state — backup feature was effectively non-functional.
+    // New behaviour: replace in-memory leads + save() (writes to Supabase via _sbTracked + localStorage + renderAll). Confirm
+    // message also clarifies that Supabase will be overwritten so operator knows the blast radius before clicking.
+    function restoreFromBackup(idx){
+      const backups=safeJsonParse(localStorage.getItem(BACKUP_KEY), []);
+      if(!backups.length) return;
+      const b=backups[idx];
+      if(!b) return;
+      const count=(b.data||[]).length;
+      if(!confirm('Restore '+count+' agencies from '+formatBackupTimestamp(b.timestamp)+'?\n\nThis will OVERWRITE your current data in BOTH localStorage AND Supabase. The current Supabase state will be lost.')) return;
+      leads = b.data || [];
+      save();
+      closeBackupModal();
+      showToast('Restored '+count+' agenc'+(count===1?'y':'ies'));
+    }
 
     // ---- Send All Modal ----
     function openSendAllModal(customLeads){
